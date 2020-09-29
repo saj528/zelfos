@@ -7,40 +7,20 @@ import helpers.GameInfo;
 
 public class Player extends Sprite {
     private World world;
-    private Body body;
+    private float SPEED = 5.0f;
 
     public Player(World world, String name, float x, float y){
         super(new Texture(name));
         this.world = world;
-        setPosition(x - getWidth(),y - getHeight());
-        createBody();
+        setPosition(x, y);
     }
 
-    void createBody(){
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.DynamicBody;
-        bodyDef.position.set(getX() / GameInfo.PPM,getY() / GameInfo.PPM);
-        body = world.createBody(bodyDef);
-
-        PolygonShape shape = new PolygonShape();
-        shape.setAsBox((getWidth() / 2)/ GameInfo.PPM, (getHeight() / 2)/ GameInfo.PPM);
-
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = shape;
-        fixtureDef.density = 1;
-
-        Fixture fixture = body.createFixture(fixtureDef);
-        fixture.setUserData("Player");
-        shape.dispose();
-
+    public void walkLeft() {
+        this.setX(this.getX() - this.SPEED);
     }
 
-    public void updatePlayer(){
-        this.setPosition(body.getPosition().x * GameInfo.PPM,body.getPosition().y * GameInfo.PPM);
-    }
-
-    public Body getBody() {
-        return body;
+    public void walkRight() {
+        this.setX(this.getX() + this.SPEED);
     }
 }
 

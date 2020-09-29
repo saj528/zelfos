@@ -12,13 +12,12 @@ buildscript {
     dependencies {
         classpath 'org.wisepersist:gwt-gradle-plugin:1.0.9'
         classpath 'com.mobidevelop.robovm:robovm-gradle-plugin:2.3.8'
-        
-
     }
 }
 
 allprojects {
     apply plugin: "eclipse"
+    apply plugin: "idea"
 
     version = '1.0'
     ext {
