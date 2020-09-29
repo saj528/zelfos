@@ -1,12 +1,9 @@
 package com.zelfos.game;
 
-import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import scenes.MainMenu;
+import scenes.GameScene;
+import scenes.MainMenuScene;
 
 public class GameMain extends Game {
 	SpriteBatch batch;
@@ -14,7 +11,7 @@ public class GameMain extends Game {
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		setScreen(new MainMenu(this));
+		showMainMenuScene();
 	}
 
 	@Override
@@ -24,5 +21,13 @@ public class GameMain extends Game {
 
 	public SpriteBatch getBatch() {
 		return batch;
+	}
+
+	public void showMainMenuScene() {
+		setScreen(new MainMenuScene(this));
+	}
+
+	public void showGameScene() {
+		setScreen(new GameScene(this));
 	}
 }
