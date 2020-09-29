@@ -26,13 +26,13 @@ public class MainMenu implements Screen, ContactListener {
         box2DCamera.position.set(GameInfo.WIDTH / 2f,GameInfo.HEIGHT / 2f, 0);
         world = new World(new Vector2(0,-9.8f),true);
         world.setContactListener(this);
-        player = new Player(world,"Player.png", GameInfo.WIDTH / 2, GameInfo.HEIGHT / 2 + 250);
+        player = new Player(world, GameInfo.WIDTH / 2, GameInfo.HEIGHT / 2 + 250);
     }
 
-    void update(float delta){
-        if(Gdx.input.isKeyPressed(Input.Keys.LEFT)){
+    void update(float delta) {
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)){
             player.walkLeft();
-        }else if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
+        } else if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
             player.walkRight();
         }
     }

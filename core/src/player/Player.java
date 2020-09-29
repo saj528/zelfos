@@ -9,8 +9,8 @@ public class Player extends Sprite {
     private World world;
     private float SPEED = 5.0f;
 
-    public Player(World world, String name, float x, float y){
-        super(new Texture(name));
+    public Player(World world, float x, float y){
+        super(new Texture("Player.png"));
         this.world = world;
         setPosition(x, y);
     }
