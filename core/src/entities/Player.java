@@ -28,7 +28,7 @@ class AttackHitbox {
 }
 
 public class Player extends Sprite {
-    private float SPEED = 3.0f;
+    public float SPEED = 3.0f;
     private Texture playerUp = new Texture("player-up.png");
     private Texture playerDown = new Texture("player-down.png");
     private Texture playerLeft = new Texture("player-left.png");

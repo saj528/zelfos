@@ -6,6 +6,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.math.Rectangle;
 import com.zelfos.game.GameMain;
@@ -48,15 +49,19 @@ public class GameScene implements Screen, ContactListener {
         float originalX = player.getX();
         float originalY = player.getY();
 
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) {
-            player.walkLeft();
-        } else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) {
-            player.walkRight();
-        } else if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)) {
-            player.walkUp();
-        } else if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S)) {
-            player.walkDown();
-        }
+
+        boolean left = Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A);
+        boolean right = Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D);
+        boolean up = Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W);
+        boolean down = Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S);
+
+        Vector2 input_vector = Vector2.Zero;
+
+        input_vector.x = (right ? 1 : 0) - (left ? 1 : 0);
+        input_vector.y = (up ? 1 : 0) - (down ? 1 : 0);
+        player.setX(player.getX() + (input_vector.x * player.SPEED));
+        player.setY(player.getY() + (input_vector.y* player.SPEED));
+
 
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
             player.attack(enemies);
