@@ -49,18 +49,19 @@ public class GameScene implements Screen, ContactListener {
         float originalX = player.getX();
         float originalY = player.getY();
 
-
         boolean left = Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A);
         boolean right = Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D);
         boolean up = Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W);
         boolean down = Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S);
+
+        player.update(delta);
 
         Vector2 input_vector = Vector2.Zero;
 
         input_vector.x = (right ? 1 : 0) - (left ? 1 : 0);
         input_vector.y = (up ? 1 : 0) - (down ? 1 : 0);
         player.setX(player.getX() + (input_vector.x * player.SPEED));
-        player.setY(player.getY() + (input_vector.y* player.SPEED));
+        player.setY(player.getY() + (input_vector.y * player.SPEED));
 
 
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
@@ -95,15 +96,19 @@ public class GameScene implements Screen, ContactListener {
 
     @Override
     public void render(float delta) {
-        Batch batch = game.getBatch();
-
         update(delta);
-        Gdx.gl.glClearColor(1, 0, 0, 1);
+
+        Batch batch = game.getBatch();
+        Gdx.gl.glClearColor(0, 1, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.setProjectionMatrix(camera.combined);
-        batch.begin();
+        batch.setShader(null);
+
         player.draw(batch);
+
+        batch.begin();
         crate.draw(batch);
+        batch.end();
 
         Iterator<Enemy> iter = enemies.iterator();
         while (iter.hasNext()) {
@@ -111,7 +116,6 @@ public class GameScene implements Screen, ContactListener {
             enemy.draw(batch);
         }
 
-        batch.end();
     }
 
     @Override
