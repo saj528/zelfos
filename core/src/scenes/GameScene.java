@@ -50,17 +50,13 @@ public class GameScene implements Screen, ContactListener {
         float originalY = player.getY();
 
 
+        //player movement
         boolean left = Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A);
         boolean right = Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D);
         boolean up = Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W);
         boolean down = Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S);
 
-        Vector2 input_vector = Vector2.Zero;
-
-        input_vector.x = (right ? 1 : 0) - (left ? 1 : 0);
-        input_vector.y = (up ? 1 : 0) - (down ? 1 : 0);
-        player.setX(player.getX() + (input_vector.x * player.SPEED));
-        player.setY(player.getY() + (input_vector.y* player.SPEED));
+        player.updatePlayerMovement(left,right,up,down,delta);
 
 
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
