@@ -74,13 +74,10 @@ public class Player extends Sprite {
     }
 
     public void updatePlayerMovement(boolean left, boolean right, boolean up,boolean down, float delta){
-
         input_vector.x = (right ? 1 : 0) - (left ? 1 : 0);
         input_vector.y = (up ? 1 : 0) - (down ? 1 : 0);
-
         setX(getX() + input_vector.x * ACCELERATION * delta);
         setY(getY() + input_vector.y * ACCELERATION * delta);
-
     }
 /*
     public void walkLeft() {

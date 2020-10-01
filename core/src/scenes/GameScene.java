@@ -45,7 +45,13 @@ public class GameScene implements Screen, ContactListener {
         enemies.add(new Enemy(200, 500));
     }
 
-    void update(float delta) {
+    public boolean isOverlappingCrate() {
+        Rectangle playerRect = player.getBoundingRectangle();
+        Rectangle createRect = crate.getBoundingRectangle();
+        return playerRect.overlaps(createRect);
+    }
+
+    public void update(float delta) {
         float originalX = player.getX();
         float originalY = player.getY();
 
@@ -57,8 +63,15 @@ public class GameScene implements Screen, ContactListener {
 
         player.update(delta);
 
-        player.updatePlayerMovement(left,right,up,down,delta);
+        player.updatePlayerMovement(left,right,false,false,delta);
+        if (isOverlappingCrate()) {
+            player.setX(originalX);
+        }
 
+        player.updatePlayerMovement(false,false,up,down,delta);
+        if (isOverlappingCrate()) {
+            player.setY(originalY);
+        }
 
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
             player.attack(enemies);
@@ -72,13 +85,6 @@ public class GameScene implements Screen, ContactListener {
             }
         }
 
-        Rectangle playerRect = player.getBoundingRectangle();
-        Rectangle createRect = crate.getBoundingRectangle();
-        boolean isOverlaping = playerRect.overlaps(createRect);
-        if (isOverlaping) {
-            player.setX(originalX);
-            player.setY(originalY);
-        }
 
         camera.position.x = player.getX();
         camera.position.y = player.getY();
