@@ -4,14 +4,23 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
+
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Enemy extends Sprite {
 
     private int health;
     private boolean isDead = false;
     private boolean isRed = false;
+    public final float ACCELERATION = 300.0f;
+    private float current_point_y;
 
+    private Vector2 end_point;
+    private ArrayList<Vector2> pathwayCoordinates;
+    private int pathCounter = 1;
 
 
     private final String flashRedVertexShader = "attribute vec4 " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
@@ -44,10 +53,58 @@ public class Enemy extends Sprite {
 
     private final ShaderProgram flashRedShader = new ShaderProgram(flashRedVertexShader, flashRedFragmentShader);
 
-    public Enemy(float x, float y) {
+
+
+    public Enemy(float x, float y,ArrayList<Vector2> pathwayCoordinates) {
         super(new Texture("enemy.png"));
         health = 5;
         setPosition(x, y);
+        this.end_point = pathwayCoordinates.get(0);
+        this.pathwayCoordinates = pathwayCoordinates;
+
+    }
+
+    public void stateMachine(int state){
+        switch(state){
+            case 0: // walk to end point
+                walkToEnd();
+                break;
+            case 1:
+                isDead = true;
+                break;
+        }
+    }
+
+    public void update(){
+        boolean startOfGame = true;
+        if(startOfGame) {
+            startOfGame = false;
+            stateMachine(0);
+        }
+    }
+
+
+    private void walkToEnd() {
+        if(getY() >= end_point.y && getX() >= end_point.x){
+            if(pathwayCoordinates.size() > pathCounter){
+                end_point.y = pathwayCoordinates.get(pathCounter).y;
+                end_point.x = pathwayCoordinates.get(pathCounter).x;
+                pathCounter++;
+            }else{
+                stateMachine(1);
+                return;
+            }
+        }
+        if(getY() < end_point.y) {
+            setY(getY() + 1);
+        }else if(getY() > end_point.y){
+            setY(getY() - 1);
+        }
+        if(getX() < end_point.x){
+            setX(getX() + 1);
+        }else if(getX() > end_point.x){
+            setX(getX() - 1);
+        }
     }
 
     public void damage(int amount) {

@@ -16,6 +16,7 @@ import entities.Crate;
 import entities.Player;
 
 import java.awt.*;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -40,9 +41,15 @@ public class GameScene implements Screen, ContactListener {
                 GameInfo.HEIGHT / 2 + 250
         );
         crate = new Crate(100, 100);
-        enemies.add(new Enemy(200, 700));
-        enemies.add(new Enemy(200, 600));
-        enemies.add(new Enemy(200, 500));
+
+        ArrayList<Vector2> pathwayCoordinates = new ArrayList<>();
+        pathwayCoordinates.add(new Vector2(300,900));
+        pathwayCoordinates.add(new Vector2(100,1100));
+        pathwayCoordinates.add(new Vector2(600,1100));
+
+        enemies.add(new Enemy(200, 700, pathwayCoordinates));
+        enemies.add(new Enemy(200, 600, pathwayCoordinates));
+        enemies.add(new Enemy(200, 500, pathwayCoordinates));
     }
 
     public boolean isOverlappingCrate() {
@@ -71,6 +78,10 @@ public class GameScene implements Screen, ContactListener {
 
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
             player.attack(enemies);
+        }
+
+        for(Enemy enemy: enemies){
+            enemy.update();
         }
 
         Iterator<Enemy> iter = enemies.iterator();
