@@ -67,10 +67,11 @@ public class GameScene implements Screen, ContactListener {
         boolean right = Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D);
         boolean up = Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W);
         boolean down = Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S);
+        boolean shift = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT);
 
         player.update(delta);
 
-        player.updatePlayerMovement(left,right,up,down,delta);
+        player.updatePlayerMovement(left, right, up, down, shift, delta);
         if (isOverlappingCrate()) {
             player.setX(originalX);
             player.setY(originalY);
