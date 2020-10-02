@@ -82,6 +82,15 @@ public class Player extends Sprite {
     private float ATTACK_COOLDOWN = ATTACK_ANIMATION_SPEED * 13;
     private float ATTACK_ANIMATION_DURATION = 0.2f;
 
+    private enum Direction {
+        None,
+        Left,
+        Right,
+        Up,
+        Down
+    }
+    private Direction strifeDirection = Direction.None;
+
     public Player(float x, float y) {
         super(new Texture("player-down.png"));
         setPosition(x, y);
@@ -138,7 +147,7 @@ public class Player extends Sprite {
         attackRight = playerSheetRegions[3][3];
     }
 
-    public void updatePlayerMovement(boolean left, boolean right, boolean up, boolean down, float delta) {
+    public void updatePlayerMovement(boolean left, boolean right, boolean up, boolean down, boolean strafe, float delta) {
         input_vector.x = (right ? 1 : 0) - (left ? 1 : 0);
         input_vector.y = (up ? 1 : 0) - (down ? 1 : 0);
 
@@ -148,34 +157,59 @@ public class Player extends Sprite {
         isRunningRight = false;
         isRunning = false;
 
+
+        if (!strafe) {
+            strifeDirection = Direction.None;
+        }
+
         if (up) {
-            isFacingUp = true;
             isRunningUp = true;
-            isFacingDown = false;
-            isFacingLeft = false;
-            isFacingRight = false;
             isRunning = true;
+            if (!strafe) {
+                isFacingUp = true;
+                isFacingDown = false;
+                isFacingLeft = false;
+                isFacingRight = false;
+            }
         } else if (left) {
-            isFacingLeft = true;
             isRunningLeft = true;
-            isFacingDown = false;
-            isFacingUp = false;
-            isFacingRight = false;
             isRunning = true;
+            if (!strafe) {
+                isFacingLeft = true;
+                isFacingDown = false;
+                isFacingUp = false;
+                isFacingRight = false;
+            }
         } else if (right) {
             isRunningRight = true;
-            isFacingRight = true;
-            isFacingDown = false;
-            isFacingLeft = false;
-            isFacingUp = false;
             isRunning = true;
+            if (!strafe) {
+                isFacingRight = true;
+                isFacingDown = false;
+                isFacingLeft = false;
+                isFacingUp = false;
+            }
         } else if (down) {
             isRunningDown = true;
-            isFacingDown = true;
-            isFacingUp = false;
-            isFacingLeft = false;
-            isFacingRight = false;
             isRunning = true;
+            if (!strafe) {
+                isFacingDown = true;
+                isFacingUp = false;
+                isFacingLeft = false;
+                isFacingRight = false;
+            }
+        }
+
+        if (strafe && strifeDirection == Direction.None) {
+            if (isFacingUp) {
+                strifeDirection = Direction.Up;
+            } else if (isFacingLeft) {
+                strifeDirection = Direction.Left;
+            } else if (isFacingRight) {
+                strifeDirection = Direction.Right;
+            } else if (isFacingDown) {
+                strifeDirection = Direction.Down;
+            }
         }
 
         setX(getX() + input_vector.x * ACCELERATION * delta);
@@ -267,16 +301,30 @@ public class Player extends Sprite {
             }
         } else {
             if (isRunning) {
-                if (isRunningLeft) {
-                    batch.draw(leftAnimation.getKeyFrame(walkTime, true), getX(), getY());
-                } else if (isRunningRight) {
-                    batch.draw(rightAnimation.getKeyFrame(walkTime, true), getX(), getY());
-                } else if (isRunningUp) {
-                    batch.draw(upAnimation.getKeyFrame(walkTime, true), getX(), getY());
-                } else if (isRunningDown) {
-                    batch.draw(downAnimation.getKeyFrame(walkTime, true), getX(), getY());
+                if (strifeDirection != Direction.None) {
+                    if (strifeDirection == Direction.Up) {
+                        batch.draw(upAnimation.getKeyFrame(walkTime, true), getX(), getY());
+                    } else if (strifeDirection == Direction.Right) {
+                        batch.draw(rightAnimation.getKeyFrame(walkTime, true), getX(), getY());
+                    } else if (strifeDirection == Direction.Left) {
+                        batch.draw(leftAnimation.getKeyFrame(walkTime, true), getX(), getY());
+                    } else if (strifeDirection == Direction.Down) {
+                        batch.draw(downAnimation.getKeyFrame(walkTime, true), getX(), getY());
+                    } else {
+                        super.draw(batch);
+                    }
                 } else {
-                    super.draw(batch);
+                    if (isRunningLeft) {
+                        batch.draw(leftAnimation.getKeyFrame(walkTime, true), getX(), getY());
+                    } else if (isRunningRight) {
+                        batch.draw(rightAnimation.getKeyFrame(walkTime, true), getX(), getY());
+                    } else if (isRunningUp) {
+                        batch.draw(upAnimation.getKeyFrame(walkTime, true), getX(), getY());
+                    } else if (isRunningDown) {
+                        batch.draw(downAnimation.getKeyFrame(walkTime, true), getX(), getY());
+                    } else {
+                        super.draw(batch);
+                    }
                 }
             } else {
                 if (isFacingLeft) {
