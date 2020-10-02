@@ -61,10 +61,9 @@ public class GameScene implements Screen, ContactListener {
         pathwayCoordinates.add(new Vector2(1500, 1100));
         pathwayCoordinates.add(new Vector2(-100, -100));
 
-        enemies.add(new Enemy(1500, 1700, pathwayCoordinates, player));
-        enemies.add(new Enemy(1500, 1600, pathwayCoordinates, player));
-        enemies.add(new Enemy(1500, 1500, pathwayCoordinates, player));
-
+        enemies.add(new Enemy(1500, 1200, pathwayCoordinates,player));
+        //enemies.add(new Enemy(1500, 600, pathwayCoordinates,player));
+        //enemies.add(new Enemy(1500, 500, pathwayCoordinates,player));
 
         tiledMap = new TmxMapLoader().load("map.tmx");
         tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap, 2);
