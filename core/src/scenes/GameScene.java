@@ -63,13 +63,9 @@ public class GameScene implements Screen, ContactListener {
 
         player.update(delta);
 
-        player.updatePlayerMovement(left,right,false,false,delta);
+        player.updatePlayerMovement(left,right,up,down,delta);
         if (isOverlappingCrate()) {
             player.setX(originalX);
-        }
-
-        player.updatePlayerMovement(false,false,up,down,delta);
-        if (isOverlappingCrate()) {
             player.setY(originalY);
         }
 

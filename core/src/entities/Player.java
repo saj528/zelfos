@@ -17,19 +17,19 @@ import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import java.util.ArrayList;
 
 class AttackHitbox {
-    public Rectangle up_attack;
-    public Rectangle left_attack;
-    public Rectangle right_attack;
-    public Rectangle down_attack;
+    public Rectangle up;
+    public Rectangle left;
+    public Rectangle right;
+    public Rectangle down;
 
     public AttackHitbox(Player player) {
         int offset = 50;
-        int size = 20;
+        int size = 40;
 
-        up_attack = new Rectangle(player.getX() + 10, player.getY() + offset + 10, size, size);
-        left_attack = new Rectangle(player.getX() + 10 - offset, player.getY() + 10, size, size);
-        right_attack = new Rectangle(player.getX() + 10 + offset, player.getY() + 10, size, size);
-        down_attack = new Rectangle(player.getX() + 10, player.getY() - offset + 10, size, size);
+        up = new Rectangle(player.getX() + 10, player.getY() + offset + 10, size, size);
+        left = new Rectangle(player.getX() + 10 - offset, player.getY() + 10, size, size);
+        right = new Rectangle(player.getX() + 10 + offset, player.getY() + 10, size, size);
+        down = new Rectangle(player.getX() + 10, player.getY() - offset + 10, size, size);
     }
 
 }
@@ -58,6 +58,11 @@ public class Player extends Sprite {
     private boolean isRunningRight = false;
     private boolean isRunningUp = false;
     private boolean isRunningDown = false;
+    private boolean isFacingUp = false;
+    private boolean isFacingDown = false;
+    private boolean isFacingLeft = false;
+    private boolean isFacingRight = false;
+    private boolean isRunning = false;
     private float ATTACK_OFFSET = 0.05f;
     private int SWORD_DAMAGE = 1;
     private Animation<Texture> attackAnimation;
@@ -65,11 +70,17 @@ public class Player extends Sprite {
     private Animation<TextureRegion> leftAnimation;
     private Animation<TextureRegion> upAnimation;
     private Animation<TextureRegion> rightAnimation;
+    private TextureRegion attackUp;
+    private TextureRegion attackDown;
+    private TextureRegion attackLeft;
+    private TextureRegion attackRight;
+    private float animationSpeed = 0.10f;
     private float attackTime = 0f;
     private float walkTime = 0f;
-
+    private boolean showAttackAnimation = false;
     private float ATTACK_ANIMATION_SPEED = 0.025f;
     private float ATTACK_COOLDOWN = ATTACK_ANIMATION_SPEED * 13;
+    private float ATTACK_ANIMATION_DURATION = 0.2f;
 
     public Player(float x, float y) {
         super(new Texture("player-down.png"));
@@ -92,61 +103,79 @@ public class Player extends Sprite {
         attackAnimation = new Animation<Texture>(ATTACK_ANIMATION_SPEED, attackFrames);
 
 
-        Texture playerSheet = new Texture("player-sheet.png");
+        Texture playerSheet = new Texture("player-sheet-all.png");
 
         TextureRegion[][] playerSheetRegions = TextureRegion.split(playerSheet,
                 playerSheet.getWidth() / 4,
-                playerSheet.getHeight() / 3);
-        TextureRegion[][] playerSheetRegions2 = TextureRegion.split(playerSheet,
-                playerSheet.getWidth() / 4,
-                playerSheet.getHeight() / 3);
+                playerSheet.getHeight() / 4);
 
         TextureRegion[] downFrames = new TextureRegion[3];
         downFrames[0] = playerSheetRegions[0][0];
         downFrames[1] = playerSheetRegions[0][1];
         downFrames[2] = playerSheetRegions[0][2];
-        downAnimation = new Animation<TextureRegion>(0.15f, downFrames);
+        downAnimation = new Animation<TextureRegion>(animationSpeed, downFrames);
+        attackDown = playerSheetRegions[0][3];
 
         TextureRegion[] leftFrames = new TextureRegion[3];
         leftFrames[0] = playerSheetRegions[2][0];
         leftFrames[1] = playerSheetRegions[2][1];
         leftFrames[2] = playerSheetRegions[2][2];
-        leftAnimation = new Animation<TextureRegion>(0.15f, leftFrames);
+        leftAnimation = new Animation<TextureRegion>(animationSpeed, leftFrames);
+        attackLeft = playerSheetRegions[2][3];
 
         TextureRegion[] upFrames = new TextureRegion[3];
         upFrames[0] = playerSheetRegions[1][0];
         upFrames[1] = playerSheetRegions[1][1];
         upFrames[2] = playerSheetRegions[1][2];
-        upAnimation = new Animation<TextureRegion>(0.15f, upFrames);
+        upAnimation = new Animation<TextureRegion>(animationSpeed, upFrames);
+        attackUp = playerSheetRegions[1][3];
 
         TextureRegion[] rightFrames = new TextureRegion[3];
-        rightFrames[0] = playerSheetRegions2[2][0];
-        rightFrames[1] = playerSheetRegions2[2][1];
-        rightFrames[2] = playerSheetRegions2[2][2];
-        rightFrames[0].flip(true, false);
-        rightFrames[1].flip(true, false);
-        rightFrames[2].flip(true, false);
-        rightAnimation = new Animation<TextureRegion>(0.15f, rightFrames);
+        rightFrames[0] = playerSheetRegions[3][0];
+        rightFrames[1] = playerSheetRegions[3][1];
+        rightFrames[2] = playerSheetRegions[3][2];
+        rightAnimation = new Animation<TextureRegion>(animationSpeed, rightFrames);
+        attackRight = playerSheetRegions[3][3];
     }
 
     public void updatePlayerMovement(boolean left, boolean right, boolean up, boolean down, float delta) {
         input_vector.x = (right ? 1 : 0) - (left ? 1 : 0);
         input_vector.y = (up ? 1 : 0) - (down ? 1 : 0);
 
-        if (down) {
-            isRunningDown = true;
-        }
-
-        if (left) {
-            isRunningLeft = true;
-        }
-
-        if (right) {
-            isRunningRight = true;
-        }
+        isRunningDown = false;
+        isRunningUp = false;
+        isRunningLeft = false;
+        isRunningRight = false;
+        isRunning = false;
 
         if (up) {
+            isFacingUp = true;
             isRunningUp = true;
+            isFacingDown = false;
+            isFacingLeft = false;
+            isFacingRight = false;
+            isRunning = true;
+        } else if (left) {
+            isFacingLeft = true;
+            isRunningLeft = true;
+            isFacingDown = false;
+            isFacingUp = false;
+            isFacingRight = false;
+            isRunning = true;
+        } else if (right) {
+            isRunningRight = true;
+            isFacingRight = true;
+            isFacingDown = false;
+            isFacingLeft = false;
+            isFacingUp = false;
+            isRunning = true;
+        } else if (down) {
+            isRunningDown = true;
+            isFacingDown = true;
+            isFacingUp = false;
+            isFacingLeft = false;
+            isFacingRight = false;
+            isRunning = true;
         }
 
         setX(getX() + input_vector.x * ACCELERATION * delta);
@@ -157,8 +186,16 @@ public class Player extends Sprite {
         if (!canAttack) return;
         canAttack = false;
         attackTime = 0;
+        showAttackAnimation = true;
 
         final Player player = this;
+
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                showAttackAnimation = false;
+            }
+        }, ATTACK_ANIMATION_DURATION);
 
         Timer.schedule(new Timer.Task() {
             @Override
@@ -166,12 +203,26 @@ public class Player extends Sprite {
                 AttackHitbox hitbox = new AttackHitbox(player);
 
                 for (Enemy enemy : enemies) {
-                    if (hitbox.up_attack.overlaps(enemy.getBoundingRectangle()) ||
-                            hitbox.left_attack.overlaps(enemy.getBoundingRectangle()) ||
-                            hitbox.right_attack.overlaps(enemy.getBoundingRectangle()) ||
-                            hitbox.down_attack.overlaps(enemy.getBoundingRectangle())) {
-                        enemy.damage(SWORD_DAMAGE);
-                        return;
+                    if (isFacingLeft) {
+                        if (hitbox.left.overlaps(enemy.getBoundingRectangle())) {
+                            enemy.damage(SWORD_DAMAGE);
+                            return;
+                        }
+                    } else if (isFacingRight) {
+                        if (hitbox.right.overlaps(enemy.getBoundingRectangle())) {
+                            enemy.damage(SWORD_DAMAGE);
+                            return;
+                        }
+                    } else if (isFacingUp) {
+                        if (hitbox.up.overlaps(enemy.getBoundingRectangle())) {
+                            enemy.damage(SWORD_DAMAGE);
+                            return;
+                        }
+                    } else if (isFacingDown) {
+                        if (hitbox.down.overlaps(enemy.getBoundingRectangle())) {
+                            enemy.damage(SWORD_DAMAGE);
+                            return;
+                        }
                     }
                 }
             }
@@ -188,7 +239,7 @@ public class Player extends Sprite {
 
     private Texture createHitboxTexture(int width, int height) {
         Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
-        pixmap.setColor(new Color(0, 1, 0, 1));
+        pixmap.setColor(new Color(1, 1, 0, 1));
         pixmap.fillRectangle(0, 0, width, height);
         Texture texture = new Texture(pixmap);
         pixmap.dispose();
@@ -198,37 +249,60 @@ public class Player extends Sprite {
     public void update(float delta) {
         attackTime += delta;
         walkTime += delta;
-        isRunningDown = false;
-        isRunningUp = false;
-        isRunningLeft = false;
-        isRunningRight = false;
     }
 
     @Override
     public void draw(Batch batch) {
         batch.begin();
 
-        if (!canAttack) {
-            batch.draw(attackAnimation.getKeyFrame(attackTime), getX(), getY(), 64, 64);
+        if (showAttackAnimation) {
+            if (isFacingLeft) {
+                batch.draw(attackLeft, getX(), getY());
+            } else if (isFacingRight) {
+                batch.draw(attackRight, getX(), getY());
+            } else if (isFacingUp) {
+                batch.draw(attackUp, getX(), getY());
+            } else if (isFacingDown) {
+                batch.draw(attackDown, getX(), getY());
+            }
         } else {
-            if (isRunningLeft) {
-                batch.draw(leftAnimation.getKeyFrame(walkTime, true), getX(), getY());
-            } else if (isRunningRight) {
-                batch.draw(rightAnimation.getKeyFrame(walkTime, true), getX(), getY());
-            } else if (isRunningUp) {
-                batch.draw(upAnimation.getKeyFrame(walkTime, true), getX(), getY());
-            } else if (isRunningDown) {
-                batch.draw(downAnimation.getKeyFrame(walkTime, true), getX(), getY());
+            if (isRunning) {
+                if (isRunningLeft) {
+                    batch.draw(leftAnimation.getKeyFrame(walkTime, true), getX(), getY());
+                } else if (isRunningRight) {
+                    batch.draw(rightAnimation.getKeyFrame(walkTime, true), getX(), getY());
+                } else if (isRunningUp) {
+                    batch.draw(upAnimation.getKeyFrame(walkTime, true), getX(), getY());
+                } else if (isRunningDown) {
+                    batch.draw(downAnimation.getKeyFrame(walkTime, true), getX(), getY());
+                } else {
+                    super.draw(batch);
+                }
             } else {
-                super.draw(batch);
+                if (isFacingLeft) {
+                    batch.draw(leftAnimation.getKeyFrame(0, true), getX(), getY());
+                } else if (isFacingRight) {
+                    batch.draw(rightAnimation.getKeyFrame(0, true), getX(), getY());
+                } else if (isFacingUp) {
+                    batch.draw(upAnimation.getKeyFrame(0, true), getX(), getY());
+                } else if (isFacingDown) {
+                    batch.draw(downAnimation.getKeyFrame(0, true), getX(), getY());
+                } else {
+                    super.draw(batch);
+                }
             }
         }
-        Texture box = createHitboxTexture(20, 20);
+        Texture box = createHitboxTexture(40, 40);
         AttackHitbox hitbox = new AttackHitbox(this);
-//        batch.draw(box, hitbox.top.x, hitbox.top.y);
-//        batch.draw(box, hitbox.bottom.x, hitbox.bottom.y);
-//        batch.draw(box, hitbox.left.x, hitbox.left.y);
-//        batch.draw(box, hitbox.right.x, hitbox.right.y);
+        if (isFacingLeft) {
+            batch.draw(box, hitbox.left.x, hitbox.left.y);
+        } else if (isFacingRight) {
+            batch.draw(box, hitbox.right.x, hitbox.right.y);
+        } else if (isFacingUp) {
+            batch.draw(box, hitbox.up.x, hitbox.up.y);
+        } else if (isFacingDown) {
+            batch.draw(box, hitbox.down.x, hitbox.down.y);
+        }
         batch.end();
     }
 }
