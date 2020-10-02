@@ -8,7 +8,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import static java.lang.Math.sqrt;
 
@@ -20,7 +19,7 @@ public class Enemy extends Sprite {
     public final float ACCELERATION = 300.0f;
     private float current_point_y;
 
-    private Vector2 end_point;
+    private Vector2 nextPointToWalkTowards;
     private ArrayList<Vector2> pathwayCoordinates;
     private int pathCounter = 1;
     private Player player;
@@ -63,7 +62,7 @@ public class Enemy extends Sprite {
         super(new Texture("enemy.png"));
         health = 5;
         setPosition(x, y);
-        this.end_point = pathwayCoordinates.get(0);
+        this.nextPointToWalkTowards = pathwayCoordinates.get(0);
         this.pathwayCoordinates = pathwayCoordinates;
         this.player = player;
 
@@ -99,24 +98,25 @@ public class Enemy extends Sprite {
             stateMachine(2);
         }
 
-        if(getY() >= end_point.y && getX() >= end_point.x){
+        double distanceFromCurrentPathGoal = sqrt((getX() - nextPointToWalkTowards.x) * (getX()-nextPointToWalkTowards.x) + (getY()-nextPointToWalkTowards.y) * (getY()-nextPointToWalkTowards.y));
+        if(distanceFromCurrentPathGoal <= 0){
             if(pathwayCoordinates.size() > pathCounter){
-                end_point.y = pathwayCoordinates.get(pathCounter).y;
-                end_point.x = pathwayCoordinates.get(pathCounter).x;
+                nextPointToWalkTowards.y = pathwayCoordinates.get(pathCounter).y;
+                nextPointToWalkTowards.x = pathwayCoordinates.get(pathCounter).x;
                 pathCounter++;
             }else{
                 stateMachine(1);
                 return;
             }
         }
-        if(getY() < end_point.y) {
+        if(getY() < nextPointToWalkTowards.y) {
             setY(getY() + 1);
-        }else if(getY() > end_point.y){
+        }else if(getY() > nextPointToWalkTowards.y){
             setY(getY() - 1);
         }
-        if(getX() < end_point.x){
+        if(getX() < nextPointToWalkTowards.x){
             setX(getX() + 1);
-        }else if(getX() > end_point.x){
+        }else if(getX() > nextPointToWalkTowards.x){
             setX(getX() - 1);
         }
     }

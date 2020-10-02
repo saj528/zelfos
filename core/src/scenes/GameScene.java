@@ -43,15 +43,15 @@ public class GameScene implements Screen, ContactListener {
                 GameInfo.HEIGHT
         );
         player = new Player(
-                50 * 32,
-                60 * 32
+                200,
+                700
         );
         crate = new Crate(100, 100);
 
         ArrayList<Vector2> pathwayCoordinates = new ArrayList<>();
         pathwayCoordinates.add(new Vector2(300,900));
         pathwayCoordinates.add(new Vector2(100,1100));
-        pathwayCoordinates.add(new Vector2(600,1100));
+        pathwayCoordinates.add(new Vector2(-100,-100));
 
         enemies.add(new Enemy(200, 700, pathwayCoordinates,player));
         enemies.add(new Enemy(200, 600, pathwayCoordinates,player));
