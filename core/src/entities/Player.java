@@ -38,8 +38,8 @@ public class Player extends Sprite {
 
     private Vector2 input_vector = Vector2.Zero;
     private Vector2 motion = Vector2.Zero;
-    public final float ACCELERATION = 300.0f;
-    public final float MAX_SPEED = 10;
+    public final float ACCELERATION = 150.0f;
+    public final float MAX_SPEED = 3;
 
     private enum DIRECTIONS {
         IDLE,
@@ -74,7 +74,7 @@ public class Player extends Sprite {
     private TextureRegion attackDown;
     private TextureRegion attackLeft;
     private TextureRegion attackRight;
-    private float animationSpeed = 0.10f;
+    private float animationSpeed = 0.13f;
     private float attackTime = 0f;
     private float walkTime = 0f;
     private boolean showAttackAnimation = false;

@@ -6,6 +6,10 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.math.Rectangle;
@@ -27,6 +31,8 @@ public class GameScene implements Screen, ContactListener {
     private OrthographicCamera camera;
     private Crate crate;
     private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
+    TiledMap tiledMap;
+    TiledMapRenderer tiledMapRenderer;
 
     public GameScene(GameMain game) {
         this.game = game;
@@ -37,8 +43,8 @@ public class GameScene implements Screen, ContactListener {
                 GameInfo.HEIGHT
         );
         player = new Player(
-                GameInfo.WIDTH / 2,
-                GameInfo.HEIGHT / 2 + 250
+                50 * 32,
+                60 * 32
         );
         crate = new Crate(100, 100);
 
@@ -50,6 +56,10 @@ public class GameScene implements Screen, ContactListener {
         enemies.add(new Enemy(200, 700, pathwayCoordinates,player));
         enemies.add(new Enemy(200, 600, pathwayCoordinates,player));
         enemies.add(new Enemy(200, 500, pathwayCoordinates,player));
+
+
+        tiledMap = new TmxMapLoader().load("map.tmx");
+        tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap, 2);
     }
 
     public boolean isOverlappingCrate() {
@@ -113,6 +123,10 @@ public class GameScene implements Screen, ContactListener {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.setProjectionMatrix(camera.combined);
         batch.setShader(null);
+
+
+        tiledMapRenderer.setView(camera);
+        tiledMapRenderer.render();
 
         player.draw(batch);
 
