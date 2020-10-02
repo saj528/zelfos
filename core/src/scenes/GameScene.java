@@ -47,9 +47,9 @@ public class GameScene implements Screen, ContactListener {
         pathwayCoordinates.add(new Vector2(100,1100));
         pathwayCoordinates.add(new Vector2(600,1100));
 
-        enemies.add(new Enemy(200, 700, pathwayCoordinates));
-        enemies.add(new Enemy(200, 600, pathwayCoordinates));
-        enemies.add(new Enemy(200, 500, pathwayCoordinates));
+        enemies.add(new Enemy(200, 700, pathwayCoordinates,player));
+        enemies.add(new Enemy(200, 600, pathwayCoordinates,player));
+        enemies.add(new Enemy(200, 500, pathwayCoordinates,player));
     }
 
     public boolean isOverlappingCrate() {

@@ -10,6 +10,8 @@ import com.badlogic.gdx.utils.Timer;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import static java.lang.Math.sqrt;
+
 public class Enemy extends Sprite {
 
     private int health;
@@ -21,6 +23,8 @@ public class Enemy extends Sprite {
     private Vector2 end_point;
     private ArrayList<Vector2> pathwayCoordinates;
     private int pathCounter = 1;
+    private Player player;
+
 
 
     private final String flashRedVertexShader = "attribute vec4 " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
@@ -55,12 +59,13 @@ public class Enemy extends Sprite {
 
 
 
-    public Enemy(float x, float y,ArrayList<Vector2> pathwayCoordinates) {
+    public Enemy(float x, float y,ArrayList<Vector2> pathwayCoordinates,Player player) {
         super(new Texture("enemy.png"));
         health = 5;
         setPosition(x, y);
         this.end_point = pathwayCoordinates.get(0);
         this.pathwayCoordinates = pathwayCoordinates;
+        this.player = player;
 
     }
 
@@ -71,6 +76,9 @@ public class Enemy extends Sprite {
                 break;
             case 1:
                 isDead = true;
+                break;
+            case 2:
+                pursuePlayer();
                 break;
         }
     }
@@ -85,6 +93,13 @@ public class Enemy extends Sprite {
 
 
     private void walkToEnd() {
+
+        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
+        System.out.println(distanceEnemyPlayer);
+        if(distanceEnemyPlayer < 100){
+            stateMachine(2);
+        }
+
         if(getY() >= end_point.y && getX() >= end_point.x){
             if(pathwayCoordinates.size() > pathCounter){
                 end_point.y = pathwayCoordinates.get(pathCounter).y;
@@ -103,6 +118,24 @@ public class Enemy extends Sprite {
         if(getX() < end_point.x){
             setX(getX() + 1);
         }else if(getX() > end_point.x){
+            setX(getX() - 1);
+        }
+    }
+
+    private void pursuePlayer(){
+        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
+        if(distanceEnemyPlayer > 550){
+            stateMachine(0);
+        }
+
+        if(getY() < player.getY()) {
+            setY(getY() + 1);
+        }else if(getY() > player.getY()){
+            setY(getY() - 1);
+        }
+        if(getX() < player.getX()){
+            setX(getX() + 1);
+        }else if(getX() > player.getX()){
             setX(getX() - 1);
         }
     }
