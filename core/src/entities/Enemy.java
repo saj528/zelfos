@@ -94,7 +94,7 @@ public class Enemy extends Sprite {
     private void walkToEnd() {
 
         double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
-        if(distanceEnemyPlayer < 100){
+        if(distanceEnemyPlayer <= 550){
             stateMachine(2);
         }
 

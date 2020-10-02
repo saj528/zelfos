@@ -211,8 +211,13 @@ public class Player extends Sprite {
                 strifeDirection = Direction.Down;
             }
         }
+    }
 
+    public void updateX(float delta) {
         setX(getX() + input_vector.x * ACCELERATION * delta);
+    }
+
+    public void updateY(float delta) {
         setY(getY() + input_vector.y * ACCELERATION * delta);
     }
 
