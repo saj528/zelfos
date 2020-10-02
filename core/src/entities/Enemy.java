@@ -18,7 +18,9 @@ public class Enemy extends Sprite {
     private boolean isRed = false;
     public final float ACCELERATION = 300.0f;
     private float current_point_y;
-
+    boolean startOfGame = true;
+    private int state;
+    private float distanceToPursue = 100;
     private Vector2 nextPointToWalkTowards;
     private ArrayList<Vector2> pathwayCoordinates;
     private int pathCounter = 1;
@@ -69,6 +71,8 @@ public class Enemy extends Sprite {
     }
 
     public void stateMachine(int state){
+        this.state = state;
+        System.out.println("Current state: " + state);
         switch(state){
             case 0: // walk to end point
                 walkToEnd();
@@ -83,10 +87,11 @@ public class Enemy extends Sprite {
     }
 
     public void update(){
-        boolean startOfGame = true;
         if(startOfGame) {
             startOfGame = false;
             stateMachine(0);
+        }else{
+            stateMachine(state);
         }
     }
 
@@ -94,7 +99,7 @@ public class Enemy extends Sprite {
     private void walkToEnd() {
 
         double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
-        if(distanceEnemyPlayer < 100){
+        if(distanceEnemyPlayer <= distanceToPursue){
             stateMachine(2);
         }
 
@@ -123,7 +128,10 @@ public class Enemy extends Sprite {
 
     private void pursuePlayer(){
         double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
-        if(distanceEnemyPlayer > 550){
+        System.out.println("distance to player" + distanceEnemyPlayer);
+        System.out.println("distance to pursue" + distanceToPursue);
+        if(distanceEnemyPlayer > distanceToPursue){
+            System.out.println("The distance from the enemy to the player is less than the distance to pursue");
             stateMachine(0);
         }
 
