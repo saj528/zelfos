@@ -174,4 +174,7 @@ public class Enemy extends Sprite {
     public boolean isDead() {
         return isDead;
     }
+
+    public void dispose(){
+    }
 }

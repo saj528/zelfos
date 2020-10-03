@@ -7,8 +7,10 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapObjects;
+import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
@@ -49,23 +51,49 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                 GameInfo.WIDTH,
                 GameInfo.HEIGHT
         );
-        player = new Player(
-                1500,
-                1300
-        );
-        crate = new Crate(100, 100);
-
-        ArrayList<Vector2> pathwayCoordinates = new ArrayList<>();
-        pathwayCoordinates.add(new Vector2(1500, 900));
-        pathwayCoordinates.add(new Vector2(1500, 1100));
-        pathwayCoordinates.add(new Vector2(-100, -100));
-
-        enemies.add(new Enemy(1500, 1200, pathwayCoordinates,player));
-        //enemies.add(new Enemy(1500, 600, pathwayCoordinates,player));
-        //enemies.add(new Enemy(1500, 500, pathwayCoordinates,player));
 
         tiledMap = new TmxMapLoader().load("map.tmx");
         tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap, 2);
+
+        MapLayer waypoint = tiledMap.getLayers().get("Waypoint");
+        MapObjects objects = waypoint.getObjects();
+
+
+        RectangleMapObject start = (RectangleMapObject) objects.get("Start");
+
+        System.out.println(start.getRectangle().y);
+        RectangleMapObject end = (RectangleMapObject) objects.get("End");
+        System.out.println(start.getRectangle().x);
+        player = new Player(1300,
+                700
+        );
+        crate = new Crate(100, 100);
+
+
+        System.out.println("Start coords: " + start.getRectangle().x + "," + start.getRectangle().y);
+        System.out.println("End coords: " + end.getRectangle().x + "," + end.getRectangle().y);
+        ArrayList<Vector2> pathwayCoordinates = new ArrayList<>();
+        //pathwayCoordinates.add(new Vector2(end.getRectangle().x,end.getRectangle().y));
+        pathwayCoordinates.add(new Vector2(1500, 1100));
+        pathwayCoordinates.add(new Vector2(-100, -100));
+
+        //enemies.add(new Enemy(start.getRectangle().x, start.getRectangle().y, pathwayCoordinates,player));
+        enemies.add(new Enemy(1500, 600, pathwayCoordinates,player));
+        //enemies.add(new Enemy(1500, 500, pathwayCoordinates,player));
+
+
+
+
+
+
+        //int objectLayerId = 5;
+        //TiledMapTileLayer collisionObjectLayer = (TiledMapTileLayer)map.getLayers().get(objectLayerId);
+       // MapObjects objects = collisionObjectLayer.getObjects();
+
+        //(TiledMapTileLayer)map.getLayers().get(objectLayerId);
+        // MapObjects objects = collisionObjectLayer.getObjects();
+
+
 
         collidableTiles = new HashSet<Integer>();
         collidableTiles.add(156);
@@ -189,6 +217,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         batch.setProjectionMatrix(camera.combined);
         batch.setShader(null);
 
+
         tiledMapRenderer.setView(camera);
         tiledMapRenderer.render();
 
@@ -237,6 +266,12 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     @Override
     public void dispose() {
         player.getTexture().dispose();
+        tiledMap.dispose();
+        Iterator<Enemy> iter = enemies.iterator();
+        while (iter.hasNext()) {
+            Enemy enemy = iter.next();
+            enemy.getTexture().dispose();
+        }
     }
 
     @Override
