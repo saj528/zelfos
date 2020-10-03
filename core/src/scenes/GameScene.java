@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
-public class GameScene implements Screen, ContactListener, BombManager {
+public class GameScene implements Screen, ContactListener, BombManager, EnemyManager {
 
     private GameMain game;
     private Player player;
@@ -78,6 +78,10 @@ public class GameScene implements Screen, ContactListener, BombManager {
         collidableTiles.add(182);
     }
 
+    public ArrayList<Enemy> getEnemies() {
+        return enemies;
+    }
+
     public boolean isOverlappingCrate() {
         Rectangle playerRect = player.getBoundingRectangle();
         Rectangle createRect = crate.getBoundingRectangle();
@@ -85,7 +89,7 @@ public class GameScene implements Screen, ContactListener, BombManager {
     }
 
     public void createBomb(float x, float y) {
-        bombs.add(new Bomb(player.getX(), player.getY()));
+        bombs.add(new Bomb(player.getX(), player.getY(), this));
     }
 
     private boolean isCollidingWithMap() {

@@ -72,7 +72,6 @@ public class Enemy extends Sprite {
 
     public void stateMachine(int state){
         this.state = state;
-        System.out.println("Current state: " + state);
         switch(state){
             case 0: // walk to end point
                 walkToEnd();
@@ -128,10 +127,7 @@ public class Enemy extends Sprite {
 
     private void pursuePlayer(){
         double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
-        System.out.println("distance to player" + distanceEnemyPlayer);
-        System.out.println("distance to pursue" + distanceToPursue);
         if(distanceEnemyPlayer > distanceToPursue){
-            System.out.println("The distance from the enemy to the player is less than the distance to pursue");
             stateMachine(0);
         }
 
