@@ -6,6 +6,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapObjects;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -188,7 +189,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         batch.setProjectionMatrix(camera.combined);
         batch.setShader(null);
 
-
         tiledMapRenderer.setView(camera);
         tiledMapRenderer.render();
 
@@ -204,10 +204,13 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             enemy.draw(batch);
         }
 
+        ShapeRenderer shapeRenderer = new ShapeRenderer();
+        shapeRenderer.setProjectionMatrix(camera.combined);
+
         Iterator<Bomb> bombIter = bombs.iterator();
         while (bombIter.hasNext()) {
             Bomb bomb = bombIter.next();
-            bomb.draw(batch);
+            bomb.draw(batch, shapeRenderer);
         }
     }
 
