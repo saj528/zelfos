@@ -58,27 +58,25 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         MapLayer waypoint = tiledMap.getLayers().get("Waypoint");
         MapObjects objects = waypoint.getObjects();
 
-
         RectangleMapObject start = (RectangleMapObject) objects.get("Start");
-
-        System.out.println(start.getRectangle().y);
+        Vector2 startRect = new Vector2(start.getRectangle().x * 2,Math.abs((start.getRectangle().y * 2) - 3200));
         RectangleMapObject end = (RectangleMapObject) objects.get("End");
-        System.out.println(start.getRectangle().x);
-        player = new Player(1300,
-                700
+        Vector2 endRect = new Vector2(end.getRectangle().x * 2,Math.abs((end.getRectangle().y * 2) - 3200));
+
+
+        player = new Player(endRect.x,
+                endRect.y
         );
         crate = new Crate(100, 100);
 
 
-        System.out.println("Start coords: " + start.getRectangle().x + "," + start.getRectangle().y);
-        System.out.println("End coords: " + end.getRectangle().x + "," + end.getRectangle().y);
         ArrayList<Vector2> pathwayCoordinates = new ArrayList<>();
-        //pathwayCoordinates.add(new Vector2(end.getRectangle().x,end.getRectangle().y));
-        pathwayCoordinates.add(new Vector2(1500, 1100));
-        pathwayCoordinates.add(new Vector2(-100, -100));
+        pathwayCoordinates.add(new Vector2(endRect.x,endRect.y));
+        //pathwayCoordinates.add(new Vector2(1500, 1100));
+        //pathwayCoordinates.add(new Vector2(-100, -100));
 
-        //enemies.add(new Enemy(start.getRectangle().x, start.getRectangle().y, pathwayCoordinates,player));
-        enemies.add(new Enemy(1500, 600, pathwayCoordinates,player));
+        enemies.add(new Enemy(startRect.x, startRect.y, pathwayCoordinates,player));
+        //enemies.add(new Enemy(start.getRectangle().x + 700, start.getRectangle().y + 1000, pathwayCoordinates,player));
         //enemies.add(new Enemy(1500, 500, pathwayCoordinates,player));
 
 
@@ -144,6 +142,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     }
 
     public void update(float delta) {
+        System.out.println(player.getX() + " " + player.getY());
         float originalX = player.getX();
         float originalY = player.getY();
 
