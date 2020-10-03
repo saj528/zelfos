@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="15">
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="17">
  <editorsettings>
   <export target="map.csv" format="csv"/>
  </editorsettings>
@@ -109,8 +109,12 @@
 </data>
  </layer>
  <objectgroup id="4" name="Waypoint">
-  <object id="1" name="Start" x="784.667" y="592" width="64" height="64"/>
-  <object id="2" name="End" x="783.333" y="912.667" width="64" height="64"/>
+  <object id="15" name="Start" x="815.022" y="623.879">
+   <point/>
+  </object>
+  <object id="16" name="End" x="815.583" y="943.386">
+   <point/>
+  </object>
  </objectgroup>
  <layer id="3" name="Decal" width="100" height="100">
   <data encoding="csv">

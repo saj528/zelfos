@@ -19,6 +19,7 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.Timer;
 import com.zelfos.game.GameMain;
 import entities.*;
 import helpers.GameInfo;
@@ -43,6 +44,18 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
     private HashSet<Integer> collidableTiles;
 
+    public void spawnWave(final Vector2 startPoint, final ArrayList<Vector2> pathwayCoordinates, final int enemiesLeftToSpawn) {
+        if (enemiesLeftToSpawn <= 0) return;
+
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                enemies.add(new Enemy(startPoint.x, startPoint.y, pathwayCoordinates, player));
+                spawnWave(startPoint, pathwayCoordinates, enemiesLeftToSpawn - 1);
+            }
+        }, 1.0f);
+    }
+
     public GameScene(GameMain game) {
         this.game = game;
         camera = new OrthographicCamera();
@@ -59,29 +72,26 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         MapObjects objects = waypoint.getObjects();
 
         RectangleMapObject start = (RectangleMapObject) objects.get("Start");
-        Vector2 startRect = new Vector2(start.getRectangle().x * 2,Math.abs((start.getRectangle().y * 2) - 3200));
+        Vector2 startPoint = new Vector2(start.getRectangle().x * 2, start.getRectangle().y * 2);
         RectangleMapObject end = (RectangleMapObject) objects.get("End");
-        Vector2 endRect = new Vector2(end.getRectangle().x * 2,Math.abs((end.getRectangle().y * 2) - 3200));
+        Vector2 endPoint = new Vector2(end.getRectangle().x * 2, end.getRectangle().y * 2);
 
-
-        player = new Player(endRect.x,
-                endRect.y
-        );
+        player = new Player(endPoint.x, endPoint.y);
         crate = new Crate(100, 100);
 
 
-        ArrayList<Vector2> pathwayCoordinates = new ArrayList<>();
-        pathwayCoordinates.add(new Vector2(endRect.x,endRect.y));
         //pathwayCoordinates.add(new Vector2(1500, 1100));
         //pathwayCoordinates.add(new Vector2(-100, -100));
 
-        enemies.add(new Enemy(startRect.x, startRect.y, pathwayCoordinates,player));
+
         //enemies.add(new Enemy(start.getRectangle().x + 700, start.getRectangle().y + 1000, pathwayCoordinates,player));
         //enemies.add(new Enemy(1500, 500, pathwayCoordinates,player));
 
 
+        ArrayList<Vector2> pathwayCoordinates = new ArrayList<>();
+        pathwayCoordinates.add(new Vector2(endPoint.x, endPoint.y));
 
-
+        spawnWave(startPoint, pathwayCoordinates, 5);
 
 
         //int objectLayerId = 5;
@@ -122,7 +132,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     private boolean isCollidingWithMap() {
         TiledMapTileLayer groundLayer = (TiledMapTileLayer) tiledMap.getLayers().get("Ground");
         for (int j = 0; j < groundLayer.getHeight(); j++) {
-            System.out.println();
             for (int i = 0; i < groundLayer.getWidth(); i++) {
                 TiledMapTileLayer.Cell cell = groundLayer.getCell(j, i);
                 if (cell != null) {
@@ -142,7 +151,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     }
 
     public void update(float delta) {
-        System.out.println(player.getX() + " " + player.getY());
         float originalX = player.getX();
         float originalY = player.getY();
 
