@@ -33,9 +33,11 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     private GameMain game;
     private Player player;
     private OrthographicCamera camera;
+    private OrthographicCamera hudCamera;
     private Crate crate;
     private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
     private ArrayList<Bomb> bombs = new ArrayList<Bomb>();
+    private HealthBar healthBar;
     TiledMap tiledMap;
     TiledMapRenderer tiledMapRenderer;
 
@@ -45,6 +47,12 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         this.game = game;
         camera = new OrthographicCamera();
         camera.setToOrtho(
+                false,
+                GameInfo.WIDTH,
+                GameInfo.HEIGHT
+        );
+        hudCamera = new OrthographicCamera();
+        hudCamera.setToOrtho(
                 false,
                 GameInfo.WIDTH,
                 GameInfo.HEIGHT
@@ -77,6 +85,8 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         collidableTiles.add(180);
         collidableTiles.add(181);
         collidableTiles.add(182);
+
+        healthBar = new HealthBar(player);
     }
 
     public ArrayList<Enemy> getEnemies() {
@@ -172,6 +182,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         camera.position.x = player.getX();
         camera.position.y = player.getY();
         camera.update();
+
+        if (player.isDead()) {
+            game.showMainMenuScene();
+        }
     }
 
     @Override
@@ -212,6 +226,9 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             Bomb bomb = bombIter.next();
             bomb.draw(batch, shapeRenderer);
         }
+
+        batch.setProjectionMatrix(hudCamera.combined);
+        healthBar.draw(batch);
     }
 
     @Override

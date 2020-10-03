@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
+import helpers.RedShader;
 
 import java.util.ArrayList;
 
@@ -17,46 +18,26 @@ public class Enemy extends Sprite {
     private boolean isDead = false;
     private boolean isRed = false;
     public final float ACCELERATION = 300.0f;
+    private int DAMAGE = 1;
     private float current_point_y;
     boolean startOfGame = true;
-    private int state;
+    private State state;
     private float distanceToPursue = 100;
     private Vector2 nextPointToWalkTowards;
     private ArrayList<Vector2> pathwayCoordinates;
+    private float ATTACK_DELAY = 1.0f;
     private int pathCounter = 1;
     private Player player;
+    private boolean canAttack = true;
+    private int ATTACK_RANGE = 10;
 
+    private enum State {
+        WALK,
+        PURSUE,
+        ATTACK,
+        DEAD,
+    }
 
-
-    private final String flashRedVertexShader = "attribute vec4 " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
-            + "attribute vec4 " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" //
-            + "attribute vec2 " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
-            + "uniform mat4 u_projTrans;\n" //
-            + "varying vec4 v_color;\n" //
-            + "varying vec2 v_texCoords;\n" //
-            + "\n" //
-            + "void main()\n" //
-            + "{\n" //
-            + "   v_color = vec4(1.0, 0.0, 0.0, 1.0);\n" //
-            + "   v_texCoords = " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
-            + "   gl_Position =  u_projTrans * " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
-            + "}\n";
-
-    private final String flashRedFragmentShader = "#ifdef GL_ES\n" //
-            + "#define LOWP lowp\n" //
-            + "precision mediump float;\n" //
-            + "#else\n" //
-            + "#define LOWP \n" //
-            + "#endif\n" //
-            + "varying LOWP vec4 v_color;\n" //
-            + "varying vec2 v_texCoords;\n" //
-            + "uniform sampler2D u_texture;\n" //
-            + "void main()\n"//
-            + "{\n" //
-            + "  gl_FragColor = v_color * texture2D(u_texture, v_texCoords).a;\n" //
-            + "}";
-
-    private final ShaderProgram flashRedShader = new ShaderProgram(flashRedVertexShader, flashRedFragmentShader);
 
 
 
@@ -70,25 +51,48 @@ public class Enemy extends Sprite {
 
     }
 
-    public void stateMachine(int state){
+    public void stateMachine(State state){
         this.state = state;
         switch(state){
-            case 0: // walk to end point
+            case WALK: // walk to end point
                 walkToEnd();
                 break;
-            case 1:
+            case DEAD:
                 isDead = true;
                 break;
-            case 2:
+            case PURSUE:
                 pursuePlayer();
                 break;
+            case ATTACK:
+                attackPlayer();
+                break;
+        }
+    }
+
+
+    private void attackPlayer() {
+        if (canAttack) {
+            player.damage(DAMAGE);
+            canAttack = false;
+
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+                    canAttack = true;
+                }
+            }, ATTACK_DELAY);
+        }
+
+        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
+        if(distanceEnemyPlayer > ATTACK_RANGE){
+            stateMachine(State.PURSUE);
         }
     }
 
     public void update(){
         if(startOfGame) {
             startOfGame = false;
-            stateMachine(0);
+            stateMachine(State.WALK);
         }else{
             stateMachine(state);
         }
@@ -99,9 +103,8 @@ public class Enemy extends Sprite {
 
         double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
         if(distanceEnemyPlayer <= distanceToPursue){
-            stateMachine(2);
+            stateMachine(State.PURSUE);
         }
-
         double distanceFromCurrentPathGoal = sqrt((getX() - nextPointToWalkTowards.x) * (getX()-nextPointToWalkTowards.x) + (getY()-nextPointToWalkTowards.y) * (getY()-nextPointToWalkTowards.y));
         if(distanceFromCurrentPathGoal <= 0){
             if(pathwayCoordinates.size() > pathCounter){
@@ -109,7 +112,7 @@ public class Enemy extends Sprite {
                 nextPointToWalkTowards.x = pathwayCoordinates.get(pathCounter).x;
                 pathCounter++;
             }else{
-                stateMachine(1);
+                stateMachine(State.DEAD);
                 return;
             }
         }
@@ -128,7 +131,11 @@ public class Enemy extends Sprite {
     private void pursuePlayer(){
         double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
         if(distanceEnemyPlayer > distanceToPursue){
-            stateMachine(0);
+            stateMachine(State.WALK);
+        }
+
+        if (distanceEnemyPlayer <= ATTACK_RANGE) {
+            stateMachine(State.ATTACK);
         }
 
         if(getY() < player.getY()) {
@@ -162,7 +169,7 @@ public class Enemy extends Sprite {
     @Override
     public void draw(Batch batch) {
         if (isRed) {
-            batch.setShader(flashRedShader);
+            batch.setShader(RedShader.shaderProgram);
         } else {
             batch.setShader(null);
         }
