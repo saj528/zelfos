@@ -13,6 +13,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
+import helpers.RedShader;
 
 import java.util.ArrayList;
 
@@ -78,11 +79,14 @@ public class Player extends Sprite {
     private float animationSpeed = 0.13f;
     private float attackTime = 0f;
     private float walkTime = 0f;
+    private int maxLives = 5;
+    private int lives = maxLives;
     private boolean showAttackAnimation = false;
     private float ATTACK_ANIMATION_SPEED = 0.025f;
     private float ATTACK_COOLDOWN = ATTACK_ANIMATION_SPEED * 13;
     private float ATTACK_ANIMATION_DURATION = 0.2f;
     private int bombs = 100;
+    private boolean shouldFlashRed;
 
     private enum Direction {
         None,
@@ -92,6 +96,27 @@ public class Player extends Sprite {
         Down
     }
     private Direction strifeDirection = Direction.None;
+
+    public int getLives() {
+        return lives;
+    }
+
+    public int getMaxLives() {
+        return maxLives;
+    }
+
+    public void damage(int amount) {
+        lives -= amount;
+        shouldFlashRed = true;
+
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                shouldFlashRed = false;
+            }
+        }, 0.5f);
+
+    }
 
     public Player(float x, float y) {
         super(new Texture("player-down.png"));
@@ -147,6 +172,8 @@ public class Player extends Sprite {
         rightFrames[2] = playerSheetRegions[3][2];
         rightAnimation = new Animation<TextureRegion>(animationSpeed, rightFrames);
         attackRight = playerSheetRegions[3][3];
+
+        shouldFlashRed = false;
     }
 
     public void updatePlayerMovement(boolean left, boolean right, boolean up, boolean down, boolean strafe, float delta) {
@@ -316,6 +343,10 @@ public class Player extends Sprite {
     public void draw(Batch batch) {
         batch.begin();
 
+        if (shouldFlashRed) {
+            batch.setShader(RedShader.shaderProgram);
+        }
+
         if (showAttackAnimation) {
             if (isFacingLeft) {
                 batch.draw(attackLeft, getX(), getY());
@@ -367,6 +398,9 @@ public class Player extends Sprite {
                 }
             }
         }
+
+        batch.setShader(null);
+
         Texture box = createHitboxTexture(40, 40);
         AttackHitbox hitbox = new AttackHitbox(this);
         if (isFacingLeft) {
@@ -379,6 +413,10 @@ public class Player extends Sprite {
             batch.draw(box, hitbox.down.x, hitbox.down.y);
         }
         batch.end();
+    }
+
+    public boolean isDead() {
+        return lives <= 0;
     }
 }
 
