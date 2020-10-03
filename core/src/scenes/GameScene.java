@@ -17,10 +17,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.math.Rectangle;
 import com.zelfos.game.GameMain;
-import entities.Enemy;
+import entities.*;
 import helpers.GameInfo;
-import entities.Crate;
-import entities.Player;
 
 
 import java.awt.*;
@@ -29,18 +27,18 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
-public class GameScene implements Screen, ContactListener {
+public class GameScene implements Screen, ContactListener, BombManager {
 
     private GameMain game;
     private Player player;
     private OrthographicCamera camera;
     private Crate crate;
     private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
+    private ArrayList<Bomb> bombs = new ArrayList<Bomb>();
     TiledMap tiledMap;
     TiledMapRenderer tiledMapRenderer;
 
     private HashSet<Integer> collidableTiles;
-
 
     public GameScene(GameMain game) {
         this.game = game;
@@ -86,6 +84,10 @@ public class GameScene implements Screen, ContactListener {
         return playerRect.overlaps(createRect);
     }
 
+    public void createBomb(float x, float y) {
+        bombs.add(new Bomb(player.getX(), player.getY()));
+    }
+
     private boolean isCollidingWithMap() {
         TiledMapTileLayer groundLayer = (TiledMapTileLayer) tiledMap.getLayers().get("Ground");
         for (int j = 0; j < groundLayer.getHeight(); j++) {
@@ -117,9 +119,14 @@ public class GameScene implements Screen, ContactListener {
         boolean right = Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D);
         boolean up = Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W);
         boolean down = Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S);
+        boolean bombInput = Gdx.input.isKeyPressed(Input.Keys.B);
         boolean shift = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT);
 
         player.update(delta);
+
+        if (bombInput && player.hasBombs()) {
+            player.dropBomb(this);
+        }
 
         player.updatePlayerMovement(left, right, up, down, shift, delta);
 
@@ -146,6 +153,14 @@ public class GameScene implements Screen, ContactListener {
             Enemy enemy = iter.next();
             if (enemy.isDead()) {
                 iter.remove();
+            }
+        }
+
+        Iterator<Bomb> bombIter = bombs.iterator();
+        while (bombIter.hasNext()) {
+            Bomb bomb = bombIter.next();
+            if (bomb.isDead()) {
+                bombIter.remove();
             }
         }
 
@@ -185,6 +200,11 @@ public class GameScene implements Screen, ContactListener {
             enemy.draw(batch);
         }
 
+        Iterator<Bomb> bombIter = bombs.iterator();
+        while (bombIter.hasNext()) {
+            Bomb bomb = bombIter.next();
+            bomb.draw(batch);
+        }
     }
 
     @Override

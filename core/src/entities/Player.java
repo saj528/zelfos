@@ -63,6 +63,7 @@ public class Player extends Sprite {
     private boolean isFacingLeft = false;
     private boolean isFacingRight = false;
     private boolean isRunning = false;
+    private boolean canDropBomb = true;
     private float ATTACK_OFFSET = 0.05f;
     private int SWORD_DAMAGE = 1;
     private Animation<Texture> attackAnimation;
@@ -81,6 +82,7 @@ public class Player extends Sprite {
     private float ATTACK_ANIMATION_SPEED = 0.025f;
     private float ATTACK_COOLDOWN = ATTACK_ANIMATION_SPEED * 13;
     private float ATTACK_ANIMATION_DURATION = 0.2f;
+    private int bombs = 100;
 
     private enum Direction {
         None,
@@ -219,6 +221,26 @@ public class Player extends Sprite {
 
     public void updateY(float delta) {
         setY(getY() + input_vector.y * ACCELERATION * delta);
+    }
+
+    public void dropBomb(BombManager bombManager) {
+        if (canDropBomb && bombs > 0) {
+            bombs--;
+            canDropBomb = false;
+            bombManager.createBomb(getX(), getY());
+
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+                    canDropBomb = true;
+                }
+            }, 0.5f);
+
+        }
+    }
+
+    public boolean hasBombs() {
+        return bombs > 0;
     }
 
     public void attack(final ArrayList<Enemy> enemies) {
