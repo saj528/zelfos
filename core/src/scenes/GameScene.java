@@ -3,8 +3,11 @@ package scenes;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.MapLayer;
@@ -23,6 +26,7 @@ import com.badlogic.gdx.utils.Timer;
 import com.zelfos.game.GameMain;
 import entities.*;
 import helpers.GameInfo;
+import hud.Leaks;
 
 
 import java.awt.*;
@@ -31,7 +35,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
-public class GameScene implements Screen, ContactListener, BombManager, EnemyManager {
+public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, LeakManager, FlashRedManager {
 
     private GameMain game;
     private Player player;
@@ -40,23 +44,15 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     private Crate crate;
     private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
     private ArrayList<Bomb> bombs = new ArrayList<Bomb>();
+    private Leaks leaksHud;
+    private boolean shouldFlashRed = false;
+    private Texture fullSceenRedFlashTexture;
     private HealthBar healthBar;
+    private int leaks = 10;
     TiledMap tiledMap;
     TiledMapRenderer tiledMapRenderer;
 
     private HashSet<Integer> collidableTiles;
-
-    public void spawnWave(final Vector2 startPoint, final ArrayList<Vector2> pathwayCoordinates, final int enemiesLeftToSpawn) {
-        if (enemiesLeftToSpawn <= 0) return;
-
-        Timer.schedule(new Timer.Task() {
-            @Override
-            public void run() {
-                enemies.add(new Enemy(startPoint.x, startPoint.y, pathwayCoordinates, player));
-                spawnWave(startPoint, pathwayCoordinates, enemiesLeftToSpawn - 1);
-            }
-        }, 1.0f);
-    }
 
     public GameScene(GameMain game) {
         this.game = game;
@@ -78,7 +74,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         RectangleMapObject end = (RectangleMapObject) objects.get("End");
         Vector2 endPoint = new Vector2(end.getRectangle().x * 2, end.getRectangle().y * 2);
 
-        player = new Player(endPoint.x, endPoint.y);
+        player = new Player(endPoint.x, endPoint.y, this);
 
         hudCamera = new OrthographicCamera();
         hudCamera.setToOrtho(
@@ -92,6 +88,11 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         //pathwayCoordinates.add(new Vector2(1500, 1100));
         //pathwayCoordinates.add(new Vector2(-100, -100));
 
+        Pixmap pixmap = new Pixmap(GameInfo.WIDTH, GameInfo.HEIGHT, Pixmap.Format.RGBA8888);
+        pixmap.setColor(new Color(1, 0, 0, 0.4f));
+        pixmap.fillRectangle(0, 0, GameInfo.WIDTH, GameInfo.HEIGHT);
+        fullSceenRedFlashTexture = new Texture(pixmap);
+        pixmap.dispose();
 
         //enemies.add(new Enemy(start.getRectangle().x + 700, start.getRectangle().y + 1000, pathwayCoordinates,player));
         //enemies.add(new Enemy(1500, 500, pathwayCoordinates,player));
@@ -124,6 +125,24 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         collidableTiles.add(182);
 
         healthBar = new HealthBar(player);
+
+        leaksHud = new Leaks(this, GameInfo.WIDTH / 2, GameInfo.HEIGHT - 35);
+    }
+
+
+
+    public void spawnWave(final Vector2 startPoint, final ArrayList<Vector2> pathwayCoordinates, final int enemiesLeftToSpawn) {
+        if (enemiesLeftToSpawn <= 0) return;
+
+        final LeakManager leakManager = this;
+
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                enemies.add(new Enemy(startPoint.x, startPoint.y, pathwayCoordinates, player, leakManager));
+                spawnWave(startPoint, pathwayCoordinates, enemiesLeftToSpawn - 1);
+            }
+        }, 1.0f);
     }
 
     public ArrayList<Enemy> getEnemies() {
@@ -265,7 +284,17 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         }
 
         batch.setProjectionMatrix(hudCamera.combined);
+
+        if (shouldFlashRed) {
+            batch.begin();
+            batch.draw(fullSceenRedFlashTexture, 0, 0);
+            batch.end();
+        }
+
         healthBar.draw(batch);
+        leaksHud.draw(batch);
+
+
     }
 
     @Override
@@ -317,5 +346,30 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     @Override
     public void postSolve(Contact contact, ContactImpulse impulse) {
 
+    }
+
+    @Override
+    public void removeLeak() {
+        leaks--;
+        flashRed(0.5f);
+        if (leaks < 0) {
+            game.showMainMenuScene();
+        }
+    }
+
+    @Override
+    public int getLeaks() {
+        return leaks;
+    }
+
+    @Override
+    public void flashRed(float time) {
+        shouldFlashRed = true;
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                shouldFlashRed = false;
+            }
+        }, time);
     }
 }

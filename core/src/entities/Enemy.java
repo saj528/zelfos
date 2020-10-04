@@ -14,6 +14,7 @@ import static java.lang.Math.sqrt;
 
 public class Enemy extends Sprite {
 
+    private LeakManager leakManager;
     private int health;
     private boolean isDead = false;
     private boolean isRed = false;
@@ -41,13 +42,14 @@ public class Enemy extends Sprite {
 
 
 
-    public Enemy(float x, float y,ArrayList<Vector2> pathwayCoordinates,Player player) {
+    public Enemy(float x, float y,ArrayList<Vector2> pathwayCoordinates,Player player, LeakManager leakManager) {
         super(new Texture("enemy.png"));
         health = 5;
         setPosition(x, y);
         this.nextPointToWalkTowards = pathwayCoordinates.get(0);
         this.pathwayCoordinates = pathwayCoordinates;
         this.player = player;
+        this.leakManager = leakManager;
 
     }
 
@@ -106,13 +108,14 @@ public class Enemy extends Sprite {
             stateMachine(State.PURSUE);
         }
         double distanceFromCurrentPathGoal = sqrt((getX() - nextPointToWalkTowards.x) * (getX()-nextPointToWalkTowards.x) + (getY()-nextPointToWalkTowards.y) * (getY()-nextPointToWalkTowards.y));
-        if(distanceFromCurrentPathGoal <= 0){
+        if(distanceFromCurrentPathGoal <= 10){
             if(pathwayCoordinates.size() > pathCounter){
                 nextPointToWalkTowards.y = pathwayCoordinates.get(pathCounter).y;
                 nextPointToWalkTowards.x = pathwayCoordinates.get(pathCounter).x;
                 pathCounter++;
             }else{
                 stateMachine(State.DEAD);
+                leakManager.removeLeak();
                 return;
             }
         }
@@ -176,6 +179,7 @@ public class Enemy extends Sprite {
         batch.begin();
         batch.draw(this.getTexture(), getX(), getY());
         batch.end();
+        batch.setShader(null);
     }
 
     public boolean isDead() {

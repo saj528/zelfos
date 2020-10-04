@@ -37,6 +37,7 @@ class AttackHitbox {
 
 public class Player extends Sprite {
 
+    private final FlashRedManager flashRedManager;
     private Vector2 input_vector = Vector2.Zero;
     private Vector2 motion = Vector2.Zero;
     public final float ACCELERATION = 150.0f;
@@ -107,8 +108,12 @@ public class Player extends Sprite {
 
     public void damage(int amount) {
         lives -= amount;
-        shouldFlashRed = true;
 
+        // flashes the screen red
+        flashRedManager.flashRed(0.2f);
+
+        // flashes the player red
+        shouldFlashRed = true;
         Timer.schedule(new Timer.Task() {
             @Override
             public void run() {
@@ -118,10 +123,11 @@ public class Player extends Sprite {
 
     }
 
-    public Player(float x, float y) {
+    public Player(float x, float y, FlashRedManager flashRedManager) {
         super(new Texture("player-down.png"));
         setPosition(x, y);
         setTexture(playerDown);
+        this.flashRedManager = flashRedManager;
         Texture[] attackFrames = new Texture[13];
         attackFrames[0] = new Texture("attack/a1.png");
         attackFrames[1] = new Texture("attack/a2.png");
