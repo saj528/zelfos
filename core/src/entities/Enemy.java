@@ -17,7 +17,7 @@ public class Enemy extends Sprite {
     private int health;
     private boolean isDead = false;
     private boolean isRed = false;
-    public final float ACCELERATION = 300.0f;
+    public final int SPEED = 1;
     private int DAMAGE = 1;
     private float current_point_y;
     boolean startOfGame = true;
@@ -106,7 +106,7 @@ public class Enemy extends Sprite {
             stateMachine(State.PURSUE);
         }
         double distanceFromCurrentPathGoal = sqrt((getX() - nextPointToWalkTowards.x) * (getX()-nextPointToWalkTowards.x) + (getY()-nextPointToWalkTowards.y) * (getY()-nextPointToWalkTowards.y));
-        if(distanceFromCurrentPathGoal <= 0){
+        if((int)distanceFromCurrentPathGoal <= 0){
             if(pathwayCoordinates.size() > pathCounter){
                 nextPointToWalkTowards.y = pathwayCoordinates.get(pathCounter).y;
                 nextPointToWalkTowards.x = pathwayCoordinates.get(pathCounter).x;
@@ -117,14 +117,14 @@ public class Enemy extends Sprite {
             }
         }
         if(getY() < nextPointToWalkTowards.y) {
-            setY(getY() + 1);
+            setY(getY() + SPEED);
         }else if(getY() > nextPointToWalkTowards.y){
-            setY(getY() - 1);
+            setY(getY() - SPEED);
         }
         if(getX() < nextPointToWalkTowards.x){
-            setX(getX() + 1);
+            setX(getX() + SPEED);
         }else if(getX() > nextPointToWalkTowards.x){
-            setX(getX() - 1);
+            setX(getX() - SPEED);
         }
     }
 
@@ -139,14 +139,14 @@ public class Enemy extends Sprite {
         }
 
         if(getY() < player.getY()) {
-            setY(getY() + 1);
+            setY(getY() + SPEED);
         }else if(getY() > player.getY()){
-            setY(getY() - 1);
+            setY(getY() - SPEED);
         }
         if(getX() < player.getX()){
-            setX(getX() + 1);
+            setX(getX() + SPEED);
         }else if(getX() > player.getX()){
-            setX(getX() - 1);
+            setX(getX() - SPEED);
         }
     }
 
