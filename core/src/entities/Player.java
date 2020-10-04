@@ -276,7 +276,7 @@ public class Player extends Sprite {
         return bombs > 0;
     }
 
-    public void attack(final ArrayList<Enemy> enemies) {
+    public void attack(final ArrayList<EnemyInterface> enemies) {
         if (!canAttack) return;
         canAttack = false;
         attackTime = 0;
@@ -296,7 +296,7 @@ public class Player extends Sprite {
             public void run() {
                 AttackHitbox hitbox = new AttackHitbox(player);
 
-                for (Enemy enemy : enemies) {
+                for (EnemyInterface enemy : enemies) {
                     if (isFacingLeft) {
                         if (hitbox.left.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);

@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.MapLayer;
-import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapObjects;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -25,34 +24,41 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Timer;
 import com.zelfos.game.GameMain;
 import entities.*;
+import helpers.EnemySet;
 import helpers.GameInfo;
+import helpers.Wave;
+import helpers.WaveManager;
 import hud.Leaks;
+import hud.WavesHud;
 
 
-import java.awt.*;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
-public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, LeakManager, FlashRedManager {
+public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, LeakManager, FlashRedManager, ArrowManager, WaveManager {
 
-    private GameMain game;
-    private Player player;
-    private OrthographicCamera camera;
-    private OrthographicCamera hudCamera;
-    private Crate crate;
-    private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
-    private ArrayList<Bomb> bombs = new ArrayList<Bomb>();
-    private Leaks leaksHud;
+    private final GameMain game;
+    private final Player player;
+    private final OrthographicCamera camera;
+    private final OrthographicCamera hudCamera;
+    private final ArrayList<EnemyInterface> enemies = new ArrayList<>();
+    private final ArrayList<Bomb> bombs = new ArrayList<>();
+    private final ArrayList<Arrow> arrows = new ArrayList<>();
+    private final Leaks leaksHud;
     private boolean shouldFlashRed = false;
-    private Texture fullSceenRedFlashTexture;
-    private HealthBar healthBar;
+    private final Texture fullScreenRedFlashTexture;
+    private final HealthBar healthBar;
     private int leaks = 10;
+    private int currentWaveIndex = 0;
+    private float SPAWN_DELAY = 0.5f;
+    private WavesHud wavesHud;
     TiledMap tiledMap;
     TiledMapRenderer tiledMapRenderer;
 
-    private HashSet<Integer> collidableTiles;
+    private Wave[] waves;
+
+    private final HashSet<Integer> collidableTiles;
 
     public GameScene(GameMain game) {
         this.game = game;
@@ -62,6 +68,19 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                 GameInfo.WIDTH,
                 GameInfo.HEIGHT
         );
+
+        waves = new Wave[1];
+        EnemySet[] wave0EnemySets = new EnemySet[2];
+        wave0EnemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 1);
+        wave0EnemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 1);
+        waves[0] = new Wave(wave0EnemySets);
+
+//        EnemySet[] wave1EnemySets = new EnemySet[2];
+//        wave1EnemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 5);
+//        wave1EnemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 2);
+//        waves[1] = new Wave(wave1EnemySets);
+
+        wavesHud = new WavesHud(this);
 
         tiledMap = new TmxMapLoader().load("map.tmx");
         tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap, 2);
@@ -82,8 +101,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                 GameInfo.WIDTH,
                 GameInfo.HEIGHT
         );
-        crate = new Crate(100, 100);
-
 
         //pathwayCoordinates.add(new Vector2(1500, 1100));
         //pathwayCoordinates.add(new Vector2(-100, -100));
@@ -91,17 +108,13 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         Pixmap pixmap = new Pixmap(GameInfo.WIDTH, GameInfo.HEIGHT, Pixmap.Format.RGBA8888);
         pixmap.setColor(new Color(1, 0, 0, 0.4f));
         pixmap.fillRectangle(0, 0, GameInfo.WIDTH, GameInfo.HEIGHT);
-        fullSceenRedFlashTexture = new Texture(pixmap);
+        fullScreenRedFlashTexture = new Texture(pixmap);
         pixmap.dispose();
 
         //enemies.add(new Enemy(start.getRectangle().x + 700, start.getRectangle().y + 1000, pathwayCoordinates,player));
         //enemies.add(new Enemy(1500, 500, pathwayCoordinates,player));
 
-
-        ArrayList<Vector2> pathwayCoordinates = new ArrayList<>();
-        pathwayCoordinates.add(new Vector2(endPoint.x, endPoint.y));
-
-        spawnWave(startPoint, pathwayCoordinates, 5);
+        spawnNextWave();
 
 
         //int objectLayerId = 5;
@@ -113,7 +126,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
 
 
-        collidableTiles = new HashSet<Integer>();
+        collidableTiles = new HashSet<>();
         collidableTiles.add(156);
         collidableTiles.add(157);
         collidableTiles.add(158);
@@ -126,33 +139,48 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         healthBar = new HealthBar(player);
 
-        leaksHud = new Leaks(this, GameInfo.WIDTH / 2, GameInfo.HEIGHT - 35);
+        leaksHud = new Leaks(this, GameInfo.WIDTH / 2f, GameInfo.HEIGHT - 35);
     }
 
 
 
-    public void spawnWave(final Vector2 startPoint, final ArrayList<Vector2> pathwayCoordinates, final int enemiesLeftToSpawn) {
-        if (enemiesLeftToSpawn <= 0) return;
-
+    public void spawnNextWave() {
         final LeakManager leakManager = this;
+        final ArrowManager arrowManager = this;
 
-        Timer.schedule(new Timer.Task() {
-            @Override
-            public void run() {
-                enemies.add(new Enemy(startPoint.x, startPoint.y, pathwayCoordinates, player, leakManager));
-                spawnWave(startPoint, pathwayCoordinates, enemiesLeftToSpawn - 1);
+        MapLayer waypoint = tiledMap.getLayers().get("Waypoint");
+        MapObjects objects = waypoint.getObjects();
+
+        RectangleMapObject start = (RectangleMapObject) objects.get("Start");
+        Vector2 startPoint = new Vector2((int)start.getRectangle().x * 2, (int)start.getRectangle().y * 2);
+        RectangleMapObject end = (RectangleMapObject) objects.get("End");
+        Vector2 endPoint = new Vector2((int)end.getRectangle().x * 2, (int)end.getRectangle().y * 2);
+
+
+        Wave currentWave = waves[currentWaveIndex];
+        for (EnemySet enemySet : currentWave.getEnemySets()) {
+            for (int i = 0; i < enemySet.getCount(); i++) {
+                int offsetSize = 200;
+                int ox = (int)(Math.random() * offsetSize) - offsetSize / 2;
+                int oy = (int)(Math.random() * offsetSize) - offsetSize / 2;
+
+                ArrayList<Vector2> pathwayCoordinates = new ArrayList<>();
+                pathwayCoordinates.add(new Vector2(endPoint.x + ox, endPoint.y + oy));
+
+                switch(enemySet.getEnemyType()) {
+                    case SOLDIER:
+                        enemies.add(new Enemy(startPoint.x + ox, startPoint.y + oy, pathwayCoordinates, player, leakManager));
+                        break;
+                    case ARCHER:
+                        enemies.add(new Archer(startPoint.x + ox, startPoint.y + oy, pathwayCoordinates, player, leakManager, arrowManager));
+                        break;
+                }
             }
-        }, 1.0f);
+        }
     }
 
-    public ArrayList<Enemy> getEnemies() {
+    public ArrayList<EnemyInterface> getEnemies() {
         return enemies;
-    }
-
-    public boolean isOverlappingCrate() {
-        Rectangle playerRect = player.getBoundingRectangle();
-        Rectangle createRect = crate.getBoundingRectangle();
-        return playerRect.overlaps(createRect);
     }
 
     public void createBomb(float x, float y) {
@@ -214,23 +242,35 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             player.attack(enemies);
         }
 
-        for (Enemy enemy : enemies) {
+        for (EnemyInterface enemy : enemies) {
             enemy.update();
         }
 
-        Iterator<Enemy> iter = enemies.iterator();
-        while (iter.hasNext()) {
-            Enemy enemy = iter.next();
+        Iterator<EnemyInterface> iterator = enemies.iterator();
+        while (iterator.hasNext()) {
+            EnemyInterface enemy = iterator.next();
             if (enemy.isDead()) {
-                iter.remove();
+                iterator.remove();
             }
         }
 
-        Iterator<Bomb> bombIter = bombs.iterator();
-        while (bombIter.hasNext()) {
-            Bomb bomb = bombIter.next();
+        Iterator<Bomb> bombIterator = bombs.iterator();
+        while (bombIterator.hasNext()) {
+            Bomb bomb = bombIterator.next();
             if (bomb.isDead()) {
-                bombIter.remove();
+                bombIterator.remove();
+            }
+        }
+
+        for (Arrow arrow : arrows) {
+            arrow.update(delta);
+        }
+
+        Iterator<Arrow> arrowIterator = arrows.iterator();
+        while (arrowIterator.hasNext()) {
+            Arrow arrow = arrowIterator.next();
+            if (arrow.isDead()) {
+                arrowIterator.remove();
             }
         }
 
@@ -241,6 +281,17 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         if (player.isDead()) {
             game.showMainMenuScene();
         }
+
+        if (enemies.size() <= 0) {
+            currentWaveIndex++;
+            if (currentWaveIndex >= waves.length) {
+                // you won
+                game.showWinScreen();
+            } else {
+                spawnNextWave();
+            }
+        }
+
     }
 
     @Override
@@ -264,36 +315,32 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         player.draw(batch);
 
-        batch.begin();
-        crate.draw(batch);
-        batch.end();
-
-        Iterator<Enemy> iter = enemies.iterator();
-        while (iter.hasNext()) {
-            Enemy enemy = iter.next();
+        for (EnemyInterface enemy : enemies) {
             enemy.draw(batch);
         }
 
         ShapeRenderer shapeRenderer = new ShapeRenderer();
         shapeRenderer.setProjectionMatrix(camera.combined);
 
-        Iterator<Bomb> bombIter = bombs.iterator();
-        while (bombIter.hasNext()) {
-            Bomb bomb = bombIter.next();
+        for (Bomb bomb : bombs) {
             bomb.draw(batch, shapeRenderer);
+        }
+
+        for (Arrow arrow : arrows) {
+            arrow.draw(batch);
         }
 
         batch.setProjectionMatrix(hudCamera.combined);
 
         if (shouldFlashRed) {
             batch.begin();
-            batch.draw(fullSceenRedFlashTexture, 0, 0);
+            batch.draw(fullScreenRedFlashTexture, 0, 0);
             batch.end();
         }
 
         healthBar.draw(batch);
         leaksHud.draw(batch);
-
+        wavesHud.draw(batch);
 
     }
 
@@ -321,9 +368,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     public void dispose() {
         player.getTexture().dispose();
         tiledMap.dispose();
-        Iterator<Enemy> iter = enemies.iterator();
-        while (iter.hasNext()) {
-            Enemy enemy = iter.next();
+        for (EnemyInterface enemy : enemies) {
             enemy.getTexture().dispose();
         }
     }
@@ -371,5 +416,15 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                 shouldFlashRed = false;
             }
         }, time);
+    }
+
+    @Override
+    public void createArrow(float x, float y, float angle) {
+        arrows.add(new Arrow(x, y, angle, player));
+    }
+
+    @Override
+    public int getCurrentWave() {
+        return currentWaveIndex + 1;
     }
 }
