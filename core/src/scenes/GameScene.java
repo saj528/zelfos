@@ -70,9 +70,9 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         MapObjects objects = waypoint.getObjects();
 
         RectangleMapObject start = (RectangleMapObject) objects.get("Start");
-        Vector2 startPoint = new Vector2(start.getRectangle().x * 2, start.getRectangle().y * 2);
+        Vector2 startPoint = new Vector2((int)start.getRectangle().x * 2, (int)start.getRectangle().y * 2);
         RectangleMapObject end = (RectangleMapObject) objects.get("End");
-        Vector2 endPoint = new Vector2(end.getRectangle().x * 2, end.getRectangle().y * 2);
+        Vector2 endPoint = new Vector2((int)end.getRectangle().x * 2, (int)end.getRectangle().y * 2);
 
         player = new Player(endPoint.x, endPoint.y, this);
 
