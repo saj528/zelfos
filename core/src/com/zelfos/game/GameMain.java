@@ -3,6 +3,7 @@ package com.zelfos.game;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import scenes.GameScene;
+import scenes.GameWinScene;
 import scenes.MainMenuScene;
 
 public class GameMain extends Game {
@@ -29,5 +30,9 @@ public class GameMain extends Game {
 
 	public void showGameScene() {
 		setScreen(new GameScene(this));
+	}
+
+	public void showWinScreen() {
+		setScreen(new GameWinScene(this));
 	}
 }

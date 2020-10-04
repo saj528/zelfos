@@ -3,7 +3,6 @@ package entities;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import helpers.RedShader;
@@ -12,8 +11,9 @@ import java.util.ArrayList;
 
 import static java.lang.Math.sqrt;
 
-public class Enemy extends Sprite implements EnemyInterface {
+public class Archer extends Sprite implements EnemyInterface {
 
+    private ArrowManager arrowManager;
     private LeakManager leakManager;
     private int health;
     private boolean isDead = false;
@@ -23,14 +23,14 @@ public class Enemy extends Sprite implements EnemyInterface {
     private float current_point_y;
     boolean startOfGame = true;
     private State state;
-    private float distanceToPursue = 100;
+    private float distanceToPursue = 300;
     private Vector2 nextPointToWalkTowards;
     private ArrayList<Vector2> pathwayCoordinates;
-    private float ATTACK_DELAY = 1.0f;
+    private float ATTACK_DELAY = 3.0f;
     private int pathCounter = 1;
     private Player player;
     private boolean canAttack = true;
-    private int ATTACK_RANGE = 30;
+    private int ATTACK_RANGE = 250;
 
     private enum State {
         WALK,
@@ -39,18 +39,15 @@ public class Enemy extends Sprite implements EnemyInterface {
         DEAD,
     }
 
-
-
-
-    public Enemy(float x, float y,ArrayList<Vector2> pathwayCoordinates,Player player, LeakManager leakManager) {
-        super(new Texture("enemy.png"));
+    public Archer(float x, float y,ArrayList<Vector2> pathwayCoordinates,Player player, LeakManager leakManager, ArrowManager arrowManager) {
+        super(new Texture("archer.png"));
         health = 5;
         setPosition(x, y);
         this.nextPointToWalkTowards = pathwayCoordinates.get(0);
         this.pathwayCoordinates = pathwayCoordinates;
         this.player = player;
         this.leakManager = leakManager;
-
+        this.arrowManager = arrowManager;
     }
 
     public void stateMachine(State state){
@@ -66,15 +63,20 @@ public class Enemy extends Sprite implements EnemyInterface {
                 pursuePlayer();
                 break;
             case ATTACK:
-                attackPlayer();
+                fireArrow();
                 break;
         }
     }
 
 
-    private void attackPlayer() {
+    private void fireArrow() {
         if (canAttack) {
-            player.damage(DAMAGE);
+            Vector2 playerCenter = new Vector2(0, 0);
+            player.getBoundingRectangle().getCenter(playerCenter);
+            float dy = playerCenter.y - getY();
+            float dx = playerCenter.x - getX();
+            float angle = (float)Math.atan2(dy, dx);
+            arrowManager.createArrow(getX(), getY(), angle);
             canAttack = false;
 
             Timer.schedule(new Timer.Task() {

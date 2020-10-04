@@ -28,7 +28,7 @@ public class Bomb extends Sprite {
             public void run() {
                 isDead = true;
                 Vector2 bombPosition = new Vector2(getX() + getWidth() / 2f, getY() + getHeight() / 2f);
-                for (Enemy enemy : enemyManager.getEnemies()) {
+                for (EnemyInterface enemy : enemyManager.getEnemies()) {
                     Vector2 enemyPosition = new Vector2(enemy.getX() + enemy.getWidth() / 2f, enemy.getY() + enemy.getHeight() / 2f);
                     float distance = enemyPosition.dst(bombPosition);
                     if (distance < BLAST_RADIUS) {

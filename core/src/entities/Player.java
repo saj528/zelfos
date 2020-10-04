@@ -37,6 +37,7 @@ class AttackHitbox {
 
 public class Player extends Sprite {
 
+    private final FlashRedManager flashRedManager;
     private Vector2 input_vector = Vector2.Zero;
     private Vector2 motion = Vector2.Zero;
     public final float ACCELERATION = 150.0f;
@@ -109,8 +110,12 @@ public class Player extends Sprite {
 
     public void damage(int amount) {
         lives -= amount;
-        shouldFlashRed = true;
 
+        // flashes the screen red
+        flashRedManager.flashRed(0.2f);
+
+        // flashes the player red
+        shouldFlashRed = true;
         Timer.schedule(new Timer.Task() {
             @Override
             public void run() {
@@ -120,11 +125,12 @@ public class Player extends Sprite {
 
     }
 
-    public Player(float x, float y) {
+    public Player(float x, float y, FlashRedManager flashRedManager) {
         super(new Texture("playersprites/Run Down/run_down_1.png"));
         setPosition(x, y);
         setTexture(playerDown);
         isFacingDown = true;
+        this.flashRedManager = flashRedManager;
         Texture[] attackFrames = new Texture[13];
         attackFrames[0] = new Texture("attack/a1.png");
         attackFrames[1] = new Texture("attack/a2.png");
@@ -316,7 +322,7 @@ public class Player extends Sprite {
         return bombs > 0;
     }
 
-    public void attack(final ArrayList<Enemy> enemies) {
+    public void attack(final ArrayList<EnemyInterface> enemies) {
         if (!canAttack) return;
         canAttack = false;
         attackTime = 0;
@@ -336,7 +342,7 @@ public class Player extends Sprite {
             public void run() {
                 AttackHitbox hitbox = new AttackHitbox(player);
 
-                for (Enemy enemy : enemies) {
+                for (EnemyInterface enemy : enemies) {
                     if (isFacingLeft) {
                         if (hitbox.left.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
