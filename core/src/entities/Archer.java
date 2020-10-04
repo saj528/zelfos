@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
+import helpers.Debug;
 import helpers.RedShader;
 
 import java.util.ArrayList;
@@ -164,6 +165,8 @@ public class Archer extends Sprite implements EnemyInterface {
             isDead = true;
         }
 
+        Physics.knockback(player, this, 30);
+
         Timer.schedule(new Timer.Task() {
             @Override
             public void run() {
@@ -183,6 +186,7 @@ public class Archer extends Sprite implements EnemyInterface {
         batch.draw(this.getTexture(), getX(), getY());
         batch.end();
         batch.setShader(null);
+        Debug.drawHitbox(batch, getBoundingRectangle());
     }
 
     public boolean isDead() {

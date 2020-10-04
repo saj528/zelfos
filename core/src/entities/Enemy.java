@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
+import helpers.Debug;
 import helpers.RedShader;
 
 import java.util.ArrayList;
@@ -39,9 +40,6 @@ public class Enemy extends Sprite implements EnemyInterface {
         DEAD,
     }
 
-
-
-
     public Enemy(float x, float y,ArrayList<Vector2> pathwayCoordinates,Player player, LeakManager leakManager) {
         super(new Texture("enemy.png"));
         health = 5;
@@ -50,7 +48,6 @@ public class Enemy extends Sprite implements EnemyInterface {
         this.pathwayCoordinates = pathwayCoordinates;
         this.player = player;
         this.leakManager = leakManager;
-
     }
 
     public void stateMachine(State state){
@@ -71,7 +68,6 @@ public class Enemy extends Sprite implements EnemyInterface {
         }
     }
 
-
     private void attackPlayer() {
         if (canAttack) {
             player.damage(DAMAGE);
@@ -85,8 +81,7 @@ public class Enemy extends Sprite implements EnemyInterface {
             }, ATTACK_DELAY);
         }
 
-        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
-        if(distanceEnemyPlayer > ATTACK_RANGE){
+        if(getDistanceToPlayer() > ATTACK_RANGE){
             stateMachine(State.PURSUE);
         }
     }
@@ -103,8 +98,7 @@ public class Enemy extends Sprite implements EnemyInterface {
 
     private void walkToEnd() {
 
-        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
-        if(distanceEnemyPlayer <= distanceToPursue){
+        if(getDistanceToPlayer() <= distanceToPursue){
             stateMachine(State.PURSUE);
         }
         double distanceFromCurrentPathGoal = sqrt((getX() - nextPointToWalkTowards.x) * (getX()-nextPointToWalkTowards.x) + (getY()-nextPointToWalkTowards.y) * (getY()-nextPointToWalkTowards.y));
@@ -133,12 +127,11 @@ public class Enemy extends Sprite implements EnemyInterface {
     }
 
     private void pursuePlayer(){
-        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
-        if(distanceEnemyPlayer > distanceToPursue){
+        if(getDistanceToPlayer() > distanceToPursue){
             stateMachine(State.WALK);
         }
 
-        if (distanceEnemyPlayer <= ATTACK_RANGE) {
+        if (getDistanceToPlayer()  <= ATTACK_RANGE) {
             stateMachine(State.ATTACK);
         }
 
@@ -162,6 +155,8 @@ public class Enemy extends Sprite implements EnemyInterface {
             isDead = true;
         }
 
+        Physics.knockback(player, this, 30);
+
         Timer.schedule(new Timer.Task() {
             @Override
             public void run() {
@@ -181,6 +176,8 @@ public class Enemy extends Sprite implements EnemyInterface {
         batch.draw(this.getTexture(), getX(), getY());
         batch.end();
         batch.setShader(null);
+
+        Debug.drawHitbox(batch, getBoundingRectangle());
     }
 
     public boolean isDead() {
@@ -188,5 +185,15 @@ public class Enemy extends Sprite implements EnemyInterface {
     }
 
     public void dispose(){
+    }
+
+    public float getDistanceToPlayer() {
+        Vector2 enemyCenter = new Vector2(0, 0);
+        Vector2 playerCenter = new Vector2(0, 0);
+
+        getBoundingRectangle().getCenter(enemyCenter);
+        player.getBoundingRectangle().getCenter(playerCenter);
+
+        return enemyCenter.dst(playerCenter);
     }
 }

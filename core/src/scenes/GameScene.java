@@ -69,16 +69,16 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                 GameInfo.HEIGHT
         );
 
-        waves = new Wave[1];
+        waves = new Wave[2];
         EnemySet[] wave0EnemySets = new EnemySet[2];
         wave0EnemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 1);
         wave0EnemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 1);
         waves[0] = new Wave(wave0EnemySets);
 
-//        EnemySet[] wave1EnemySets = new EnemySet[2];
-//        wave1EnemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 5);
-//        wave1EnemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 2);
-//        waves[1] = new Wave(wave1EnemySets);
+        EnemySet[] wave1EnemySets = new EnemySet[2];
+        wave1EnemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 5);
+        wave1EnemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 2);
+        waves[1] = new Wave(wave1EnemySets);
 
         wavesHud = new WavesHud(this);
 

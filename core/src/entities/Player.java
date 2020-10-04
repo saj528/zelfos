@@ -1,9 +1,5 @@
 package entities;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -12,7 +8,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
+import helpers.Debug;
 import helpers.RedShader;
 
 import java.util.ArrayList;
@@ -346,22 +342,18 @@ public class Player extends Sprite {
                     if (isFacingLeft) {
                         if (hitbox.left.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
-                            return;
                         }
                     } else if (isFacingRight) {
                         if (hitbox.right.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
-                            return;
                         }
                     } else if (isFacingUp) {
                         if (hitbox.up.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
-                            return;
                         }
                     } else if (isFacingDown) {
                         if (hitbox.down.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
-                            return;
                         }
                     }
                 }
@@ -375,15 +367,6 @@ public class Player extends Sprite {
                 canAttack = true;
             }
         }, ATTACK_COOLDOWN);
-    }
-
-    private Texture createHitboxTexture(int width, int height) {
-        Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
-        pixmap.setColor(new Color(1, 1, 0, 1));
-        pixmap.fillRectangle(0, 0, width, height);
-        Texture texture = new Texture(pixmap);
-        pixmap.dispose();
-        return texture;
     }
 
     public void update(float delta) {
@@ -451,20 +434,20 @@ public class Player extends Sprite {
             }
         }
 
+        batch.end();
+
         batch.setShader(null);
 
-        Texture box = createHitboxTexture(40, 40);
         AttackHitbox hitbox = new AttackHitbox(this);
         if (isFacingLeft) {
-            batch.draw(box, hitbox.left.x, hitbox.left.y);
+            Debug.drawHitbox(batch, hitbox.left);
         } else if (isFacingRight) {
-            batch.draw(box, hitbox.right.x, hitbox.right.y);
+            Debug.drawHitbox(batch, hitbox.right);
         } else if (isFacingUp) {
-            batch.draw(box, hitbox.up.x, hitbox.up.y);
+            Debug.drawHitbox(batch, hitbox.up);
         } else if (isFacingDown) {
-            batch.draw(box, hitbox.down.x, hitbox.down.y);
+            Debug.drawHitbox(batch, hitbox.down);
         }
-        batch.end();
     }
 
     public boolean isDead() {
