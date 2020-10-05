@@ -242,6 +242,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             player.attack(enemies);
         }
 
+        if (Gdx.input.isKeyPressed(Input.Keys.Q)) {
+            player.dodge();
+        }
+
         for (EnemyInterface enemy : enemies) {
             enemy.update();
         }
