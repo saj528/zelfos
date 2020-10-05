@@ -11,17 +11,19 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import helpers.RedShader;
 
-public class Bomb extends Sprite {
-    private float BOMB_TIME = 4.0f;
+public class Bomb extends Sprite implements Knockable {
+    private float BOMB_TIME = 3.0f;
     private boolean isDead = false;
     private boolean isRed = false;
-    private float flashDelay = 0.7f;
+    private float flashDelay = 0.5f;
     private int BLAST_RADIUS = 100;
-    private int BLAST_DAMAGE = 10;
+    private int BLAST_DAMAGE = 3;
 
     public Bomb(float x, float y, final EnemyManager enemyManager) {
         super(new Texture("bomb.png"));
         setPosition(x, y);
+
+        final Sprite bomb = this;
 
         Timer.schedule(new Timer.Task() {
             @Override
@@ -33,6 +35,7 @@ public class Bomb extends Sprite {
                     float distance = enemyPosition.dst(bombPosition);
                     if (distance < BLAST_RADIUS) {
                         enemy.damage(BLAST_DAMAGE);
+                        Physics.knockback((Knockable)bomb, (Knockable)enemy, 50);
                     }
                 }
             }
@@ -71,6 +74,8 @@ public class Bomb extends Sprite {
         batch.begin();
         super.draw(batch);
         batch.end();
+
+        batch.setShader(null);
 
     }
 

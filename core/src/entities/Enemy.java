@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 import static java.lang.Math.sqrt;
 
-public class Enemy extends Sprite implements EnemyInterface {
+public class Enemy extends Sprite implements EnemyInterface, Knockable {
 
     private LeakManager leakManager;
     private int health;
@@ -154,8 +154,6 @@ public class Enemy extends Sprite implements EnemyInterface {
         if (health <= 0) {
             isDead = true;
         }
-
-        Physics.knockback(player, this, 30);
 
         Timer.schedule(new Timer.Task() {
             @Override

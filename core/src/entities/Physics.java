@@ -1,12 +1,11 @@
 package entities;
 
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 
 public class Physics {
 
-    public static void knockback(final Sprite source, final Sprite target, final float amount) {
+    public static void knockback(final Knockable source, final Knockable target, final float amount) {
         if (amount <= 0) return;
 
         Vector2 targetCenter = new Vector2(0, 0);

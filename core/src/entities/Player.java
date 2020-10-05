@@ -31,7 +31,7 @@ class AttackHitbox {
 
 }
 
-public class Player extends Sprite {
+public class Player extends Sprite implements Knockable {
 
     private final FlashRedManager flashRedManager;
     private Vector2 input_vector = Vector2.Zero;
@@ -342,18 +342,22 @@ public class Player extends Sprite {
                     if (isFacingLeft) {
                         if (hitbox.left.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
+                            Physics.knockback(player, (Knockable)enemy, 30);
                         }
                     } else if (isFacingRight) {
                         if (hitbox.right.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
+                            Physics.knockback(player, (Knockable)enemy, 30);
                         }
                     } else if (isFacingUp) {
                         if (hitbox.up.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
+                            Physics.knockback(player, (Knockable)enemy, 30);
                         }
                     } else if (isFacingDown) {
                         if (hitbox.down.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
+                            Physics.knockback(player, (Knockable)enemy, 30);
                         }
                     }
                 }
