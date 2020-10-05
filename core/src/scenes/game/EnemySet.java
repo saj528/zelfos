@@ -1,4 +1,4 @@
-package helpers;
+package scenes.game;
 
 public class EnemySet {
     public int getCount() {

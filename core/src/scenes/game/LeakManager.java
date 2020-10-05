@@ -1,4 +1,4 @@
-package entities;
+package scenes.game;
 
 public interface LeakManager {
     void removeLeak();

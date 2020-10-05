@@ -1,8 +1,9 @@
-package entities;
+package scenes.game;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
+import entities.Knockable;
 
 public class Physics {
 

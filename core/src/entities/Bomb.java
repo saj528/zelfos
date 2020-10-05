@@ -9,9 +9,12 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
+import entities.enemies.EnemyInterface;
+import scenes.game.Physics;
 import helpers.RedShader;
+import scenes.game.EnemyManager;
 
-public class Bomb extends Sprite implements Knockable {
+public class Bomb extends Sprite implements Knockable, Killable {
     private float BOMB_TIME = 3.0f;
     private boolean isDead = false;
     private boolean isRed = false;

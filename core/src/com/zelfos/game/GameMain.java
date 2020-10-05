@@ -2,7 +2,7 @@ package com.zelfos.game;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import scenes.GameScene;
+import scenes.game.GameScene;
 import scenes.GameWinScene;
 import scenes.MainMenuScene;
 

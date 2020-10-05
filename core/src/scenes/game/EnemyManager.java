@@ -1,4 +1,6 @@
-package entities;
+package scenes.game;
+
+import entities.enemies.EnemyInterface;
 
 import java.util.ArrayList;
 

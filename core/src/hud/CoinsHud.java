@@ -4,20 +4,20 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import helpers.GameInfo;
-import scenes.game.WaveManager;
+import scenes.game.CoinManager;
 
-public class WavesHud {
-    private final WaveManager waveManager;
+public class CoinsHud {
+    private final CoinManager coinManager;
     BitmapFont font = new BitmapFont();
 
-    public WavesHud(WaveManager waveManager) {
-        this.waveManager = waveManager;
+    public CoinsHud(CoinManager coinManager) {
+        this.coinManager = coinManager;
     }
 
     public void draw(Batch batch) {
         batch.begin();
         font.setColor(new Color(1, 0, 0, 1));
-        font.draw(batch, "Current Wave: " + waveManager.getCurrentWave(), GameInfo.WIDTH - 130, GameInfo.HEIGHT - 20);
+        font.draw(batch, "Coins: " + coinManager.getTotalCoins(), 10, GameInfo.HEIGHT - 30);
         batch.end();
     }
 }

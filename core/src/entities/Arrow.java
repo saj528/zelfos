@@ -3,9 +3,8 @@ package entities;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.utils.Align;
 
-public class Arrow extends Sprite {
+public class Arrow extends Sprite implements Killable {
 
     float SPEED = 4.0f;
     final int DAMAGE = 1;

@@ -8,8 +8,12 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
+import entities.enemies.EnemyInterface;
 import helpers.Debug;
+import scenes.game.Physics;
 import helpers.RedShader;
+import scenes.game.BombManager;
+import scenes.game.FlashRedManager;
 
 import java.util.ArrayList;
 
@@ -88,8 +92,8 @@ public class Player extends Sprite implements Knockable {
     private float ATTACK_ANIMATION_DURATION = 0.2f;
     private float DODGE_ANIMATION_DURATION = 0.5f;
     private float DODGE_ANIMATION_SPEED = 0.1f;
-    private float DODGE_COOLDOWN = DODGE_ANIMATION_DURATION * 5;
-    private int DODGE_DISTANCE = 50;
+    private float DODGE_COOLDOWN = DODGE_ANIMATION_DURATION * 2;
+    private int DODGE_DISTANCE = 40;
     private int bombs = 100;
     private boolean shouldFlashRed;
     private int attackOffsetX = 11;

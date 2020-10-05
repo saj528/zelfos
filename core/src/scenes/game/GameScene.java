@@ -1,4 +1,4 @@
-package scenes;
+package scenes.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -24,19 +24,18 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Timer;
 import com.zelfos.game.GameMain;
 import entities.*;
-import helpers.EnemySet;
+import entities.enemies.Archer;
+import entities.enemies.EnemyInterface;
+import entities.enemies.Footman;
+import hud.*;
 import helpers.GameInfo;
-import helpers.Wave;
-import helpers.WaveManager;
-import hud.Leaks;
-import hud.WavesHud;
 
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
-public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, LeakManager, FlashRedManager, ArrowManager, WaveManager {
+public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, LeakManager, FlashRedManager, ArrowManager, WaveManager, CoinManager {
 
     private final GameMain game;
     private final Player player;
@@ -45,10 +44,17 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     private final ArrayList<EnemyInterface> enemies = new ArrayList<>();
     private final ArrayList<Bomb> bombs = new ArrayList<>();
     private final ArrayList<Arrow> arrows = new ArrayList<>();
+    private final ArrayList<Coin> coins = new ArrayList<>();
+    private CoinsHud coinsHud;
     private final Leaks leaksHud;
     private boolean shouldFlashRed = false;
     private final Texture fullScreenRedFlashTexture;
+    private boolean isOnIntermission = false;
+    private CountdownHud countdownHud;
+    private int INTERMISSION_TIME = 10;
+    private int secondsUntilNextWave = INTERMISSION_TIME;
     private final HealthBar healthBar;
+    private int totalCoins = 0;
     private int leaks = 10;
     private int currentWaveIndex = 0;
     private float SPAWN_DELAY = 0.5f;
@@ -68,6 +74,8 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                 GameInfo.WIDTH,
                 GameInfo.HEIGHT
         );
+
+        coinsHud = new CoinsHud(this);
 
         waves = new Wave[2];
         EnemySet[] wave0EnemySets = new EnemySet[2];
@@ -114,8 +122,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         //enemies.add(new Enemy(start.getRectangle().x + 700, start.getRectangle().y + 1000, pathwayCoordinates,player));
         //enemies.add(new Enemy(1500, 500, pathwayCoordinates,player));
 
-        spawnNextWave();
-
 
         //int objectLayerId = 5;
         //TiledMapTileLayer collisionObjectLayer = (TiledMapTileLayer)map.getLayers().get(objectLayerId);
@@ -140,6 +146,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         healthBar = new HealthBar(player);
 
         leaksHud = new Leaks(this, GameInfo.WIDTH / 2f, GameInfo.HEIGHT - 35);
+
+        countdownHud = new CountdownHud(this);
+
+        startIntermission();
     }
 
 
@@ -169,10 +179,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
                 switch(enemySet.getEnemyType()) {
                     case SOLDIER:
-                        enemies.add(new Enemy(startPoint.x + ox, startPoint.y + oy, pathwayCoordinates, player, leakManager));
+                        enemies.add(new Footman(startPoint.x + ox, startPoint.y + oy, pathwayCoordinates, player, leakManager, this));
                         break;
                     case ARCHER:
-                        enemies.add(new Archer(startPoint.x + ox, startPoint.y + oy, pathwayCoordinates, player, leakManager, arrowManager));
+                        enemies.add(new Archer(startPoint.x + ox, startPoint.y + oy, pathwayCoordinates, player, leakManager, arrowManager, this));
                         break;
                 }
             }
@@ -206,6 +216,17 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             }
         }
         return false;
+    }
+
+    public void removeDeadEntities(ArrayList killables) {
+        Iterator iterator = killables.iterator();
+        while (iterator.hasNext()) {
+            Killable entity = (Killable)iterator.next();
+            if (entity.isDead()) {
+                iterator.remove();
+            }
+        }
+
     }
 
     public void update(float delta) {
@@ -250,32 +271,17 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             enemy.update();
         }
 
-        Iterator<EnemyInterface> iterator = enemies.iterator();
-        while (iterator.hasNext()) {
-            EnemyInterface enemy = iterator.next();
-            if (enemy.isDead()) {
-                iterator.remove();
-            }
-        }
-
-        Iterator<Bomb> bombIterator = bombs.iterator();
-        while (bombIterator.hasNext()) {
-            Bomb bomb = bombIterator.next();
-            if (bomb.isDead()) {
-                bombIterator.remove();
-            }
-        }
+        removeDeadEntities(enemies);
+        removeDeadEntities(bombs);
+        removeDeadEntities(arrows);
+        removeDeadEntities(coins);
 
         for (Arrow arrow : arrows) {
             arrow.update(delta);
         }
 
-        Iterator<Arrow> arrowIterator = arrows.iterator();
-        while (arrowIterator.hasNext()) {
-            Arrow arrow = arrowIterator.next();
-            if (arrow.isDead()) {
-                arrowIterator.remove();
-            }
+        for (Coin coin : coins) {
+            coin.update(delta);
         }
 
         camera.position.x = player.getX();
@@ -286,13 +292,13 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             game.showMainMenuScene();
         }
 
-        if (enemies.size() <= 0) {
+        if (!isOnIntermission && enemies.size() <= 0) {
             currentWaveIndex++;
             if (currentWaveIndex >= waves.length) {
                 // you won
                 game.showWinScreen();
             } else {
-                spawnNextWave();
+                startIntermission();
             }
         }
 
@@ -334,6 +340,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             arrow.draw(batch);
         }
 
+        for (Coin coin : coins) {
+            coin.draw(batch);
+        }
+
         batch.setProjectionMatrix(hudCamera.combined);
 
         if (shouldFlashRed) {
@@ -345,7 +355,11 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         healthBar.draw(batch);
         leaksHud.draw(batch);
         wavesHud.draw(batch);
+        coinsHud.draw(batch);
 
+        if (isOnIntermission) {
+            countdownHud.draw(batch);
+        }
     }
 
     @Override
@@ -430,5 +444,49 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     @Override
     public int getCurrentWave() {
         return currentWaveIndex + 1;
+    }
+
+    @Override
+    public int getSecondsUntilNextWave() {
+        return secondsUntilNextWave;
+    }
+
+    @Override
+    public void startIntermission() {
+        isOnIntermission = true;
+        secondsUntilNextWave = INTERMISSION_TIME;
+
+        final Timer.Task countdown = Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                secondsUntilNextWave--;
+            }
+        }, 0f, 1.0f);
+
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                isOnIntermission = false;
+                countdown.cancel();
+                spawnNextWave();
+            }
+        }, INTERMISSION_TIME);
+
+
+    }
+
+    @Override
+    public void createCoin(float x, float y) {
+        coins.add(new Coin(x, y, player, this));
+    }
+
+    @Override
+    public void incrementCoins(int amount) {
+        totalCoins += amount;
+    }
+
+    @Override
+    public int getTotalCoins() {
+        return totalCoins;
     }
 }
