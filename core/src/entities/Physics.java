@@ -1,5 +1,6 @@
 package entities;
 
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 
@@ -23,6 +24,21 @@ public class Physics {
                 target.setX(target.getX() + amount * (float)Math.cos(angle));
                 target.setY(target.getY() + amount * (float)Math.sin(angle));
                 knockback(source, target, amount - friction);
+            }
+        }, 0.03f);
+    }
+
+    public static void knockback(final Knockable target, final float angle, final float amount) {
+        if (amount <= 0) return;
+
+        final float friction = 9.0f;
+
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                target.setX(target.getX() + amount * (float)Math.cos(angle));
+                target.setY(target.getY() + amount * (float)Math.sin(angle));
+                knockback(target, angle, amount - friction);
             }
         }, 0.03f);
     }

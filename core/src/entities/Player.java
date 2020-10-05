@@ -77,6 +77,7 @@ public class Player extends Sprite implements Knockable {
     private Animation<TextureRegion> dodgeRight;
     private float animationSpeed = 0.13f;
     private float attackTime = 0f;
+    private float dodgeTime = 0;
     private float walkTime = 0f;
     private int maxLives = 5;
     private int lives = maxLives;
@@ -86,8 +87,9 @@ public class Player extends Sprite implements Knockable {
     private float ATTACK_COOLDOWN = ATTACK_ANIMATION_SPEED * 13;
     private float ATTACK_ANIMATION_DURATION = 0.2f;
     private float DODGE_ANIMATION_DURATION = 0.5f;
+    private float DODGE_ANIMATION_SPEED = 0.1f;
     private float DODGE_COOLDOWN = DODGE_ANIMATION_DURATION * 5;
-    private int DODGE_DISTANCE = 30;
+    private int DODGE_DISTANCE = 50;
     private int bombs = 100;
     private boolean shouldFlashRed;
     private int attackOffsetX = 11;
@@ -100,6 +102,7 @@ public class Player extends Sprite implements Knockable {
         Up,
         Down
     }
+
     private Direction strifeDirection = Direction.None;
 
     public int getLives() {
@@ -142,10 +145,8 @@ public class Player extends Sprite implements Knockable {
 
         Texture playerDodgeSheet = new Texture("playersprites/player_dodge_frames.png");
         TextureRegion[][] playerDodgeSheetRegions = TextureRegion.split(playerDodgeSheet,
-                playerDodgeSheet.getWidth() / 4,
+                playerDodgeSheet.getWidth() / 5,
                 playerDodgeSheet.getHeight() / 4);
-
-
 
         Texture[] downFrames = new Texture[6];
         downFrames[0] = new Texture("playersprites/RunDown/run_down_1.png");
@@ -161,14 +162,14 @@ public class Player extends Sprite implements Knockable {
         attackDownFrames[1] = playerAttackSheetRegions[0][1];
         attackDownFrames[2] = playerAttackSheetRegions[0][2];
         attackDownFrames[3] = playerAttackSheetRegions[0][3];
-        attackDown = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED,attackDownFrames);
+        attackDown = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackDownFrames);
 
         TextureRegion[] dodgeDownFrames = new TextureRegion[4];
         dodgeDownFrames[0] = playerDodgeSheetRegions[0][0];
         dodgeDownFrames[1] = playerDodgeSheetRegions[0][1];
         dodgeDownFrames[2] = playerDodgeSheetRegions[0][2];
         dodgeDownFrames[3] = playerDodgeSheetRegions[0][3];
-        dodgeDown = new Animation<TextureRegion>(DODGE_ANIMATION_DURATION,dodgeDownFrames);
+        dodgeDown = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeDownFrames);
 
         Texture[] leftFrames = new Texture[6];
         leftFrames[0] = new Texture("playersprites/RunLeft/run_left_1.png");
@@ -185,14 +186,14 @@ public class Player extends Sprite implements Knockable {
         attackLeftFrames[1] = playerAttackSheetRegions[3][1];
         attackLeftFrames[2] = playerAttackSheetRegions[3][2];
         attackLeftFrames[3] = playerAttackSheetRegions[3][3];
-        attackLeft = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED,attackLeftFrames);
+        attackLeft = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackLeftFrames);
 
         TextureRegion[] dodgeLeftFrames = new TextureRegion[4];
         dodgeLeftFrames[0] = playerDodgeSheetRegions[3][0];
         dodgeLeftFrames[1] = playerDodgeSheetRegions[3][1];
         dodgeLeftFrames[2] = playerDodgeSheetRegions[3][2];
         dodgeLeftFrames[3] = playerDodgeSheetRegions[3][3];
-        dodgeLeft = new Animation<TextureRegion>(DODGE_ANIMATION_DURATION,dodgeDownFrames);
+        dodgeLeft = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeLeftFrames);
 
 
         Texture[] upFrames = new Texture[6];
@@ -209,14 +210,14 @@ public class Player extends Sprite implements Knockable {
         attackUpFrames[1] = playerAttackSheetRegions[2][1];
         attackUpFrames[2] = playerAttackSheetRegions[2][2];
         attackUpFrames[3] = playerAttackSheetRegions[2][3];
-        attackUp = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED,attackUpFrames);
+        attackUp = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackUpFrames);
 
         TextureRegion[] dodgeUpFrames = new TextureRegion[4];
         dodgeUpFrames[0] = playerDodgeSheetRegions[2][0];
         dodgeUpFrames[1] = playerDodgeSheetRegions[2][1];
         dodgeUpFrames[2] = playerDodgeSheetRegions[2][2];
         dodgeUpFrames[3] = playerDodgeSheetRegions[2][3];
-        dodgeUp = new Animation<TextureRegion>(DODGE_ANIMATION_DURATION,dodgeUpFrames);
+        dodgeUp = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeUpFrames);
 
         Texture[] rightFrames = new Texture[6];
         rightFrames[0] = new Texture("playersprites/RunRight/run_right_1.png");
@@ -232,14 +233,14 @@ public class Player extends Sprite implements Knockable {
         attackRightFrames[1] = playerAttackSheetRegions[1][1];
         attackRightFrames[2] = playerAttackSheetRegions[1][2];
         attackRightFrames[3] = playerAttackSheetRegions[1][3];
-        attackRight = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED,attackRightFrames);
+        attackRight = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackRightFrames);
 
         TextureRegion[] dodgeRightFrames = new TextureRegion[4];
         dodgeRightFrames[0] = playerDodgeSheetRegions[1][0];
         dodgeRightFrames[1] = playerDodgeSheetRegions[1][1];
         dodgeRightFrames[2] = playerDodgeSheetRegions[1][2];
         dodgeRightFrames[3] = playerDodgeSheetRegions[1][3];
-        dodgeRight = new Animation<TextureRegion>(DODGE_ANIMATION_DURATION,dodgeRightFrames);
+        dodgeRight = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeRightFrames);
 
 
         shouldFlashRed = false;
@@ -335,11 +336,11 @@ public class Player extends Sprite implements Knockable {
         }
     }
 
-    public void dodge(){
-        if(!canDodge) return;
+    public void dodge() {
+        if (!canDodge) return;
         canAttack = false;
         canDodge = false;
-        attackTime = 0;
+        dodgeTime = 0;
         showDodgeAnimation = true;
 
         Timer.schedule(new Timer.Task() {
@@ -350,16 +351,13 @@ public class Player extends Sprite implements Knockable {
         }, DODGE_ANIMATION_DURATION);
 
         if (isFacingLeft) {
-            setX(getX() - DODGE_DISTANCE);
-
+            Physics.knockback(this, (float) Math.PI, DODGE_DISTANCE);
         } else if (isFacingRight) {
-            setX(getX() + DODGE_DISTANCE);
-
+            Physics.knockback(this, 0, DODGE_DISTANCE);
         } else if (isFacingUp) {
-            setY(getY() + DODGE_DISTANCE);
-
+            Physics.knockback(this, (float) Math.PI / 2, DODGE_DISTANCE);
         } else if (isFacingDown) {
-            setY(getY() - DODGE_DISTANCE);
+            Physics.knockback(this, (float) -Math.PI / 2, DODGE_DISTANCE);
         }
 
         Timer.schedule(new Timer.Task() {
@@ -368,6 +366,7 @@ public class Player extends Sprite implements Knockable {
                 canAttack = true;
             }
         }, ATTACK_COOLDOWN);
+
         Timer.schedule(new Timer.Task() {
             @Override
             public void run() {
@@ -412,22 +411,22 @@ public class Player extends Sprite implements Knockable {
                     if (isFacingLeft) {
                         if (hitbox.left.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
-                            Physics.knockback(player, (Knockable)enemy, 30);
+                            Physics.knockback(player, (Knockable) enemy, 30);
                         }
                     } else if (isFacingRight) {
                         if (hitbox.right.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
-                            Physics.knockback(player, (Knockable)enemy, 30);
+                            Physics.knockback(player, (Knockable) enemy, 30);
                         }
                     } else if (isFacingUp) {
                         if (hitbox.up.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
-                            Physics.knockback(player, (Knockable)enemy, 30);
+                            Physics.knockback(player, (Knockable) enemy, 30);
                         }
                     } else if (isFacingDown) {
                         if (hitbox.down.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
-                            Physics.knockback(player, (Knockable)enemy, 30);
+                            Physics.knockback(player, (Knockable) enemy, 30);
                         }
                     }
                 }
@@ -446,6 +445,7 @@ public class Player extends Sprite implements Knockable {
     public void update(float delta) {
         attackTime += delta;
         walkTime += delta;
+        dodgeTime += delta;
     }
 
     @Override
@@ -458,25 +458,25 @@ public class Player extends Sprite implements Knockable {
 
         if (showAttackAnimation) {
             if (isFacingLeft) {
-                batch.draw(attackLeft.getKeyFrame(attackTime, false), getX()-attackOffsetX, getY()-attackOffsetY);
+                batch.draw(attackLeft.getKeyFrame(attackTime, false), getX() - attackOffsetX, getY() - attackOffsetY);
             } else if (isFacingRight) {
-                batch.draw(attackRight.getKeyFrame(attackTime, false), getX()-attackOffsetX, getY()-attackOffsetY);
+                batch.draw(attackRight.getKeyFrame(attackTime, false), getX() - attackOffsetX, getY() - attackOffsetY);
             } else if (isFacingUp) {
-                batch.draw(attackUp.getKeyFrame(attackTime, false), getX()-attackOffsetX, getY()-attackOffsetY);
+                batch.draw(attackUp.getKeyFrame(attackTime, false), getX() - attackOffsetX, getY() - attackOffsetY);
             } else if (isFacingDown) {
-                batch.draw(attackDown.getKeyFrame(attackTime, false), getX()-attackOffsetX, getY()-attackOffsetY);
+                batch.draw(attackDown.getKeyFrame(attackTime, false), getX() - attackOffsetX, getY() - attackOffsetY);
             }
-        } else if(showDodgeAnimation){
+        } else if (showDodgeAnimation) {
             if (isFacingLeft) {
-                batch.draw(dodgeLeft.getKeyFrame(attackTime, false), getX(), getY());
+                batch.draw(dodgeLeft.getKeyFrame(dodgeTime, false), getX(), getY());
             } else if (isFacingRight) {
-                batch.draw(dodgeRight.getKeyFrame(attackTime, false), getX(), getY());
+                batch.draw(dodgeRight.getKeyFrame(dodgeTime, false), getX(), getY());
             } else if (isFacingUp) {
-                batch.draw(dodgeUp.getKeyFrame(attackTime, false), getX(), getY());
+                batch.draw(dodgeUp.getKeyFrame(dodgeTime, false), getX(), getY());
             } else if (isFacingDown) {
-                batch.draw(dodgeDown.getKeyFrame(attackTime, false), getX(), getY());
+                batch.draw(dodgeDown.getKeyFrame(dodgeTime, false), getX(), getY());
             }
-        }else {
+        } else {
             if (isRunning) {
                 if (strifeDirection != Direction.None) {
                     if (strifeDirection == Direction.Up) {
