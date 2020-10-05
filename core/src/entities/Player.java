@@ -42,6 +42,7 @@ public class Player extends Sprite implements Knockable {
     private Vector2 motion = Vector2.Zero;
     public final float ACCELERATION = 150.0f;
     public final float MAX_SPEED = 3;
+    private playerState state;
 
     private enum DIRECTIONS {
         IDLE,
@@ -107,6 +108,15 @@ public class Player extends Sprite implements Knockable {
         Down
     }
 
+    private enum playerState {
+        WALKING,
+        ATTACKING,
+        DODGING,
+        BOMBING,
+        TAKINGDAMAGE,
+        DEAD
+    }
+
     private Direction strifeDirection = Direction.None;
 
     public int getLives() {
@@ -139,115 +149,39 @@ public class Player extends Sprite implements Knockable {
         setPosition(x, y);
         setTexture(playerDown);
         isFacingDown = true;
+        initPlayerTextures();
         this.flashRedManager = flashRedManager;
 
 
-        Texture playerAttackSheet = new Texture("playersprites/player_attack_frames.png");
-        TextureRegion[][] playerAttackSheetRegions = TextureRegion.split(playerAttackSheet,
-                playerAttackSheet.getWidth() / 4,
-                playerAttackSheet.getHeight() / 4);
-
-        Texture playerDodgeSheet = new Texture("playersprites/player_dodge_frames.png");
-        TextureRegion[][] playerDodgeSheetRegions = TextureRegion.split(playerDodgeSheet,
-                playerDodgeSheet.getWidth() / 5,
-                playerDodgeSheet.getHeight() / 4);
-
-        Texture[] downFrames = new Texture[6];
-        downFrames[0] = new Texture("playersprites/RunDown/run_down_1.png");
-        downFrames[1] = new Texture("playersprites/RunDown/run_down_2.png");
-        downFrames[2] = new Texture("playersprites/RunDown/run_down_3.png");
-        downFrames[3] = new Texture("playersprites/RunDown/run_down_4.png");
-        downFrames[4] = new Texture("playersprites/RunDown/run_down_5.png");
-        downFrames[5] = new Texture("playersprites/RunDown/run_down_6.png");
-        downAnimation = new Animation<Texture>(animationSpeed, downFrames);
-
-        TextureRegion[] attackDownFrames = new TextureRegion[4];
-        attackDownFrames[0] = playerAttackSheetRegions[0][0];
-        attackDownFrames[1] = playerAttackSheetRegions[0][1];
-        attackDownFrames[2] = playerAttackSheetRegions[0][2];
-        attackDownFrames[3] = playerAttackSheetRegions[0][3];
-        attackDown = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackDownFrames);
-
-        TextureRegion[] dodgeDownFrames = new TextureRegion[4];
-        dodgeDownFrames[0] = playerDodgeSheetRegions[0][0];
-        dodgeDownFrames[1] = playerDodgeSheetRegions[0][1];
-        dodgeDownFrames[2] = playerDodgeSheetRegions[0][2];
-        dodgeDownFrames[3] = playerDodgeSheetRegions[0][3];
-        dodgeDown = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeDownFrames);
-
-        Texture[] leftFrames = new Texture[6];
-        leftFrames[0] = new Texture("playersprites/RunLeft/run_left_1.png");
-        leftFrames[1] = new Texture("playersprites/RunLeft/run_left_2.png");
-        leftFrames[2] = new Texture("playersprites/RunLeft/run_left_3.png");
-        leftFrames[3] = new Texture("playersprites/RunLeft/run_left_4.png");
-        leftFrames[4] = new Texture("playersprites/RunLeft/run_left_5.png");
-        leftFrames[5] = new Texture("playersprites/RunLeft/run_left_6.png");
-        leftAnimation = new Animation<Texture>(animationSpeed, leftFrames);
-
-
-        TextureRegion[] attackLeftFrames = new TextureRegion[4];
-        attackLeftFrames[0] = playerAttackSheetRegions[3][0];
-        attackLeftFrames[1] = playerAttackSheetRegions[3][1];
-        attackLeftFrames[2] = playerAttackSheetRegions[3][2];
-        attackLeftFrames[3] = playerAttackSheetRegions[3][3];
-        attackLeft = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackLeftFrames);
-
-        TextureRegion[] dodgeLeftFrames = new TextureRegion[4];
-        dodgeLeftFrames[0] = playerDodgeSheetRegions[3][0];
-        dodgeLeftFrames[1] = playerDodgeSheetRegions[3][1];
-        dodgeLeftFrames[2] = playerDodgeSheetRegions[3][2];
-        dodgeLeftFrames[3] = playerDodgeSheetRegions[3][3];
-        dodgeLeft = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeLeftFrames);
-
-
-        Texture[] upFrames = new Texture[6];
-        upFrames[0] = new Texture("playersprites/RunUp/run_up_1.png");
-        upFrames[1] = new Texture("playersprites/RunUp/run_up_2.png");
-        upFrames[2] = new Texture("playersprites/RunUp/run_up_3.png");
-        upFrames[3] = new Texture("playersprites/RunUp/run_up_4.png");
-        upFrames[4] = new Texture("playersprites/RunUp/run_up_5.png");
-        upFrames[5] = new Texture("playersprites/RunUp/run_up_6.png");
-        upAnimation = new Animation<Texture>(animationSpeed, upFrames);
-
-        TextureRegion[] attackUpFrames = new TextureRegion[4];
-        attackUpFrames[0] = playerAttackSheetRegions[2][0];
-        attackUpFrames[1] = playerAttackSheetRegions[2][1];
-        attackUpFrames[2] = playerAttackSheetRegions[2][2];
-        attackUpFrames[3] = playerAttackSheetRegions[2][3];
-        attackUp = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackUpFrames);
-
-        TextureRegion[] dodgeUpFrames = new TextureRegion[4];
-        dodgeUpFrames[0] = playerDodgeSheetRegions[2][0];
-        dodgeUpFrames[1] = playerDodgeSheetRegions[2][1];
-        dodgeUpFrames[2] = playerDodgeSheetRegions[2][2];
-        dodgeUpFrames[3] = playerDodgeSheetRegions[2][3];
-        dodgeUp = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeUpFrames);
-
-        Texture[] rightFrames = new Texture[6];
-        rightFrames[0] = new Texture("playersprites/RunRight/run_right_1.png");
-        rightFrames[1] = new Texture("playersprites/RunRight/run_right_2.png");
-        rightFrames[2] = new Texture("playersprites/RunRight/run_right_3.png");
-        rightFrames[3] = new Texture("playersprites/RunRight/run_right_4.png");
-        rightFrames[4] = new Texture("playersprites/RunRight/run_right_5.png");
-        rightFrames[5] = new Texture("playersprites/RunRight/run_right_6.png");
-        rightAnimation = new Animation<Texture>(animationSpeed, rightFrames);
-
-        TextureRegion[] attackRightFrames = new TextureRegion[4];
-        attackRightFrames[0] = playerAttackSheetRegions[1][0];
-        attackRightFrames[1] = playerAttackSheetRegions[1][1];
-        attackRightFrames[2] = playerAttackSheetRegions[1][2];
-        attackRightFrames[3] = playerAttackSheetRegions[1][3];
-        attackRight = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackRightFrames);
-
-        TextureRegion[] dodgeRightFrames = new TextureRegion[4];
-        dodgeRightFrames[0] = playerDodgeSheetRegions[1][0];
-        dodgeRightFrames[1] = playerDodgeSheetRegions[1][1];
-        dodgeRightFrames[2] = playerDodgeSheetRegions[1][2];
-        dodgeRightFrames[3] = playerDodgeSheetRegions[1][3];
-        dodgeRight = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeRightFrames);
-
 
         shouldFlashRed = false;
+    }
+
+    public void stateMachine(playerState state,float delta){
+        this.state = state;
+        switch(state){
+            case WALKING:
+                playerWalk();
+                break;
+            case ATTACKING:
+
+                break;
+            case TAKINGDAMAGE:
+
+                break;
+            case BOMBING:
+
+                break;
+            case DODGING:
+
+                break;
+            case DEAD:
+
+                break;
+        }
+    }
+
+    private void playerWalk() {
     }
 
     public void updatePlayerMovement(boolean left, boolean right, boolean up, boolean down, boolean strafe, float delta) {
@@ -536,6 +470,130 @@ public class Player extends Sprite implements Knockable {
         } else if (isFacingDown) {
             Debug.drawHitbox(batch, hitbox.down);
         }
+    }
+
+    public void initPlayerTextures(){
+        Texture playerAttackSheet = new Texture("playersprites/player_attack_frames.png");
+        TextureRegion[][] playerAttackSheetRegions = TextureRegion.split(playerAttackSheet,
+                playerAttackSheet.getWidth() / 4,
+                playerAttackSheet.getHeight() / 4);
+
+        Texture playerDodgeSheet = new Texture("playersprites/player_dodge_frames.png");
+        TextureRegion[][] playerDodgeSheetRegions = TextureRegion.split(playerDodgeSheet,
+                playerDodgeSheet.getWidth() / 5,
+                playerDodgeSheet.getHeight() / 4);
+
+        Texture dodgeResetDown = new Texture("playersprites/RunDown/run_down_1.png");
+        TextureRegion[][] dodgeResetDownRegion = TextureRegion.split(dodgeResetDown,dodgeResetDown.getWidth(),dodgeResetDown.getHeight());
+
+        Texture dodgeResetUp = new Texture("playersprites/RunUp/run_up_1.png");
+        TextureRegion[][] dodgeResetUpRegion = TextureRegion.split(dodgeResetUp,dodgeResetUp.getWidth(),dodgeResetUp.getHeight());
+
+        Texture dodgeResetRight = new Texture("playersprites/RunRight/run_right_1.png");
+        TextureRegion[][] dodgeResetRightRegion = TextureRegion.split(dodgeResetRight ,dodgeResetRight.getWidth(),dodgeResetRight.getHeight());
+
+        Texture dodgeResetLeft = new Texture("playersprites/RunLeft/run_left_1.png");
+        TextureRegion[][] dodgeResetLeftRegion = TextureRegion.split(dodgeResetLeft,dodgeResetLeft.getWidth(),dodgeResetLeft.getHeight());
+
+
+        Texture[] downFrames = new Texture[6];
+        downFrames[0] = new Texture("playersprites/RunDown/run_down_1.png");
+        downFrames[1] = new Texture("playersprites/RunDown/run_down_2.png");
+        downFrames[2] = new Texture("playersprites/RunDown/run_down_3.png");
+        downFrames[3] = new Texture("playersprites/RunDown/run_down_4.png");
+        downFrames[4] = new Texture("playersprites/RunDown/run_down_5.png");
+        downFrames[5] = new Texture("playersprites/RunDown/run_down_6.png");
+        downAnimation = new Animation<Texture>(animationSpeed, downFrames);
+
+        TextureRegion[] attackDownFrames = new TextureRegion[4];
+        attackDownFrames[0] = playerAttackSheetRegions[0][0];
+        attackDownFrames[1] = playerAttackSheetRegions[0][1];
+        attackDownFrames[2] = playerAttackSheetRegions[0][2];
+        attackDownFrames[3] = playerAttackSheetRegions[0][3];
+        attackDown = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackDownFrames);
+
+
+        TextureRegion[] dodgeDownFrames = new TextureRegion[5];
+        dodgeDownFrames[0] = playerDodgeSheetRegions[0][0];
+        dodgeDownFrames[1] = playerDodgeSheetRegions[0][1];
+        dodgeDownFrames[2] = playerDodgeSheetRegions[0][2];
+        dodgeDownFrames[3] = playerDodgeSheetRegions[0][3];
+        dodgeDownFrames[4] = dodgeResetDownRegion[0][0];
+        dodgeDown = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeDownFrames);
+
+        Texture[] leftFrames = new Texture[6];
+        leftFrames[0] = new Texture("playersprites/RunLeft/run_left_1.png");
+        leftFrames[1] = new Texture("playersprites/RunLeft/run_left_2.png");
+        leftFrames[2] = new Texture("playersprites/RunLeft/run_left_3.png");
+        leftFrames[3] = new Texture("playersprites/RunLeft/run_left_4.png");
+        leftFrames[4] = new Texture("playersprites/RunLeft/run_left_5.png");
+        leftFrames[5] = new Texture("playersprites/RunLeft/run_left_6.png");
+        leftAnimation = new Animation<Texture>(animationSpeed, leftFrames);
+
+
+        TextureRegion[] attackLeftFrames = new TextureRegion[4];
+        attackLeftFrames[0] = playerAttackSheetRegions[3][0];
+        attackLeftFrames[1] = playerAttackSheetRegions[3][1];
+        attackLeftFrames[2] = playerAttackSheetRegions[3][2];
+        attackLeftFrames[3] = playerAttackSheetRegions[3][3];
+        attackLeft = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackLeftFrames);
+
+        TextureRegion[] dodgeLeftFrames = new TextureRegion[5];
+        dodgeLeftFrames[0] = playerDodgeSheetRegions[3][3];
+        dodgeLeftFrames[1] = playerDodgeSheetRegions[3][2];
+        dodgeLeftFrames[2] = playerDodgeSheetRegions[3][1];
+        dodgeLeftFrames[3] = playerDodgeSheetRegions[3][0];
+        dodgeLeftFrames[4] = dodgeResetLeftRegion[0][0];
+        dodgeLeft = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeLeftFrames);
+
+
+        Texture[] upFrames = new Texture[6];
+        upFrames[0] = new Texture("playersprites/RunUp/run_up_1.png");
+        upFrames[1] = new Texture("playersprites/RunUp/run_up_2.png");
+        upFrames[2] = new Texture("playersprites/RunUp/run_up_3.png");
+        upFrames[3] = new Texture("playersprites/RunUp/run_up_4.png");
+        upFrames[4] = new Texture("playersprites/RunUp/run_up_5.png");
+        upFrames[5] = new Texture("playersprites/RunUp/run_up_6.png");
+        upAnimation = new Animation<Texture>(animationSpeed, upFrames);
+
+        TextureRegion[] attackUpFrames = new TextureRegion[4];
+        attackUpFrames[0] = playerAttackSheetRegions[2][0];
+        attackUpFrames[1] = playerAttackSheetRegions[2][1];
+        attackUpFrames[2] = playerAttackSheetRegions[2][2];
+        attackUpFrames[3] = playerAttackSheetRegions[2][3];
+        attackUp = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackUpFrames);
+
+        TextureRegion[] dodgeUpFrames = new TextureRegion[5];
+        dodgeUpFrames[0] = playerDodgeSheetRegions[2][0];
+        dodgeUpFrames[1] = playerDodgeSheetRegions[2][1];
+        dodgeUpFrames[2] = playerDodgeSheetRegions[2][2];
+        dodgeUpFrames[3] = playerDodgeSheetRegions[2][3];
+        dodgeUpFrames[4] = dodgeResetUpRegion[0][0];
+        dodgeUp = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeUpFrames);
+
+        Texture[] rightFrames = new Texture[6];
+        rightFrames[0] = new Texture("playersprites/RunRight/run_right_1.png");
+        rightFrames[1] = new Texture("playersprites/RunRight/run_right_2.png");
+        rightFrames[2] = new Texture("playersprites/RunRight/run_right_3.png");
+        rightFrames[3] = new Texture("playersprites/RunRight/run_right_4.png");
+        rightFrames[4] = new Texture("playersprites/RunRight/run_right_5.png");
+        rightFrames[5] = new Texture("playersprites/RunRight/run_right_6.png");
+        rightAnimation = new Animation<Texture>(animationSpeed, rightFrames);
+
+        TextureRegion[] attackRightFrames = new TextureRegion[4];
+        attackRightFrames[0] = playerAttackSheetRegions[1][0];
+        attackRightFrames[1] = playerAttackSheetRegions[1][1];
+        attackRightFrames[2] = playerAttackSheetRegions[1][2];
+        attackRightFrames[3] = playerAttackSheetRegions[1][3];
+        attackRight = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackRightFrames);
+
+        TextureRegion[] dodgeRightFrames = new TextureRegion[5];
+        dodgeRightFrames[0] = playerDodgeSheetRegions[1][0];
+        dodgeRightFrames[1] = playerDodgeSheetRegions[1][1];
+        dodgeRightFrames[2] = playerDodgeSheetRegions[1][2];
+        dodgeRightFrames[3] = playerDodgeSheetRegions[1][3];
+        dodgeRightFrames[4] = dodgeResetRightRegion[0][0];
+        dodgeRight = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeRightFrames);
     }
 
     public boolean isDead() {
