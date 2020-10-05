@@ -275,7 +275,7 @@ public class Player extends Sprite implements Knockable {
     }
 
     public void dodge() {
-        if (!canDodge) return;
+        if (!canAttack || !canDodge) return;
         canAttack = false;
         canDodge = false;
         dodgeTime = 0;
@@ -301,7 +301,7 @@ public class Player extends Sprite implements Knockable {
         Timer.schedule(new Timer.Task() {
             @Override
             public void run() {
-                canAttack = true;
+
             }
         }, ATTACK_COOLDOWN);
 
@@ -309,6 +309,7 @@ public class Player extends Sprite implements Knockable {
             @Override
             public void run() {
                 canDodge = true;
+                canAttack = true;
             }
         }, DODGE_COOLDOWN);
 
@@ -319,7 +320,7 @@ public class Player extends Sprite implements Knockable {
     }
 
     public void attack(final ArrayList<EnemyInterface> enemies) {
-        if (!canAttack) return;
+        if (!canAttack || !canDodge) return;
         canAttack = false;
         attackTime = 0;
         showAttackAnimation = true;
