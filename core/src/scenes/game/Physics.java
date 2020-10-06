@@ -3,19 +3,19 @@ package scenes.game;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
+import entities.Entity;
 import entities.Knockable;
 
 public class Physics {
 
     private static float friction = 9.0f;
 
-    public static void knockback(final Knockable source, final Knockable target, final float amount, CollisionManager collisionManager) {
+    public static void knockback(final Entity source, final Knockable target, final float amount, CollisionManager collisionManager) {
         if (amount <= 0) return;
 
         Vector2 targetCenter = new Vector2(0, 0);
-        Vector2 sourceCenter = new Vector2(0, 0);
+        Vector2 sourceCenter = source.getCenter();
         target.getBoundingRectangle().getCenter(targetCenter);
-        source.getBoundingRectangle().getCenter(sourceCenter);
 
         final float angle = (float)Math.atan2(targetCenter.y - sourceCenter.y, targetCenter.x - sourceCenter.x);
 

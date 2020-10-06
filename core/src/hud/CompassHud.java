@@ -3,6 +3,7 @@ package hud;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import entities.Entity;
 import entities.Player;
 import entities.enemies.EnemyInterface;
 import helpers.GameInfo;
@@ -40,7 +41,7 @@ public class CompassHud {
     }
 
     public boolean hasEnemiesNorth() {
-        for (EnemyInterface enemy : enemyManager.getEnemies()) {
+        for (Entity enemy : enemyManager.getEnemies()) {
             if (enemy.getY() > player.getY() + GameInfo.HEIGHT / 2f) {
                 return true;
             }
@@ -49,7 +50,7 @@ public class CompassHud {
     }
 
     public boolean hasEnemiesSouth() {
-        for (EnemyInterface enemy : enemyManager.getEnemies()) {
+        for (Entity enemy : enemyManager.getEnemies()) {
             if (enemy.getY() < player.getY() - GameInfo.HEIGHT / 2f) {
                 return true;
             }
@@ -58,7 +59,7 @@ public class CompassHud {
     }
 
     public boolean hasEnemiesWest() {
-        for (EnemyInterface enemy : enemyManager.getEnemies()) {
+        for (Entity enemy : enemyManager.getEnemies()) {
             if (enemy.getX() < player.getX() - GameInfo.WIDTH / 2f) {
                 return true;
             }
@@ -67,7 +68,7 @@ public class CompassHud {
     }
 
     public boolean hasEnemiesEast() {
-        for (EnemyInterface enemy : enemyManager.getEnemies()) {
+        for (Entity enemy : enemyManager.getEnemies()) {
             if (enemy.getX() > player.getX() + GameInfo.WIDTH / 2f) {
                 return true;
             }

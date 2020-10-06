@@ -24,4 +24,10 @@ public class Geom {
         entity.getBoundingRectangle().getCenter(center);
         return center;
     }
+
+    public static float distanceBetween(Entity source, Entity target) {
+        Vector2 sourceCenter = getCenter(source);
+        Vector2 targetCenter = getCenter(target);
+        return sourceCenter.dst(targetCenter);
+    }
 }

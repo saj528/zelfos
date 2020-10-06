@@ -1,8 +1,10 @@
 package entities.enemies;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
@@ -15,33 +17,78 @@ import java.util.ArrayList;
 
 import static java.lang.Math.sqrt;
 
-public class Archer extends Sprite implements EnemyInterface, Knockable, Entity, Damageable, Collidable {
+public class Hornet implements EnemyInterface, Knockable, Entity, Damageable, Collidable {
 
     private final CoinManager coinManager;
+    private final EntityManager entityManager;
+    private final CollisionManager collisionManager;
     private ArrowManager arrowManager;
     private LeakManager leakManager;
-    private int health = 2;
+    private int health = 1;
     private boolean isDead = false;
     private boolean isRed = false;
-    public final int SPEED = 1;
+    public final float SPEED = 1.5f;
     private int DAMAGE = 1;
-    private float current_point_y;
     boolean startOfGame = true;
     private State state;
-    private float distanceToPursue = 300;
+    private float x;
+    private float y;
+    private float distanceToPursue = 150;
+    private float walkTime;
     private Vector2 nextPointToWalkTowards;
     private ArrayList<Vector2> pathwayCoordinates;
-    private float ATTACK_DELAY = 3.0f;
+    private Animation<TextureRegion> hornetAnimation;
+    private float ATTACK_DELAY = 2.0f;
     private int pathCounter = 1;
     private Player player;
     private boolean canAttack = true;
-    private int ATTACK_RANGE = 250;
+    private int ATTACK_RANGE = 100;
+
+
+    private enum State {
+        WALK,
+        PURSUE,
+        ATTACK,
+        DEAD,
+    }
+
+    public Hornet(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, LeakManager leakManager, ArrowManager arrowManager, CoinManager coinManager, EntityManager entityManager, CollisionManager collisionManager) {
+        Texture hornetSheet = new Texture("hornet.png");
+        TextureRegion[][] hornetRegions = TextureRegion.split(hornetSheet,
+                hornetSheet.getWidth() / 2,
+                hornetSheet.getHeight() / 1);
+
+        TextureRegion[] hornetFrames = new TextureRegion[2];
+        hornetFrames[0] = hornetRegions[0][0];
+        hornetFrames[1] = hornetRegions[0][1];
+        hornetAnimation = new Animation<TextureRegion>(0.3f, hornetFrames);
+        walkTime = 0;
+        setX(x);
+        setY(y);
+        this.coinManager = coinManager;
+        this.collisionManager = collisionManager;
+        this.nextPointToWalkTowards = pathwayCoordinates.get(0);
+        this.pathwayCoordinates = pathwayCoordinates;
+        this.player = player;
+        this.leakManager = leakManager;
+        this.entityManager = entityManager;
+    }
+
+    @Override
+    public void setX(float x) {
+        this.x = x;
+    }
+
+    @Override
+    public void setY(float y) {
+        this.y = y;
+    }
+
 
     @Override
     public Vector2 getCenter() {
         return Geom.getCenter(this);
     }
-
 
     @Override
     public ArrayList<Class> getIgnoreClassList() {
@@ -52,24 +99,6 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
     @Override
     public Rectangle getHitbox() {
         return getBoundingRectangle();
-    }
-
-    private enum State {
-        WALK,
-        PURSUE,
-        ATTACK,
-        DEAD,
-    }
-
-    public Archer(float x, float y,ArrayList<Vector2> pathwayCoordinates, Player player, LeakManager leakManager, ArrowManager arrowManager, CoinManager coinManager) {
-        super(new Texture("archer.png"));
-        setPosition(x, y);
-        this.coinManager = coinManager;
-        this.nextPointToWalkTowards = pathwayCoordinates.get(0);
-        this.pathwayCoordinates = pathwayCoordinates;
-        this.player = player;
-        this.leakManager = leakManager;
-        this.arrowManager = arrowManager;
     }
 
     public void stateMachine(State state){
@@ -98,7 +127,7 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
             float dy = playerCenter.y - getY();
             float dx = playerCenter.x - getX();
             float angle = (float)Math.atan2(dy, dx);
-            arrowManager.createArrow(getX(), getY(), angle);
+            entityManager.addEntity(new Stinger(getX(), getY(), angle, player, collisionManager));
             canAttack = false;
 
             Timer.schedule(new Timer.Task() {
@@ -117,6 +146,7 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
 
     @Override
     public void update(float delta){
+        walkTime += delta;
         if(startOfGame) {
             startOfGame = false;
             stateMachine(State.WALK);
@@ -124,7 +154,6 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
             stateMachine(state);
         }
     }
-
 
     private void walkToEnd() {
 
@@ -197,6 +226,36 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
     }
 
     @Override
+    public Rectangle getBoundingRectangle() {
+        return new Rectangle(getX(), getY(), getWidth(), getHeight());
+    }
+
+    @Override
+    public Texture getTexture() {
+        return hornetAnimation.getKeyFrame(walkTime).getTexture();
+    }
+
+    @Override
+    public float getX() {
+        return x;
+    }
+
+    @Override
+    public float getY() {
+        return y;
+    }
+
+    @Override
+    public float getWidth() {
+        return hornetAnimation.getKeyFrame(walkTime).getRegionWidth();
+    }
+
+    @Override
+    public float getHeight() {
+        return hornetAnimation.getKeyFrame(walkTime).getRegionHeight();
+    }
+
+    @Override
     public void draw(Batch batch) {
         if (isRed) {
             batch.setShader(RedShader.shaderProgram);
@@ -204,7 +263,7 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
             batch.setShader(null);
         }
         batch.begin();
-        batch.draw(this.getTexture(), getX(), getY());
+        batch.draw(hornetAnimation.getKeyFrame(walkTime, true), getX(), getY());
         batch.end();
         batch.setShader(null);
         Debug.drawHitbox(batch, getBoundingRectangle());
@@ -213,6 +272,7 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
     public boolean isDead() {
         return isDead;
     }
+
 
     public void dispose(){
     }

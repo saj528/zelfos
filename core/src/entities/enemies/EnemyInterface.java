@@ -9,13 +9,9 @@ public interface EnemyInterface extends Killable {
 
     boolean isDead();
 
-    void update();
-
     void damage(int amount);
 
     Rectangle getBoundingRectangle();
-
-    void draw(Batch batch);
 
     Texture getTexture();
 

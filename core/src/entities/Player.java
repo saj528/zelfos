@@ -35,7 +35,7 @@ class AttackHitbox {
 
 }
 
-public class Player extends Sprite implements Knockable, Collidable {
+public class Player extends Sprite implements Knockable, Damageable, Collidable, Entity {
 
     private final FlashRedManager flashRedManager;
     private final CollisionManager collisionManager;
@@ -45,21 +45,6 @@ public class Player extends Sprite implements Knockable, Collidable {
     public final float ACCELERATION = 150.0f;
     public final float MAX_SPEED = 3;
     private playerState state;
-
-    @Override
-    public Rectangle getHitbox() {
-        return getBoundingRectangle();
-    }
-
-    private enum DIRECTIONS {
-        IDLE,
-        UP,
-        DOWN,
-        RIGHT,
-        LEFT
-    }
-
-
     private Texture playerDown = new Texture("playersprites/RunDown/run_down_1.png");
     private boolean canAttack = true;
     private boolean canDodge = true;
@@ -101,11 +86,20 @@ public class Player extends Sprite implements Knockable, Collidable {
     private float DODGE_ANIMATION_DURATION = 0.5f;
     private float DODGE_ANIMATION_SPEED = 0.1f;
     private float DODGE_COOLDOWN = DODGE_ANIMATION_DURATION * 2;
+    private float DODGE_TO_ATTACK_COOLDOWN = DODGE_ANIMATION_DURATION;
     private int DODGE_DISTANCE = 40;
     private int bombs = 100;
     private boolean shouldFlashRed;
     private int attackOffsetX = 11;
     private int attackOffsetY = 13;
+
+    private enum DIRECTIONS {
+        IDLE,
+        UP,
+        DOWN,
+        RIGHT,
+        LEFT
+    }
 
     private enum Direction {
         None,
@@ -125,6 +119,19 @@ public class Player extends Sprite implements Knockable, Collidable {
     }
 
     private Direction strifeDirection = Direction.None;
+
+
+    public Player(float x, float y, FlashRedManager flashRedManager, EntityManager entityManager, CollisionManager collisionManager, ParticleManager particleManager) {
+        super(new Texture("playersprites/RunDown/run_down_1.png"));
+        setPosition(x, y);
+        setTexture(playerDown);
+        this.collisionManager = collisionManager;
+        isFacingDown = true;
+        initPlayerTextures();
+        this.particleManager = particleManager;
+        this.flashRedManager = flashRedManager;
+        shouldFlashRed = false;
+    }
 
     public int getLives() {
         return lives;
@@ -149,18 +156,6 @@ public class Player extends Sprite implements Knockable, Collidable {
             }
         }, 0.5f);
 
-    }
-
-    public Player(float x, float y, FlashRedManager flashRedManager, EntityManager entityManager, CollisionManager collisionManager, ParticleManager particleManager) {
-        super(new Texture("playersprites/RunDown/run_down_1.png"));
-        setPosition(x, y);
-        setTexture(playerDown);
-        this.collisionManager = collisionManager;
-        isFacingDown = true;
-        initPlayerTextures();
-        this.particleManager = particleManager;
-        this.flashRedManager = flashRedManager;
-        shouldFlashRed = false;
     }
 
     public void stateMachine(playerState state,float delta){
@@ -269,14 +264,12 @@ public class Player extends Sprite implements Knockable, Collidable {
             bombs--;
             canDropBomb = false;
             bombManager.createBomb(getX(), getY());
-
             Timer.schedule(new Timer.Task() {
                 @Override
                 public void run() {
                     canDropBomb = true;
                 }
             }, 0.5f);
-
         }
     }
 
@@ -315,9 +308,15 @@ public class Player extends Sprite implements Knockable, Collidable {
             @Override
             public void run() {
                 canDodge = true;
-                canAttack = true;
             }
         }, DODGE_COOLDOWN);
+
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                canAttack = true;
+            }
+        }, DODGE_TO_ATTACK_COOLDOWN);
 
     }
 
@@ -325,8 +324,8 @@ public class Player extends Sprite implements Knockable, Collidable {
         return bombs > 0;
     }
 
-    public void attack(final ArrayList<EnemyInterface> enemies) {
-        if (!canAttack || !canDodge) return;
+    public void attack(final ArrayList<Entity> enemies) {
+        if (!canAttack) return;
         canAttack = false;
         attackTime = 0;
         showAttackAnimation = true;
@@ -352,28 +351,29 @@ public class Player extends Sprite implements Knockable, Collidable {
             public void run() {
                 AttackHitbox hitbox = new AttackHitbox(player);
 
-                for (EnemyInterface enemy : enemies) {
+                for (Entity enemy : enemies) {
+                    Damageable damageable = (Damageable) enemy;
                     if (isFacingLeft) {
                         if (hitbox.left.overlaps(enemy.getBoundingRectangle())) {
-                            enemy.damage(SWORD_DAMAGE);
+                            damageable.damage(SWORD_DAMAGE);
                             particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
                             Physics.knockback(player, (Knockable) enemy, 30, collisionManager);
                         }
                     } else if (isFacingRight) {
                         if (hitbox.right.overlaps(enemy.getBoundingRectangle())) {
-                            enemy.damage(SWORD_DAMAGE);
+                            damageable.damage(SWORD_DAMAGE);
                             particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
                             Physics.knockback(player, (Knockable) enemy, 30, collisionManager);
                         }
                     } else if (isFacingUp) {
                         if (hitbox.up.overlaps(enemy.getBoundingRectangle())) {
-                            enemy.damage(SWORD_DAMAGE);
+                            damageable.damage(SWORD_DAMAGE);
                             particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
                             Physics.knockback(player, (Knockable) enemy, 30, collisionManager);
                         }
                     } else if (isFacingDown) {
                         if (hitbox.down.overlaps(enemy.getBoundingRectangle())) {
-                            enemy.damage(SWORD_DAMAGE);
+                            damageable.damage(SWORD_DAMAGE);
                             particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
                             Physics.knockback(player, (Knockable) enemy, 30, collisionManager);
                         }
@@ -381,14 +381,11 @@ public class Player extends Sprite implements Knockable, Collidable {
                 }
             }
         }, ATTACK_OFFSET);
+    }
 
-
-        Timer.schedule(new Timer.Task() {
-            @Override
-            public void run() {
-                canAttack = true;
-            }
-        }, ATTACK_COOLDOWN);
+    @Override
+    public Vector2 getCenter() {
+        return Geom.getCenter(this);
     }
 
     public void update(float delta) {
@@ -396,6 +393,17 @@ public class Player extends Sprite implements Knockable, Collidable {
         walkTime += delta;
         dodgeTime += delta;
     }
+
+    @Override
+    public Rectangle getHitbox() {
+        return getBoundingRectangle();
+    }
+
+    @Override
+    public ArrayList<Class> getIgnoreClassList() {
+        return new ArrayList<>();
+    }
+
 
     @Override
     public void draw(Batch batch) {

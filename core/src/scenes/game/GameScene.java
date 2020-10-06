@@ -25,8 +25,8 @@ import com.badlogic.gdx.utils.Timer;
 import com.zelfos.game.GameMain;
 import entities.*;
 import entities.enemies.Archer;
-import entities.enemies.EnemyInterface;
 import entities.enemies.Footman;
+import entities.enemies.Hornet;
 import entities.structures.TownHall;
 import hud.*;
 import helpers.GameInfo;
@@ -43,7 +43,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     private final Player player;
     private final OrthographicCamera camera;
     private final OrthographicCamera hudCamera;
-    private final ArrayList<EnemyInterface> enemies = new ArrayList<>();
+    private final ArrayList<Entity> enemies = new ArrayList<>();
     private final ArrayList<Bomb> bombs = new ArrayList<>();
     private final ArrayList<Arrow> arrows = new ArrayList<>();
     private final ArrayList<Coin> coins = new ArrayList<>();
@@ -67,9 +67,52 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     TiledMap tiledMap;
     TiledMapRenderer tiledMapRenderer;
 
-    private final Wave[] waves;
+    private Wave[] waves;
 
     private final HashSet<Integer> collidableTiles;
+
+    private Vector2 getMapObjectLocation(String name) {
+        MapLayer waypoint = tiledMap.getLayers().get("Waypoint");
+        MapObjects objects = waypoint.getObjects();
+        RectangleMapObject obj = (RectangleMapObject) objects.get(name);
+        Vector2 point = new Vector2(obj.getRectangle().x * 2, obj.getRectangle().y * 2);
+        return point;
+    }
+
+    private Rectangle getMapObjectRectangle(String name) {
+        MapLayer waypoint = tiledMap.getLayers().get("Waypoint");
+        MapObjects objects = waypoint.getObjects();
+        RectangleMapObject obj = (RectangleMapObject) objects.get(name);
+        return new Rectangle(obj.getRectangle().x * 2, obj.getRectangle().y * 2, obj.getRectangle().width * 2, obj.getRectangle().height * 2);
+    }
+
+    private void setupWaves() {
+        waves = new Wave[5];
+        EnemySet[] enemySets;
+
+        enemySets = new EnemySet[1];
+        enemySets[0] = new EnemySet(EnemySet.EnemyType.HORNET, 1, EnemySet.Lane.NORTH);
+        waves[0] = new Wave(enemySets);
+
+        enemySets = new EnemySet[1];
+        enemySets[0] = new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH);
+        waves[1] = new Wave(enemySets);
+
+        enemySets = new EnemySet[2];
+        enemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH);
+        enemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH);
+        waves[2] = new Wave(enemySets);
+
+        enemySets = new EnemySet[2];
+        enemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 2, EnemySet.Lane.NORTH);
+        enemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 2, EnemySet.Lane.NORTH);
+        waves[3] = new Wave(enemySets);
+
+        enemySets = new EnemySet[2];
+        enemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 2, EnemySet.Lane.NORTH);
+        enemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 4, EnemySet.Lane.NORTH);
+        waves[4] = new Wave(enemySets);
+    }
 
     public GameScene(GameMain game) {
         this.game = game;
@@ -80,23 +123,15 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                 GameInfo.HEIGHT
         );
 
+        setupWaves();
+
         coinsHud = new CoinsHud(this);
-
-        waves = new Wave[2];
-        EnemySet[] wave0EnemySets = new EnemySet[2];
-        wave0EnemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 1);
-        wave0EnemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 1);
-        waves[0] = new Wave(wave0EnemySets);
-
-        EnemySet[] wave1EnemySets = new EnemySet[2];
-        wave1EnemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 5);
-        wave1EnemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 2);
-        waves[1] = new Wave(wave1EnemySets);
 
         wavesHud = new WavesHud(this);
 
         tiledMap = new TmxMapLoader().load("map.tmx");
         tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap, 2);
+
 
         MapLayer waypoint = tiledMap.getLayers().get("Waypoint");
         MapObjects objects = waypoint.getObjects();
@@ -106,6 +141,18 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         RectangleMapObject playerSpawn = (RectangleMapObject) objects.get("PlayerSpawn");
         Vector2 playerSpawnPoint = new Vector2(playerSpawn.getRectangle().x * 2, playerSpawn.getRectangle().y * 2);
+
+        Vector2 eastRocksPoint0 = getMapObjectLocation("EastRocks0");
+        entities.add(new Rocks(eastRocksPoint0.x, eastRocksPoint0.y));
+        Vector2 eastRocksPoint1 = getMapObjectLocation("EastRocks1");
+        entities.add(new Rocks(eastRocksPoint1.x, eastRocksPoint1.y));
+        Vector2 eastRocksPoint2 = getMapObjectLocation("EastRocks2");
+        entities.add(new Rocks(eastRocksPoint2.x, eastRocksPoint2.y));
+
+
+        DeadZone deadZone = new DeadZone(getMapObjectRectangle("NorthDeadZone"));
+        System.out.println(deadZone.getHitbox());
+        entities.add(deadZone);
 
         player = new Player(playerSpawnPoint.x, playerSpawnPoint.y, this, this, this, this);
 
@@ -131,11 +178,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         //int objectLayerId = 5;
         //TiledMapTileLayer collisionObjectLayer = (TiledMapTileLayer)map.getLayers().get(objectLayerId);
-       // MapObjects objects = collisionObjectLayer.getObjects();
+        // MapObjects objects = collisionObjectLayer.getObjects();
 
         //(TiledMapTileLayer)map.getLayers().get(objectLayerId);
         // MapObjects objects = collisionObjectLayer.getObjects();
-
 
 
         collidableTiles = new HashSet<>();
@@ -164,7 +210,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         startIntermission();
     }
 
-
+    @Override
+    public void addEntity(Entity entity) {
+        entities.add(entity);
+    }
 
     public void spawnNextWave() {
         final LeakManager leakManager = this;
@@ -174,19 +223,19 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         MapObjects objects = waypoint.getObjects();
 
         RectangleMapObject north = (RectangleMapObject) objects.get("North");
-        Vector2 northPoint = new Vector2((int)north.getRectangle().x * 2, (int)north.getRectangle().y * 2);
+        Vector2 northPoint = new Vector2((int) north.getRectangle().x * 2, (int) north.getRectangle().y * 2);
 
         RectangleMapObject south = (RectangleMapObject) objects.get("South");
-        Vector2 southPoint = new Vector2((int)south.getRectangle().x * 2, (int)south.getRectangle().y * 2);
+        Vector2 southPoint = new Vector2((int) south.getRectangle().x * 2, (int) south.getRectangle().y * 2);
 
         RectangleMapObject east = (RectangleMapObject) objects.get("East");
-        Vector2 eastPoint = new Vector2((int)east.getRectangle().x * 2, (int)east.getRectangle().y * 2);
+        Vector2 eastPoint = new Vector2((int) east.getRectangle().x * 2, (int) east.getRectangle().y * 2);
 
         RectangleMapObject west = (RectangleMapObject) objects.get("West");
-        Vector2 westPoint = new Vector2((int)west.getRectangle().x * 2, (int)west.getRectangle().y * 2);
+        Vector2 westPoint = new Vector2((int) west.getRectangle().x * 2, (int) west.getRectangle().y * 2);
 
         RectangleMapObject end = (RectangleMapObject) objects.get("End");
-        Vector2 endPoint = new Vector2((int)end.getRectangle().x * 2, (int)end.getRectangle().y * 2);
+        Vector2 endPoint = new Vector2((int) end.getRectangle().x * 2, (int) end.getRectangle().y * 2);
 
         Vector2[] points = new Vector2[4];
         points[0] = northPoint;
@@ -198,27 +247,47 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         for (EnemySet enemySet : currentWave.getEnemySets()) {
             for (int i = 0; i < enemySet.getCount(); i++) {
                 int offsetSize = 200;
-                int ox = (int)(Math.random() * offsetSize) - offsetSize / 2;
-                int oy = (int)(Math.random() * offsetSize) - offsetSize / 2;
+                int ox = (int) (Math.random() * offsetSize) - offsetSize / 2;
+                int oy = (int) (Math.random() * offsetSize) - offsetSize / 2;
 
                 ArrayList<Vector2> pathwayCoordinates = new ArrayList<>();
                 pathwayCoordinates.add(new Vector2(endPoint.x + ox, endPoint.y + oy));
 
-                Vector2 randomPoint = points[(int)(Math.random() * points.length)];
+                Vector2 spawnPoint;
+                switch (enemySet.getLane()) {
+                    case NORTH:
+                        spawnPoint = points[0];
+                        break;
+                    case SOUTH:
+                        spawnPoint = points[1];
+                        break;
+                    case EAST:
+                        spawnPoint = points[2];
+                        break;
+                    case WEST:
+                        spawnPoint = points[3];
+                        break;
+                    default:
+                        spawnPoint = points[0];
+                        break;
+                }
 
-                switch(enemySet.getEnemyType()) {
+                switch (enemySet.getEnemyType()) {
                     case SOLDIER:
-                        enemies.add(new Footman(randomPoint.x + ox, randomPoint.y + oy, pathwayCoordinates, player, leakManager, this, this));
+                        enemies.add(new Footman(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, leakManager, this, this, this));
                         break;
                     case ARCHER:
-                        enemies.add(new Archer(randomPoint.x + ox, randomPoint.y + oy, pathwayCoordinates, player, leakManager, arrowManager, this));
+                        enemies.add(new Archer(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, leakManager, arrowManager, this));
+                        break;
+                    case HORNET:
+                        enemies.add(new Hornet(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, leakManager, this, this, this, this));
                         break;
                 }
             }
         }
     }
 
-    public ArrayList<EnemyInterface> getEnemies() {
+    public ArrayList<Entity> getEnemies() {
         return enemies;
     }
 
@@ -247,9 +316,18 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         return false;
     }
 
-    public boolean isCollidingWithOtherCollidables(Collidable entity){
+    public boolean isCollidingWithOtherCollidables(Collidable entity) {
         for (Collidable collidable : getCollidables()) {
             if (collidable == entity) continue;
+            ArrayList<Class> ignoreList = collidable.getIgnoreClassList();
+            boolean skip = false;
+            for (Class clazz : ignoreList) {
+                if (clazz.isInstance(entity)) {
+                    skip = true;
+                    break;
+                }
+            }
+            if (skip) continue;
             Rectangle entityHitbox = entity.getHitbox();
             Rectangle collidableHitbox = collidable.getHitbox();
             if (entityHitbox.overlaps(collidableHitbox)) {
@@ -262,12 +340,13 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     public void removeDeadEntities(ArrayList killables) {
         Iterator iterator = killables.iterator();
         while (iterator.hasNext()) {
-            Killable entity = (Killable)iterator.next();
-            if (entity.isDead()) {
-                iterator.remove();
+            Object next = iterator.next();
+            if (next instanceof Killable) {
+                if (((Killable)next).isDead()) {
+                    iterator.remove();
+                }
             }
         }
-
     }
 
     public void update(float delta) {
@@ -308,8 +387,8 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             player.dodge();
         }
 
-        for (EnemyInterface enemy : enemies) {
-            enemy.update();
+        for (Entity enemy : enemies) {
+            enemy.update(delta);
         }
 
         for (Arrow arrow : arrows) {
@@ -324,17 +403,26 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             particle.update(delta);
         }
 
+        for (Entity entity : entities) {
+            entity.update(delta);
+        }
+
         removeDeadEntities(enemies);
         removeDeadEntities(bombs);
         removeDeadEntities(arrows);
         removeDeadEntities(coins);
         removeDeadEntities(particles);
+        removeDeadEntities(entities);
 
         camera.position.x = player.getX();
         camera.position.y = player.getY();
         camera.update();
 
         if (player.isDead()) {
+            game.showMainMenuScene();
+        }
+
+        if (townHall.isDead()) {
             game.showMainMenuScene();
         }
 
@@ -371,7 +459,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         player.draw(batch);
 
-        for (EnemyInterface enemy : enemies) {
+        for (Entity enemy : enemies) {
             enemy.draw(batch);
         }
 
@@ -394,7 +482,11 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             particle.draw(batch);
         }
 
-        townHall.draw(batch);
+        for (Entity entity : entities) {
+            entity.draw(batch);
+        }
+
+//        townHall.draw(batch);
 
         batch.setProjectionMatrix(hudCamera.combined);
 
@@ -405,7 +497,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         }
 
         healthBar.draw(batch);
-        leaksHud.draw(batch);
+//        leaksHud.draw(batch);
         wavesHud.draw(batch);
         coinsHud.draw(batch);
         compassHud.draw(batch);
@@ -439,9 +531,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     public void dispose() {
         player.getTexture().dispose();
         tiledMap.dispose();
-        for (EnemyInterface enemy : enemies) {
-            enemy.getTexture().dispose();
-        }
     }
 
     @Override
@@ -491,7 +580,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
     @Override
     public void createArrow(float x, float y, float angle) {
-        arrows.add(new Arrow(x, y, angle, player));
+        arrows.add(new Arrow(x, y, angle, player, this));
     }
 
     @Override
@@ -546,10 +635,20 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         ArrayList<Collidable> collidables = new ArrayList<>();
         for (Entity entity : entities) {
             if (entity instanceof Collidable) {
-                collidables.add((Collidable)entity);
+                collidables.add((Collidable) entity);
             }
         }
         return collidables;
+    }
+
+    @Override
+    public Entity getEntityByType(String className) {
+        for (Entity entity : entities) {
+            if (entity.getClass().getName().equals(className)) {
+                return entity;
+            }
+        }
+        return null;
     }
 
     @Override

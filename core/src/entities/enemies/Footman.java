@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.*;
+import entities.structures.TownHall;
 import helpers.Debug;
 import helpers.RedShader;
 import scenes.game.*;
@@ -17,6 +18,7 @@ public class Footman extends Sprite implements EnemyInterface, Knockable, Entity
 
     private final CoinManager coinManager;
     private final CollisionManager collisionManager;
+    private final EntityManager entityManager;
     private LeakManager leakManager;
     private int health = 3;
     private boolean isDead = false;
@@ -24,14 +26,15 @@ public class Footman extends Sprite implements EnemyInterface, Knockable, Entity
     public final int SPEED = 1;
     private int DAMAGE = 1;
     private State state = State.WALK;
-    private float distanceToPursue = 100;
+    private float distanceToPursue = 250;
     private Vector2 nextPointToWalkTowards;
     private ArrayList<Vector2> pathwayCoordinates;
     private float ATTACK_DELAY = 1.0f;
+    private Entity target;
     private int pathCounter = 1;
     private Player player;
     private boolean canAttack = true;
-    private int ATTACK_RANGE = 30;
+    private int ATTACK_RANGE = 10;
 
     @Override
     public Rectangle getHitbox() {
@@ -45,85 +48,30 @@ public class Footman extends Sprite implements EnemyInterface, Knockable, Entity
         DEAD,
     }
 
-    public Footman(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, LeakManager leakManager, CoinManager coinManager, CollisionManager collisionManager) {
+
+    @Override
+    public ArrayList<Class> getIgnoreClassList() {
+        return new ArrayList<>();
+    }
+
+    public Footman(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, LeakManager leakManager, CoinManager coinManager, CollisionManager collisionManager, EntityManager entityManager) {
         super(new Texture("footman.png"));
         setPosition(x, y);
         this.coinManager = coinManager;
         this.collisionManager = collisionManager;
+        this.entityManager = entityManager;
         this.nextPointToWalkTowards = pathwayCoordinates.get(0);
         this.pathwayCoordinates = pathwayCoordinates;
         this.player = player;
         this.leakManager = leakManager;
     }
 
-    public void stateMachine(State state){
-        this.state = state;
-        switch(state){
-            case WALK:
-                walkToEnd();
-                break;
-            case DEAD:
-                isDead = true;
-                break;
-            case PURSUE:
-                pursuePlayer();
-                break;
-            case ATTACK:
-                attackPlayer();
-                break;
-        }
+    private void walkTo(Entity entity) {
+        walkTo(entity.getCenter());
     }
 
-    private void attackPlayer() {
-        if (canAttack) {
-            canAttack = false;
-
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    if (getDistanceToPlayer() <= ATTACK_RANGE) {
-                        player.damage(DAMAGE);
-                    }
-                }
-            }, 0.5f);
-
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    canAttack = true;
-                    stateMachine(State.PURSUE);
-                }
-            }, ATTACK_DELAY);
-        }
-
-
-    }
-
-    public void update(){
-        stateMachine(state);
-    }
-
-
-    private void walkToEnd() {
-
-        if(getDistanceToPlayer() <= distanceToPursue){
-            stateMachine(State.PURSUE);
-        }
-        double distanceFromCurrentPathGoal = nextPointToWalkTowards.dst(new Vector2(getX(), getY()));
-
-        if(distanceFromCurrentPathGoal <= 10){
-            if(pathwayCoordinates.size() > pathCounter){
-                nextPointToWalkTowards.y = pathwayCoordinates.get(pathCounter).y;
-                nextPointToWalkTowards.x = pathwayCoordinates.get(pathCounter).x;
-                pathCounter++;
-            }else{
-                stateMachine(State.DEAD);
-                leakManager.removeLeak();
-                return;
-            }
-        }
-
-        float angleToWalk = (float)Math.atan2(nextPointToWalkTowards.y - getY(), nextPointToWalkTowards.x - getX());
+    private void walkTo(Vector2 point) {
+        float angleToWalk = (float) Math.atan2(point.y - getY(), point.x - getX());
         float originalX = getX();
         setX((float) (getX() + Math.cos(angleToWalk) * SPEED));
         if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
@@ -137,16 +85,102 @@ public class Footman extends Sprite implements EnemyInterface, Knockable, Entity
         }
     }
 
-    private void pursuePlayer(){
-        if(getDistanceToPlayer() > distanceToPursue){
-            stateMachine(State.WALK);
+    private void attack() {
+        if (canAttack) {
+            canAttack = false;
+
+            final Footman footman = this;
+
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+                    if (footman.isDead()) return;
+                    float distance = Geom.distanceBetween(footman, target);
+                    float range = ATTACK_RANGE + target.getBoundingRectangle().getWidth() / 2f + footman.getBoundingRectangle().getWidth() / 2f;
+                    if (distance <= range) {
+                        ((Damageable) target).damage(DAMAGE);
+                        if (target == player) {
+                            Physics.knockback(footman, player, 20, collisionManager);
+                        }
+                    }
+                }
+            }, 0.3f);
+
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+                    canAttack = true;
+                    state = State.PURSUE;
+                }
+            }, ATTACK_DELAY);
+        }
+    }
+
+    @Override
+    public void update(float delta) {
+        switch (state) {
+            case WALK:
+                walk();
+                break;
+            case DEAD:
+                isDead = true;
+                break;
+            case PURSUE:
+                pursue();
+                break;
+            case ATTACK:
+                attack();
+                break;
+        }
+    }
+
+
+    private void walk() {
+        if (Geom.distanceBetween(this, player) <= distanceToPursue) {
+            state = State.PURSUE;
+            target = player;
+            return;
         }
 
-        if (getDistanceToPlayer() <= ATTACK_RANGE) {
-            stateMachine(State.ATTACK);
+        TownHall townHall = (TownHall) entityManager.getEntityByType(TownHall.class.getName());
+        float dist = Geom.distanceBetween(this, townHall);
+        if (dist <= distanceToPursue) {
+            state = State.PURSUE;
+            target = townHall;
+            return;
         }
 
-        float angleToWalk = (float)Math.atan2(player.getY() - getY(), player.getX() - getX());
+        double distanceFromCurrentPathGoal = nextPointToWalkTowards.dst(new Vector2(getX(), getY()));
+
+        if (distanceFromCurrentPathGoal <= 10) {
+            if (pathwayCoordinates.size() > pathCounter) {
+                nextPointToWalkTowards.y = pathwayCoordinates.get(pathCounter).y;
+                nextPointToWalkTowards.x = pathwayCoordinates.get(pathCounter).x;
+                pathCounter++;
+            } else {
+                state = State.DEAD;
+                leakManager.removeLeak();
+                return;
+            }
+        }
+
+        walkTo(nextPointToWalkTowards);
+    }
+
+    private void pursue() {
+        if (Geom.distanceBetween(this, target) > distanceToPursue) {
+            state = State.WALK;
+            return;
+        }
+
+        float distance = Geom.distanceBetween(this, target);
+        float range = ATTACK_RANGE + target.getBoundingRectangle().getWidth() / 2f + this.getBoundingRectangle().getWidth() / 2f;
+        if (distance <= range) {
+            state = State.ATTACK;
+            return;
+        }
+
+        float angleToWalk = (float) Math.atan2(player.getY() - getY(), player.getX() - getX());
         float originalX = getX();
         setX((float) (getX() + Math.cos(angleToWalk) * SPEED));
         if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
@@ -197,7 +231,7 @@ public class Footman extends Sprite implements EnemyInterface, Knockable, Entity
         return isDead;
     }
 
-    public void dispose(){
+    public void dispose() {
     }
 
     public float getDistanceToPlayer() {
@@ -215,8 +249,5 @@ public class Footman extends Sprite implements EnemyInterface, Knockable, Entity
         return Geom.getCenter(this);
     }
 
-    @Override
-    public void update(float delta) {
 
-    }
 }

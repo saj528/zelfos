@@ -40,7 +40,7 @@ public class Bomb extends Sprite implements Knockable, Killable, Entity {
                 ArrayList<Entity> entitiesInRange = Geom.getEntitiesInRange(enemyEntities, bomb, BLAST_RADIUS);
                 for (Entity entity : entitiesInRange) {
                     if (entity instanceof Knockable) {
-                        Physics.knockback((Knockable)bomb, (Knockable)entity, 50, collisionManager);
+                        Physics.knockback(bomb, (Knockable)entity, 50, collisionManager);
                     }
                     if (entity instanceof Damageable) {
                         ((Damageable)entity).damage(BLAST_DAMAGE);

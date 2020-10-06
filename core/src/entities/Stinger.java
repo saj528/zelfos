@@ -8,7 +8,7 @@ import scenes.game.CollisionManager;
 import scenes.game.Geom;
 import scenes.game.Physics;
 
-public class Arrow extends Sprite implements Killable, Entity {
+public class Stinger extends Sprite implements Killable, Entity {
 
     private final CollisionManager collisionManager;
     float SPEED = 4.0f;
@@ -17,8 +17,8 @@ public class Arrow extends Sprite implements Killable, Entity {
     Player player;
     boolean isDead;
 
-    public Arrow(float x, float y, float angle, Player player, CollisionManager collisionManager) {
-        super(new Texture("arrow.png"));
+    public Stinger(float x, float y, float angle, Player player, CollisionManager collisionManager) {
+        super(new Texture("stinger.png"));
         this.angle = angle;
         setX(x);
         this.collisionManager = collisionManager;
