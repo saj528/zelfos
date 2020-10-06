@@ -30,13 +30,14 @@ import entities.enemies.Footman;
 import entities.structures.TownHall;
 import hud.*;
 import helpers.GameInfo;
+import particles.Particle;
 
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
-public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, LeakManager, FlashRedManager, ArrowManager, WaveManager, CoinManager, EntityManager, CollisionManager {
+public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, LeakManager, FlashRedManager, ArrowManager, WaveManager, CoinManager, EntityManager, CollisionManager, ParticleManager {
 
     private final GameMain game;
     private final Player player;
@@ -47,6 +48,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     private final ArrayList<Arrow> arrows = new ArrayList<>();
     private final ArrayList<Coin> coins = new ArrayList<>();
     private final ArrayList<Entity> entities = new ArrayList<>();
+    private final ArrayList<Particle> particles = new ArrayList<>();
     private TownHall townHall;
     private final CoinsHud coinsHud;
     private final Leaks leaksHud;
@@ -105,7 +107,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         RectangleMapObject playerSpawn = (RectangleMapObject) objects.get("PlayerSpawn");
         Vector2 playerSpawnPoint = new Vector2(playerSpawn.getRectangle().x * 2, playerSpawn.getRectangle().y * 2);
 
-        player = new Player(playerSpawnPoint.x, playerSpawnPoint.y, this, this);
+        player = new Player(playerSpawnPoint.x, playerSpawnPoint.y, this, this, this, this);
 
         hudCamera = new OrthographicCamera();
         hudCamera.setToOrtho(
@@ -221,7 +223,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     }
 
     public void createBomb(float x, float y) {
-        bombs.add(new Bomb(player.getX(), player.getY(), this));
+        bombs.add(new Bomb(player.getX(), player.getY(), this, this));
     }
 
     public boolean isCollidingWithMap(Collidable collidable) {
@@ -302,18 +304,13 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             player.attack(enemies);
         }
 
-        if (Gdx.input.isKeyPressed(Input.Keys.Q)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
             player.dodge();
         }
 
         for (EnemyInterface enemy : enemies) {
             enemy.update();
         }
-
-        removeDeadEntities(enemies);
-        removeDeadEntities(bombs);
-        removeDeadEntities(arrows);
-        removeDeadEntities(coins);
 
         for (Arrow arrow : arrows) {
             arrow.update(delta);
@@ -322,6 +319,16 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         for (Coin coin : coins) {
             coin.update(delta);
         }
+
+        for (Particle particle : particles) {
+            particle.update(delta);
+        }
+
+        removeDeadEntities(enemies);
+        removeDeadEntities(bombs);
+        removeDeadEntities(arrows);
+        removeDeadEntities(coins);
+        removeDeadEntities(particles);
 
         camera.position.x = player.getX();
         camera.position.y = player.getY();
@@ -381,6 +388,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         for (Coin coin : coins) {
             coin.draw(batch);
+        }
+
+        for (Particle particle : particles) {
+            particle.draw(batch);
         }
 
         townHall.draw(batch);
@@ -539,5 +550,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             }
         }
         return collidables;
+    }
+
+    @Override
+    public void addParticle(Particle particle) {
+        particles.add(particle);
     }
 }

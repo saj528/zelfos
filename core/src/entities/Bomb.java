@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
+import scenes.game.CollisionManager;
 import scenes.game.Geom;
 import scenes.game.Physics;
 import helpers.RedShader;
@@ -19,15 +20,16 @@ import java.util.ArrayList;
 public class Bomb extends Sprite implements Knockable, Killable, Entity {
     private final float BOMB_TIME = 3.0f;
     private final int BLAST_RADIUS = 100;
-    private final int BLAST_DAMAGE = 3;
+    private final int BLAST_DAMAGE = 1;
+    private final CollisionManager collisionManager;
     private boolean isDead = false;
     private boolean isRed = false;
     private float flashDelay = 0.5f;
 
-    public Bomb(float x, float y, final EnemyManager enemyManager) {
+    public Bomb(float x, float y, final EnemyManager enemyManager, final CollisionManager collisionManager) {
         super(new Texture("bomb.png"));
         setPosition(x, y);
-
+        this.collisionManager = collisionManager;
         final Entity bomb = this;
         final ArrayList<Entity> enemyEntities = (ArrayList<Entity>)(Object)enemyManager.getEnemies();
 
@@ -38,7 +40,7 @@ public class Bomb extends Sprite implements Knockable, Killable, Entity {
                 ArrayList<Entity> entitiesInRange = Geom.getEntitiesInRange(enemyEntities, bomb, BLAST_RADIUS);
                 for (Entity entity : entitiesInRange) {
                     if (entity instanceof Knockable) {
-                        Physics.knockback((Knockable)bomb, (Knockable)entity, 50);
+                        Physics.knockback((Knockable)bomb, (Knockable)entity, 50, collisionManager);
                     }
                     if (entity instanceof Damageable) {
                         ((Damageable)entity).damage(BLAST_DAMAGE);

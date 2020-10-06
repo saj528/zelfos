@@ -3,21 +3,19 @@ package entities.enemies;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.*;
 import helpers.Debug;
 import helpers.RedShader;
-import scenes.game.ArrowManager;
-import scenes.game.CoinManager;
-import scenes.game.Geom;
-import scenes.game.LeakManager;
+import scenes.game.*;
 
 import java.util.ArrayList;
 
 import static java.lang.Math.sqrt;
 
-public class Archer extends Sprite implements EnemyInterface, Knockable, Entity, Damageable {
+public class Archer extends Sprite implements EnemyInterface, Knockable, Entity, Damageable, Collidable {
 
     private final CoinManager coinManager;
     private ArrowManager arrowManager;
@@ -47,6 +45,11 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
     @Override
     public void update(float delta) {
 
+    }
+
+    @Override
+    public Rectangle getHitbox() {
+        return getBoundingRectangle();
     }
 
     private enum State {

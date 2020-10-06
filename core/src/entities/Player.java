@@ -10,6 +10,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.enemies.EnemyInterface;
 import helpers.Debug;
+import particles.DamageParticle;
+import particles.Particle;
 import scenes.game.*;
 import helpers.RedShader;
 
@@ -36,6 +38,8 @@ class AttackHitbox {
 public class Player extends Sprite implements Knockable, Collidable {
 
     private final FlashRedManager flashRedManager;
+    private final CollisionManager collisionManager;
+    private final ParticleManager particleManager;
     private Vector2 input_vector = Vector2.Zero;
     private Vector2 motion = Vector2.Zero;
     public final float ACCELERATION = 150.0f;
@@ -147,16 +151,15 @@ public class Player extends Sprite implements Knockable, Collidable {
 
     }
 
-    public Player(float x, float y, FlashRedManager flashRedManager, EntityManager entityManager) {
+    public Player(float x, float y, FlashRedManager flashRedManager, EntityManager entityManager, CollisionManager collisionManager, ParticleManager particleManager) {
         super(new Texture("playersprites/RunDown/run_down_1.png"));
         setPosition(x, y);
         setTexture(playerDown);
+        this.collisionManager = collisionManager;
         isFacingDown = true;
         initPlayerTextures();
+        this.particleManager = particleManager;
         this.flashRedManager = flashRedManager;
-
-
-
         shouldFlashRed = false;
     }
 
@@ -292,13 +295,13 @@ public class Player extends Sprite implements Knockable, Collidable {
         }, DODGE_ANIMATION_DURATION);
 
         if (isFacingLeft) {
-            Physics.knockback(this, (float) Math.PI, DODGE_DISTANCE);
+            Physics.knockback(this, (float) Math.PI, DODGE_DISTANCE, collisionManager);
         } else if (isFacingRight) {
-            Physics.knockback(this, 0, DODGE_DISTANCE);
+            Physics.knockback(this, 0, DODGE_DISTANCE, collisionManager);
         } else if (isFacingUp) {
-            Physics.knockback(this, (float) Math.PI / 2, DODGE_DISTANCE);
+            Physics.knockback(this, (float) Math.PI / 2, DODGE_DISTANCE, collisionManager);
         } else if (isFacingDown) {
-            Physics.knockback(this, (float) -Math.PI / 2, DODGE_DISTANCE);
+            Physics.knockback(this, (float) -Math.PI / 2, DODGE_DISTANCE, collisionManager);
         }
 
         Timer.schedule(new Timer.Task() {
@@ -353,22 +356,26 @@ public class Player extends Sprite implements Knockable, Collidable {
                     if (isFacingLeft) {
                         if (hitbox.left.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
-                            Physics.knockback(player, (Knockable) enemy, 30);
+                            particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
+                            Physics.knockback(player, (Knockable) enemy, 30, collisionManager);
                         }
                     } else if (isFacingRight) {
                         if (hitbox.right.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
-                            Physics.knockback(player, (Knockable) enemy, 30);
+                            particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
+                            Physics.knockback(player, (Knockable) enemy, 30, collisionManager);
                         }
                     } else if (isFacingUp) {
                         if (hitbox.up.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
-                            Physics.knockback(player, (Knockable) enemy, 30);
+                            particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
+                            Physics.knockback(player, (Knockable) enemy, 30, collisionManager);
                         }
                     } else if (isFacingDown) {
                         if (hitbox.down.overlaps(enemy.getBoundingRectangle())) {
                             enemy.damage(SWORD_DAMAGE);
-                            Physics.knockback(player, (Knockable) enemy, 30);
+                            particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
+                            Physics.knockback(player, (Knockable) enemy, 30, collisionManager);
                         }
                     }
                 }
