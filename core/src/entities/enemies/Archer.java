@@ -10,13 +10,14 @@ import helpers.Debug;
 import helpers.RedShader;
 import scenes.game.ArrowManager;
 import scenes.game.CoinManager;
+import scenes.game.Geom;
 import scenes.game.LeakManager;
 
 import java.util.ArrayList;
 
 import static java.lang.Math.sqrt;
 
-public class Archer extends Sprite implements EnemyInterface, Knockable {
+public class Archer extends Sprite implements EnemyInterface, Knockable, Entity, Damageable {
 
     private final CoinManager coinManager;
     private ArrowManager arrowManager;
@@ -37,6 +38,16 @@ public class Archer extends Sprite implements EnemyInterface, Knockable {
     private Player player;
     private boolean canAttack = true;
     private int ATTACK_RANGE = 250;
+
+    @Override
+    public Vector2 getCenter() {
+        return Geom.getCenter(this);
+    }
+
+    @Override
+    public void update(float delta) {
+
+    }
 
     private enum State {
         WALK,

@@ -10,10 +10,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.enemies.EnemyInterface;
 import helpers.Debug;
-import scenes.game.Physics;
+import scenes.game.*;
 import helpers.RedShader;
-import scenes.game.BombManager;
-import scenes.game.FlashRedManager;
 
 import java.util.ArrayList;
 
@@ -35,13 +33,18 @@ class AttackHitbox {
 
 }
 
-public class Player extends Sprite implements Knockable {
+public class Player extends Sprite implements Knockable, Collidable {
 
     private final FlashRedManager flashRedManager;
     private Vector2 input_vector = Vector2.Zero;
     private Vector2 motion = Vector2.Zero;
     public final float ACCELERATION = 150.0f;
     public final float MAX_SPEED = 3;
+
+    @Override
+    public Rectangle getHitbox() {
+        return getBoundingRectangle();
+    }
 
     private enum DIRECTIONS {
         IDLE,
@@ -134,7 +137,7 @@ public class Player extends Sprite implements Knockable {
 
     }
 
-    public Player(float x, float y, FlashRedManager flashRedManager) {
+    public Player(float x, float y, FlashRedManager flashRedManager, EntityManager entityManager) {
         super(new Texture("playersprites/RunDown/run_down_1.png"));
         setPosition(x, y);
         setTexture(playerDown);

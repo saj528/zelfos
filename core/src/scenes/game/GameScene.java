@@ -27,6 +27,7 @@ import entities.*;
 import entities.enemies.Archer;
 import entities.enemies.EnemyInterface;
 import entities.enemies.Footman;
+import entities.structures.TownHall;
 import hud.*;
 import helpers.GameInfo;
 
@@ -35,7 +36,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
-public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, LeakManager, FlashRedManager, ArrowManager, WaveManager, CoinManager {
+public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, LeakManager, FlashRedManager, ArrowManager, WaveManager, CoinManager, EntityManager, CollisionManager {
 
     private final GameMain game;
     private final Player player;
@@ -45,24 +46,26 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     private final ArrayList<Bomb> bombs = new ArrayList<>();
     private final ArrayList<Arrow> arrows = new ArrayList<>();
     private final ArrayList<Coin> coins = new ArrayList<>();
-    private CoinsHud coinsHud;
+    private final ArrayList<Entity> entities = new ArrayList<>();
+    private TownHall townHall;
+    private final CoinsHud coinsHud;
     private final Leaks leaksHud;
+    private final CompassHud compassHud;
     private boolean shouldFlashRed = false;
     private final Texture fullScreenRedFlashTexture;
     private boolean isOnIntermission = false;
-    private CountdownHud countdownHud;
-    private int INTERMISSION_TIME = 10;
+    private final CountdownHud countdownHud;
+    private final int INTERMISSION_TIME = 1;
     private int secondsUntilNextWave = INTERMISSION_TIME;
     private final HealthBar healthBar;
     private int totalCoins = 0;
     private int leaks = 10;
     private int currentWaveIndex = 0;
-    private float SPAWN_DELAY = 0.5f;
-    private WavesHud wavesHud;
+    private final WavesHud wavesHud;
     TiledMap tiledMap;
     TiledMapRenderer tiledMapRenderer;
 
-    private Wave[] waves;
+    private final Wave[] waves;
 
     private final HashSet<Integer> collidableTiles;
 
@@ -96,12 +99,13 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         MapLayer waypoint = tiledMap.getLayers().get("Waypoint");
         MapObjects objects = waypoint.getObjects();
 
-        RectangleMapObject start = (RectangleMapObject) objects.get("Start");
-        Vector2 startPoint = new Vector2((int)start.getRectangle().x * 2, (int)start.getRectangle().y * 2);
         RectangleMapObject end = (RectangleMapObject) objects.get("End");
-        Vector2 endPoint = new Vector2((int)end.getRectangle().x * 2, (int)end.getRectangle().y * 2);
+        Vector2 endPoint = new Vector2(end.getRectangle().x * 2, end.getRectangle().y * 2);
 
-        player = new Player(endPoint.x, endPoint.y, this);
+        RectangleMapObject playerSpawn = (RectangleMapObject) objects.get("PlayerSpawn");
+        Vector2 playerSpawnPoint = new Vector2(playerSpawn.getRectangle().x * 2, playerSpawn.getRectangle().y * 2);
+
+        player = new Player(playerSpawnPoint.x, playerSpawnPoint.y, this, this);
 
         hudCamera = new OrthographicCamera();
         hudCamera.setToOrtho(
@@ -143,11 +147,17 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         collidableTiles.add(181);
         collidableTiles.add(182);
 
+
+        townHall = new TownHall(endPoint.x, endPoint.y);
+        entities.add(townHall);
+
         healthBar = new HealthBar(player);
 
         leaksHud = new Leaks(this, GameInfo.WIDTH / 2f, GameInfo.HEIGHT - 35);
 
         countdownHud = new CountdownHud(this);
+
+        compassHud = new CompassHud(this, player);
 
         startIntermission();
     }
@@ -161,11 +171,26 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         MapLayer waypoint = tiledMap.getLayers().get("Waypoint");
         MapObjects objects = waypoint.getObjects();
 
-        RectangleMapObject start = (RectangleMapObject) objects.get("Start");
-        Vector2 startPoint = new Vector2((int)start.getRectangle().x * 2, (int)start.getRectangle().y * 2);
+        RectangleMapObject north = (RectangleMapObject) objects.get("North");
+        Vector2 northPoint = new Vector2((int)north.getRectangle().x * 2, (int)north.getRectangle().y * 2);
+
+        RectangleMapObject south = (RectangleMapObject) objects.get("South");
+        Vector2 southPoint = new Vector2((int)south.getRectangle().x * 2, (int)south.getRectangle().y * 2);
+
+        RectangleMapObject east = (RectangleMapObject) objects.get("East");
+        Vector2 eastPoint = new Vector2((int)east.getRectangle().x * 2, (int)east.getRectangle().y * 2);
+
+        RectangleMapObject west = (RectangleMapObject) objects.get("West");
+        Vector2 westPoint = new Vector2((int)west.getRectangle().x * 2, (int)west.getRectangle().y * 2);
+
         RectangleMapObject end = (RectangleMapObject) objects.get("End");
         Vector2 endPoint = new Vector2((int)end.getRectangle().x * 2, (int)end.getRectangle().y * 2);
 
+        Vector2[] points = new Vector2[4];
+        points[0] = northPoint;
+        points[1] = southPoint;
+        points[2] = eastPoint;
+        points[3] = westPoint;
 
         Wave currentWave = waves[currentWaveIndex];
         for (EnemySet enemySet : currentWave.getEnemySets()) {
@@ -177,12 +202,14 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                 ArrayList<Vector2> pathwayCoordinates = new ArrayList<>();
                 pathwayCoordinates.add(new Vector2(endPoint.x + ox, endPoint.y + oy));
 
+                Vector2 randomPoint = points[(int)(Math.random() * points.length)];
+
                 switch(enemySet.getEnemyType()) {
                     case SOLDIER:
-                        enemies.add(new Footman(startPoint.x + ox, startPoint.y + oy, pathwayCoordinates, player, leakManager, this));
+                        enemies.add(new Footman(randomPoint.x + ox, randomPoint.y + oy, pathwayCoordinates, player, leakManager, this, this));
                         break;
                     case ARCHER:
-                        enemies.add(new Archer(startPoint.x + ox, startPoint.y + oy, pathwayCoordinates, player, leakManager, arrowManager, this));
+                        enemies.add(new Archer(randomPoint.x + ox, randomPoint.y + oy, pathwayCoordinates, player, leakManager, arrowManager, this));
                         break;
                 }
             }
@@ -197,7 +224,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         bombs.add(new Bomb(player.getX(), player.getY(), this));
     }
 
-    private boolean isCollidingWithMap() {
+    public boolean isCollidingWithMap(Collidable collidable) {
         TiledMapTileLayer groundLayer = (TiledMapTileLayer) tiledMap.getLayers().get("Ground");
         for (int j = 0; j < groundLayer.getHeight(); j++) {
             for (int i = 0; i < groundLayer.getWidth(); i++) {
@@ -206,13 +233,25 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                     int id = cell.getTile().getId() - 1;
                     if (collidableTiles.contains(id)) {
                         Rectangle tileRectangle = new Rectangle(j * 32, i * 32, 32, 32);
-                        Rectangle playerRectangle = player.getBoundingRectangle();
+                        Rectangle playerRectangle = collidable.getHitbox();
 
                         if (playerRectangle.overlaps(tileRectangle)) {
                             return true;
                         }
                     }
                 }
+            }
+        }
+        return false;
+    }
+
+    public boolean isCollidingWithOtherCollidables(Collidable entity){
+        for (Collidable collidable : getCollidables()) {
+            if (collidable == entity) continue;
+            Rectangle entityHitbox = entity.getHitbox();
+            Rectangle collidableHitbox = collidable.getHitbox();
+            if (entityHitbox.overlaps(collidableHitbox)) {
+                return true;
             }
         }
         return false;
@@ -250,12 +289,12 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         player.updatePlayerMovement(left, right, up, down, shift, delta);
 
         player.updateX(delta);
-        if (isCollidingWithMap()) {
+        if (isCollidingWithMap(player) || isCollidingWithOtherCollidables(player)) {
             player.setX(originalX);
         }
 
         player.updateY(delta);
-        if (isCollidingWithMap()) {
+        if (isCollidingWithMap(player) || isCollidingWithOtherCollidables(player)) {
             player.setY(originalY);
         }
 
@@ -344,6 +383,8 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             coin.draw(batch);
         }
 
+        townHall.draw(batch);
+
         batch.setProjectionMatrix(hudCamera.combined);
 
         if (shouldFlashRed) {
@@ -356,6 +397,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         leaksHud.draw(batch);
         wavesHud.draw(batch);
         coinsHud.draw(batch);
+        compassHud.draw(batch);
 
         if (isOnIntermission) {
             countdownHud.draw(batch);
@@ -471,8 +513,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                 spawnNextWave();
             }
         }, INTERMISSION_TIME);
-
-
     }
 
     @Override
@@ -488,5 +528,16 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     @Override
     public int getTotalCoins() {
         return totalCoins;
+    }
+
+    @Override
+    public ArrayList<Collidable> getCollidables() {
+        ArrayList<Collidable> collidables = new ArrayList<>();
+        for (Entity entity : entities) {
+            if (entity instanceof Collidable) {
+                collidables.add((Collidable)entity);
+            }
+        }
+        return collidables;
     }
 }

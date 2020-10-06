@@ -3,19 +3,20 @@ package entities.enemies;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.*;
 import helpers.Debug;
 import helpers.RedShader;
-import scenes.game.CoinManager;
-import scenes.game.LeakManager;
+import scenes.game.*;
 
 import java.util.ArrayList;
 
-public class Footman extends Sprite implements EnemyInterface, Knockable {
+public class Footman extends Sprite implements EnemyInterface, Knockable, Entity, Damageable, Collidable {
 
     private final CoinManager coinManager;
+    private final CollisionManager collisionManager;
     private LeakManager leakManager;
     private int health = 3;
     private boolean isDead = false;
@@ -32,6 +33,11 @@ public class Footman extends Sprite implements EnemyInterface, Knockable {
     private boolean canAttack = true;
     private int ATTACK_RANGE = 30;
 
+    @Override
+    public Rectangle getHitbox() {
+        return getBoundingRectangle();
+    }
+
     private enum State {
         WALK,
         PURSUE,
@@ -39,10 +45,11 @@ public class Footman extends Sprite implements EnemyInterface, Knockable {
         DEAD,
     }
 
-    public Footman(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, LeakManager leakManager, CoinManager coinManager) {
+    public Footman(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, LeakManager leakManager, CoinManager coinManager, CollisionManager collisionManager) {
         super(new Texture("footman.png"));
         setPosition(x, y);
         this.coinManager = coinManager;
+        this.collisionManager = collisionManager;
         this.nextPointToWalkTowards = pathwayCoordinates.get(0);
         this.pathwayCoordinates = pathwayCoordinates;
         this.player = player;
@@ -115,15 +122,18 @@ public class Footman extends Sprite implements EnemyInterface, Knockable {
                 return;
             }
         }
-        if(getY() < nextPointToWalkTowards.y) {
-            setY(getY() + SPEED);
-        }else if(getY() > nextPointToWalkTowards.y){
-            setY(getY() - SPEED);
+
+        float angleToWalk = (float)Math.atan2(nextPointToWalkTowards.y - getY(), nextPointToWalkTowards.x - getX());
+        float originalX = getX();
+        setX((float) (getX() + Math.cos(angleToWalk) * SPEED));
+        if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
+            setX(originalX);
         }
-        if(getX() < nextPointToWalkTowards.x){
-            setX(getX() + SPEED);
-        }else if(getX() > nextPointToWalkTowards.x){
-            setX(getX() - SPEED);
+
+        float originalY = getY();
+        setY((float) (getY() + Math.sin(angleToWalk) * SPEED));
+        if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
+            setY(originalY);
         }
     }
 
@@ -136,16 +146,19 @@ public class Footman extends Sprite implements EnemyInterface, Knockable {
             stateMachine(State.ATTACK);
         }
 
-        if(getY() < player.getY()) {
-            setY(getY() + SPEED);
-        }else if(getY() > player.getY()){
-            setY(getY() - SPEED);
+        float angleToWalk = (float)Math.atan2(player.getY() - getY(), player.getX() - getX());
+        float originalX = getX();
+        setX((float) (getX() + Math.cos(angleToWalk) * SPEED));
+        if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
+            setX(originalX);
         }
-        if(getX() < player.getX()){
-            setX(getX() + SPEED);
-        }else if(getX() > player.getX()){
-            setX(getX() - SPEED);
+
+        float originalY = getY();
+        setY((float) (getY() + Math.sin(angleToWalk) * SPEED));
+        if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
+            setY(originalY);
         }
+
     }
 
     public void damage(int amount) {
@@ -195,5 +208,15 @@ public class Footman extends Sprite implements EnemyInterface, Knockable {
         player.getBoundingRectangle().getCenter(playerCenter);
 
         return enemyCenter.dst(playerCenter);
+    }
+
+    @Override
+    public Vector2 getCenter() {
+        return Geom.getCenter(this);
+    }
+
+    @Override
+    public void update(float delta) {
+
     }
 }

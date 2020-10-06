@@ -9,36 +9,39 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
-import entities.enemies.EnemyInterface;
+import scenes.game.Geom;
 import scenes.game.Physics;
 import helpers.RedShader;
 import scenes.game.EnemyManager;
 
-public class Bomb extends Sprite implements Knockable, Killable {
-    private float BOMB_TIME = 3.0f;
+import java.util.ArrayList;
+
+public class Bomb extends Sprite implements Knockable, Killable, Entity {
+    private final float BOMB_TIME = 3.0f;
+    private final int BLAST_RADIUS = 100;
+    private final int BLAST_DAMAGE = 3;
     private boolean isDead = false;
     private boolean isRed = false;
     private float flashDelay = 0.5f;
-    private int BLAST_RADIUS = 100;
-    private int BLAST_DAMAGE = 3;
 
     public Bomb(float x, float y, final EnemyManager enemyManager) {
         super(new Texture("bomb.png"));
         setPosition(x, y);
 
-        final Sprite bomb = this;
+        final Entity bomb = this;
+        final ArrayList<Entity> enemyEntities = (ArrayList<Entity>)(Object)enemyManager.getEnemies();
 
         Timer.schedule(new Timer.Task() {
             @Override
             public void run() {
                 isDead = true;
-                Vector2 bombPosition = new Vector2(getX() + getWidth() / 2f, getY() + getHeight() / 2f);
-                for (EnemyInterface enemy : enemyManager.getEnemies()) {
-                    Vector2 enemyPosition = new Vector2(enemy.getX() + enemy.getWidth() / 2f, enemy.getY() + enemy.getHeight() / 2f);
-                    float distance = enemyPosition.dst(bombPosition);
-                    if (distance < BLAST_RADIUS) {
-                        enemy.damage(BLAST_DAMAGE);
-                        Physics.knockback((Knockable)bomb, (Knockable)enemy, 50);
+                ArrayList<Entity> entitiesInRange = Geom.getEntitiesInRange(enemyEntities, bomb, BLAST_RADIUS);
+                for (Entity entity : entitiesInRange) {
+                    if (entity instanceof Knockable) {
+                        Physics.knockback((Knockable)bomb, (Knockable)entity, 50);
+                    }
+                    if (entity instanceof Damageable) {
+                        ((Damageable)entity).damage(BLAST_DAMAGE);
                     }
                 }
             }
@@ -84,5 +87,15 @@ public class Bomb extends Sprite implements Knockable, Killable {
 
     public boolean isDead() {
         return isDead;
+    }
+
+    @Override
+    public Vector2 getCenter() {
+        return Geom.getCenter(this);
+    }
+
+    @Override
+    public void update(float delta) {
+
     }
 }
