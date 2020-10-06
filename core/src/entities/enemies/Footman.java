@@ -36,6 +36,7 @@ public class Footman extends Sprite implements EnemyInterface, Knockable, Entity
     private boolean canAttack = true;
     private int ATTACK_RANGE = 10;
 
+
     @Override
     public Rectangle getHitbox() {
         return getBoundingRectangle();

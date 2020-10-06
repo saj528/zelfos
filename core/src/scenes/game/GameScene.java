@@ -27,6 +27,7 @@ import entities.*;
 import entities.enemies.Archer;
 import entities.enemies.Footman;
 import entities.enemies.Hornet;
+import entities.enemies.Porcupine;
 import entities.structures.TownHall;
 import hud.*;
 import helpers.GameInfo;
@@ -90,8 +91,11 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         waves = new Wave[5];
         EnemySet[] enemySets;
 
-        enemySets = new EnemySet[1];
-        enemySets[0] = new EnemySet(EnemySet.EnemyType.HORNET, 1, EnemySet.Lane.NORTH);
+        enemySets = new EnemySet[4];
+        enemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH);
+        enemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH);
+        enemySets[2] = new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH);
+        enemySets[3] = new EnemySet(EnemySet.EnemyType.HORNET, 1, EnemySet.Lane.NORTH);
         waves[0] = new Wave(enemySets);
 
         enemySets = new EnemySet[1];
@@ -281,6 +285,9 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                         break;
                     case HORNET:
                         enemies.add(new Hornet(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, leakManager, this, this, this, this));
+                        break;
+                    case PORCUPINE:
+                        enemies.add(new Porcupine(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, leakManager, this, this));
                         break;
                 }
             }

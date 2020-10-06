@@ -10,6 +10,7 @@ public class EnemySet {
         ARCHER,
         SOLDIER,
         HORNET,
+        PORCUPINE,
     }
 
     public enum Lane {
