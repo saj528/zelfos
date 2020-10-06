@@ -27,6 +27,7 @@ import entities.*;
 import entities.enemies.Archer;
 import entities.enemies.EnemyInterface;
 import entities.enemies.Footman;
+import entities.enemies.Porcupine;
 import entities.structures.TownHall;
 import hud.*;
 import helpers.GameInfo;
@@ -208,7 +209,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
                 switch(enemySet.getEnemyType()) {
                     case SOLDIER:
-                        enemies.add(new Footman(randomPoint.x + ox, randomPoint.y + oy, pathwayCoordinates, player, leakManager, this, this));
+                        enemies.add(new Porcupine(randomPoint.x + ox, randomPoint.y + oy, pathwayCoordinates, player, leakManager, this, this));
                         break;
                     case ARCHER:
                         enemies.add(new Archer(randomPoint.x + ox, randomPoint.y + oy, pathwayCoordinates, player, leakManager, arrowManager, this));
@@ -309,7 +310,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         }
 
         for (EnemyInterface enemy : enemies) {
-            enemy.update();
+            enemy.update(delta);
         }
 
         for (Arrow arrow : arrows) {

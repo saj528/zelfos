@@ -9,7 +9,7 @@ public interface EnemyInterface extends Killable {
 
     boolean isDead();
 
-    void update();
+    void update(float delta);
 
     void damage(int amount);
 

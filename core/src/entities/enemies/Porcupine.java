@@ -1,19 +1,24 @@
 package entities.enemies;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
-import entities.*;
+import entities.Damageable;
+import entities.Entity;
+import entities.Knockable;
+import entities.Player;
 import helpers.Debug;
 import helpers.RedShader;
 import scenes.game.*;
 
 import java.util.ArrayList;
 
-public class Footman extends Sprite implements EnemyInterface, Knockable, Entity, Damageable, Collidable {
+public class Porcupine extends Sprite implements EnemyInterface, Knockable, Entity, Damageable, Collidable {
 
     private final CoinManager coinManager;
     private final CollisionManager collisionManager;
@@ -32,7 +37,14 @@ public class Footman extends Sprite implements EnemyInterface, Knockable, Entity
     private Player player;
     private boolean canAttack = true;
     private int ATTACK_RANGE = 30;
-
+    private Animation<TextureRegion> porcupineAttack;
+    private Animation<TextureRegion> porcupineWalk;
+    private float WALK_ANIMATION_SPEED = 0.13f;
+    private float ATTACK_ANIMATION_SPEED = 0.025f;
+    private float ATTACK_COOLDOWN = ATTACK_ANIMATION_SPEED * 13;
+    private float ATTACK_ANIMATION_DURATION = 0.2f;
+    private float attackTime = 0f;
+    private float walkTime = 0f;
 
     @Override
     public Rectangle getHitbox() {
@@ -46,8 +58,7 @@ public class Footman extends Sprite implements EnemyInterface, Knockable, Entity
         DEAD,
     }
 
-    public Footman(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, LeakManager leakManager, CoinManager coinManager, CollisionManager collisionManager) {
-        super(new Texture("footman.png"));
+    public Porcupine(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, LeakManager leakManager, CoinManager coinManager, CollisionManager collisionManager) {
         setPosition(x, y);
         this.coinManager = coinManager;
         this.collisionManager = collisionManager;
@@ -55,6 +66,36 @@ public class Footman extends Sprite implements EnemyInterface, Knockable, Entity
         this.pathwayCoordinates = pathwayCoordinates;
         this.player = player;
         this.leakManager = leakManager;
+        initTextures();
+    }
+
+    private void initTextures() {
+
+        Texture porcupineAttackSheet = new Texture("enemysprites/s_porcupine_attack_strip5.png");
+        TextureRegion[][] porcupineAttackSheetRegions = TextureRegion.split(porcupineAttackSheet,
+                porcupineAttackSheet.getWidth() / 5,
+                porcupineAttackSheet.getHeight());
+
+        Texture porcupineWalkSheet = new Texture("enemysprites/s_porcupine_run_strip3.png");
+        TextureRegion[][] porcupineWalkSheetRegions = TextureRegion.split(porcupineWalkSheet,
+                porcupineWalkSheet.getWidth() / 3,
+                porcupineWalkSheet.getHeight());
+
+
+        TextureRegion[] attackFrames = new TextureRegion[5];
+        attackFrames[0] = porcupineAttackSheetRegions[0][0];
+        attackFrames[1] = porcupineAttackSheetRegions[0][1];
+        attackFrames[2] = porcupineAttackSheetRegions[0][2];
+        attackFrames[3] = porcupineAttackSheetRegions[0][3];
+        attackFrames[4] = porcupineAttackSheetRegions[0][4];
+        porcupineAttack = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackFrames);
+
+        TextureRegion[] walkFrames = new TextureRegion[3];
+        walkFrames[0] = porcupineWalkSheetRegions[0][0];
+        walkFrames[1] = porcupineWalkSheetRegions[0][1];
+        walkFrames[2] = porcupineWalkSheetRegions[0][2];
+        porcupineWalk = new Animation<TextureRegion>(WALK_ANIMATION_SPEED, walkFrames);
+
     }
 
     public void stateMachine(State state){
@@ -98,10 +139,6 @@ public class Footman extends Sprite implements EnemyInterface, Knockable, Entity
         }
 
 
-    }
-
-    public void update(){
-        stateMachine(state);
     }
 
 
@@ -187,7 +224,11 @@ public class Footman extends Sprite implements EnemyInterface, Knockable, Entity
             batch.setShader(null);
         }
         batch.begin();
-        batch.draw(this.getTexture(), getX(), getY());
+        if(state == State.WALK || state == State.PURSUE) {
+            batch.draw(porcupineWalk.getKeyFrame(walkTime, true), getX(), getY());
+        }else if(state == State.ATTACK){
+            batch.draw(porcupineAttack.getKeyFrame(attackTime, true), getX(), getY());
+        }
         batch.end();
         batch.setShader(null);
 
@@ -218,6 +259,9 @@ public class Footman extends Sprite implements EnemyInterface, Knockable, Entity
 
     @Override
     public void update(float delta) {
+        stateMachine(state);
+        attackTime += delta;
+        walkTime += delta;
 
     }
 }
