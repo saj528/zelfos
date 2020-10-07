@@ -27,15 +27,17 @@ public class Barracks implements Entity, Collidable {
     private final CollisionManager collisionManager;
     private float x;
     private float y;
-    private int COST = 1;
+    private int COST = 5;
     private boolean showText = false;
     private boolean canBuyAgain = true;
+    private WaveManager waveManager;
     private Texture barracks;
     BitmapFont font = new BitmapFont();
 
-    public Barracks(float x, float y, Player player, CoinManager coinManager, EntityManager entityManager, Vector2 northGuardPost, Vector2 northBasePost, CollisionManager collisionManager) {
+    public Barracks(float x, float y, Player player, CoinManager coinManager, EntityManager entityManager, Vector2 northGuardPost, Vector2 northBasePost, CollisionManager collisionManager, WaveManager waveManager) {
         this.x = x;
         this.y = y;
+        this.waveManager = waveManager;
         this.entityManager = entityManager;
         this.coinManager = coinManager;
         this.northGuardPost = northGuardPost;
@@ -84,10 +86,10 @@ public class Barracks implements Entity, Collidable {
             showText = true;
 
             boolean use = Gdx.input.isKeyPressed(Input.Keys.E);
-            if (use && canBuyAgain && coinManager.getTotalCoins() >= COST) {
+            if (use && canBuy()) {
                 canBuyAgain = false;
                 coinManager.removeCoins(1);
-                entityManager.addEntity(new Mercenary(northGuardPost, northBasePost, player, collisionManager));
+                entityManager.addEntity(new Mercenary(northGuardPost, northBasePost, collisionManager, waveManager, entityManager));
 
                 Timer.schedule(new Timer.Task() {
                     @Override
@@ -99,6 +101,10 @@ public class Barracks implements Entity, Collidable {
         }
     }
 
+    private boolean canBuy() {
+        return canBuyAgain && coinManager.getTotalCoins() >= COST;
+    }
+
     @Override
     public void draw(Batch batch) {
         batch.begin();
@@ -107,8 +113,12 @@ public class Barracks implements Entity, Collidable {
 
         if (showText) {
             batch.begin();
-            font.setColor(new Color(1, 1, 1, 1));
-            font.draw(batch, "Hire Mercenary (E)", x, y + barracks.getHeight() / 2);
+            if (canBuy()) {
+                font.setColor(new Color(0, 1, 0, 1));
+            } else {
+                font.setColor(new Color(1, 0, 0, 1));
+            }
+            font.draw(batch, "Hire Mercenary " + COST + "GP (E)", x, y + barracks.getHeight() / 2);
             batch.end();
         }
 

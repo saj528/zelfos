@@ -8,21 +8,17 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
-import entities.Damageable;
-import entities.Entity;
-import entities.Knockable;
-import entities.Player;
+import entities.*;
 import helpers.Debug;
 import helpers.RedShader;
 import scenes.game.*;
 
 import java.util.ArrayList;
 
-public class Porcupine extends Sprite implements EnemyInterface, Knockable, Entity, Damageable, Collidable {
+public class Porcupine extends Sprite implements Enemy, Knockable, Entity, Damageable, Collidable {
 
     private final CoinManager coinManager;
     private final CollisionManager collisionManager;
-    private LeakManager leakManager;
     private int health = 3;
     private boolean isDead = false;
     private boolean isRed = false;
@@ -53,8 +49,12 @@ public class Porcupine extends Sprite implements EnemyInterface, Knockable, Enti
 
     @Override
     public ArrayList<Class> getIgnoreClassList() {
-        return new ArrayList<>();
+        ArrayList<Class> ignore = new ArrayList<>();
+        ignore.add(Enemy.class);
+        ignore.add(DeadZone.class);
+        return ignore;
     }
+
 
     private enum State {
         WALK,
@@ -63,14 +63,13 @@ public class Porcupine extends Sprite implements EnemyInterface, Knockable, Enti
         DEAD,
     }
 
-    public Porcupine(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, LeakManager leakManager, CoinManager coinManager, CollisionManager collisionManager) {
+    public Porcupine(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, CoinManager coinManager, CollisionManager collisionManager) {
         setPosition(x, y);
         this.coinManager = coinManager;
         this.collisionManager = collisionManager;
         this.nextPointToWalkTowards = pathwayCoordinates.get(0);
         this.pathwayCoordinates = pathwayCoordinates;
         this.player = player;
-        this.leakManager = leakManager;
         initTextures();
     }
 
@@ -161,7 +160,6 @@ public class Porcupine extends Sprite implements EnemyInterface, Knockable, Enti
                 pathCounter++;
             }else{
                 stateMachine(State.DEAD);
-                leakManager.removeLeak();
                 return;
             }
         }
@@ -219,6 +217,26 @@ public class Porcupine extends Sprite implements EnemyInterface, Knockable, Enti
                 isRed = false;
             }
         }, 0.2f);
+    }
+
+    @Override
+    public int getDamage() {
+        return 0;
+    }
+
+    @Override
+    public float getAttackDelay() {
+        return 0;
+    }
+
+    @Override
+    public float getAttackRange() {
+        return 0;
+    }
+
+    @Override
+    public float getSpeed() {
+        return 0;
     }
 
     @Override

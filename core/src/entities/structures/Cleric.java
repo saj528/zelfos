@@ -1,4 +1,4 @@
-package entities;
+package entities.structures;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
+import entities.Entity;
+import entities.Player;
 import scenes.game.CoinManager;
 import scenes.game.Collidable;
 import scenes.game.Geom;
@@ -23,14 +25,13 @@ public class Cleric implements Entity, Collidable {
     private Animation<TextureRegion> clericIdleAnime;
     private float x;
     private float y;
-    private int COST = 1;
+    private int COST = 3;
     private boolean showText = false;
     private boolean canBuyAgain = true;
     private Texture cleric;
     private boolean currentlyHealing = false;
     private float healingTime = 0f;
     BitmapFont font = new BitmapFont();
-
 
 
     public Cleric(float x, float y, Player player, CoinManager coinManager) {
@@ -45,7 +46,7 @@ public class Cleric implements Entity, Collidable {
     private void initTextures() {
 
         Texture clericSheet = new Texture("cleric.png");
-        TextureRegion[][] clericSheetRegion = TextureRegion.split(clericSheet,clericSheet.getWidth() / 4,clericSheet.getHeight());
+        TextureRegion[][] clericSheetRegion = TextureRegion.split(clericSheet, clericSheet.getWidth() / 4, clericSheet.getHeight());
 
 
         TextureRegion[] clericHealing = new TextureRegion[3];
@@ -89,15 +90,15 @@ public class Cleric implements Entity, Collidable {
     @Override
     public void update(float delta) {
         showText = false;
-        healingTime+=delta;
+        healingTime += delta;
         float dist = Geom.distanceBetween(player, this);
         if (dist < 100) {
             showText = true;
 
             boolean use = Gdx.input.isKeyPressed(Input.Keys.E);
-            if (use && canBuyAgain && coinManager.getTotalCoins() >= COST && player.getLives() != player.getMaxLives()) {
+            if (use && canBuy() ) {
                 canBuyAgain = false;
-                coinManager.removeCoins(1);
+                coinManager.removeCoins(COST);
                 currentlyHealing = true;
                 Timer.schedule(new Timer.Task() {
                     @Override
@@ -117,26 +118,34 @@ public class Cleric implements Entity, Collidable {
         }
     }
 
+    private boolean canBuy() {
+        return canBuyAgain && coinManager.getTotalCoins() >= COST && player.getLives() != player.getMaxLives();
+    }
+
     @Override
     public void draw(Batch batch) {
         batch.begin();
-        if(currentlyHealing){
+        if (currentlyHealing) {
             batch.draw(clericHealingAnime.getKeyFrame(healingTime, true), getX(), getY());
             Timer.schedule(new Timer.Task() {
-            @Override
-            public void run() {
-                currentlyHealing = false;
-            }
-        }, 0.5f);
-        }else {
+                @Override
+                public void run() {
+                    currentlyHealing = false;
+                }
+            }, 0.5f);
+        } else {
             batch.draw(cleric, x, y);
         }
         batch.end();
 
         if (showText) {
             batch.begin();
-            font.setColor(new Color(1, 1, 1, 1));
-            font.draw(batch, "Heal 1Gp (E)", x, y + cleric.getHeight() / 2);
+            if (canBuy()) {
+                font.setColor(new Color(0, 1, 0, 1));
+            } else {
+                font.setColor(new Color(1, 0, 0, 1));
+            }
+            font.draw(batch, "Heal " + COST + "Gp (E)", x, y + cleric.getHeight() / 2);
             batch.end();
         }
 

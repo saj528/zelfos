@@ -3,7 +3,7 @@ package entities;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import entities.enemies.EnemyInterface;
+import entities.enemies.Enemy;
 import scenes.game.Collidable;
 import scenes.game.Geom;
 
@@ -24,7 +24,6 @@ public class DeadZone implements Collidable, Entity {
     @Override
     public ArrayList<Class> getIgnoreClassList() {
         ArrayList<Class> ignoreClassList = new ArrayList<>();
-        ignoreClassList.add(EnemyInterface.class);
         return ignoreClassList;
     }
 

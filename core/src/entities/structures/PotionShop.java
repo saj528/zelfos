@@ -23,7 +23,7 @@ public class PotionShop implements Entity, Collidable {
     private final CollisionManager collisionManager;
     private float x;
     private float y;
-    private int COST = 2;
+    private int COST = 5;
     private boolean showText = false;
     private boolean canBuyAgain = true;
     private Texture potionShop;

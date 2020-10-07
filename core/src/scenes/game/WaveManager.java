@@ -4,4 +4,5 @@ public interface WaveManager {
     int getCurrentWave();
     int getSecondsUntilNextWave();
     void startIntermission();
+    boolean isOnIntermission();
 }

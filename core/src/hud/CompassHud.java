@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import entities.Entity;
 import entities.Player;
-import entities.enemies.EnemyInterface;
 import helpers.GameInfo;
 import scenes.game.EnemyManager;
 

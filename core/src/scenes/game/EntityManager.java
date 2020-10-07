@@ -9,4 +9,5 @@ public interface EntityManager {
     ArrayList<Collidable> getCollidables();
     Entity getEntityByType(String className);
     void addEntity(Entity entity);
+    ArrayList<Entity> getEntitiesByType(Class clazz);
 }

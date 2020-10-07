@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
 import entities.Killable;
 
-public interface EnemyInterface extends Killable {
+public interface Enemy extends Killable {
 
     boolean isDead();
 
@@ -22,4 +22,12 @@ public interface EnemyInterface extends Killable {
     float getWidth();
 
     float getHeight();
+
+    int getDamage();
+
+    float getAttackDelay();
+
+    float getAttackRange();
+
+    float getSpeed();
 }

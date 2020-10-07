@@ -5,50 +5,48 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
+import entities.enemies.Enemy;
+import entities.enemies.Footman;
 import helpers.Debug;
 import helpers.RedShader;
 import scenes.game.*;
 
 import java.util.ArrayList;
 
-public class Mercenary implements Knockable, Entity, Damageable, Collidable {
+public class Mercenary implements Knockable, Entity, Damageable, Killable, Collidable {
 
     private final CollisionManager collisionManager;
     private final Vector2 guardPost;
     private final Vector2 basePost;
-    private LeakManager leakManager;
-    private int health = 3;
+    private final EntityManager entityManager;
+    private int health = 5;
     private boolean isDead = false;
     private boolean isRed = false;
     public final int SPEED = 1;
     private int DAMAGE = 1;
-    private State state = State.WALK_TO_GUARD;
+    private State state = State.WALK_TO_BASE;
     private Texture mercenaryTexture;
     private float distanceToPursue = 250;
     private Vector2 nextPointToWalkTowards;
     private ArrayList<Vector2> pathwayCoordinates;
     private float ATTACK_DELAY = 1.0f;
-    private Entity target;
+    private Enemy target;
     private int pathCounter = 1;
-    private Player player;
     private boolean canAttack = true;
     private int ATTACK_RANGE = 10;
     private float x;
     private float y;
+    private WaveManager waveManager;
 
-    public Mercenary(Vector2 guardPost, Vector2 basePost, Player player, CollisionManager collisionManager) {
+    public Mercenary(Vector2 guardPost, Vector2 basePost, CollisionManager collisionManager, WaveManager waveManager, EntityManager entityManager) {
         mercenaryTexture = new Texture("footman.png");
         this.x = basePost.x;
         this.y = basePost.y;
         this.guardPost = guardPost;
         this.basePost = basePost;
         this.collisionManager = collisionManager;
-        this.player = player;
-    }
-
-    @Override
-    public Rectangle getHitbox() {
-        return getBoundingRectangle();
+        this.entityManager = entityManager;
+        this.waveManager = waveManager;
     }
 
     @Override
@@ -76,20 +74,23 @@ public class Mercenary implements Knockable, Entity, Damageable, Collidable {
         this.y = y;
     }
 
+    @Override
+    public Rectangle getHitbox() {
+        return getBoundingRectangle();
+    }
+
+    @Override
+    public ArrayList<Class> getIgnoreClassList() {
+        return new ArrayList<>();
+    }
+
     private enum State {
         WALK_TO_GUARD,
         PURSUE,
         ATTACK,
+        WALK_TO_BASE,
         DEAD,
         IDLE,
-    }
-
-
-    @Override
-    public ArrayList<Class> getIgnoreClassList() {
-        ArrayList<Class> list = new ArrayList<>();
-        list.add(Mercenary.class);
-        return list;
     }
 
 
@@ -99,20 +100,12 @@ public class Mercenary implements Knockable, Entity, Damageable, Collidable {
 
     private void walkTo(Vector2 point) {
         float angleToWalk = (float) Math.atan2(point.y - getY(), point.x - getX());
-        float originalX = getX();
         setX((float) (getX() + Math.cos(angleToWalk) * SPEED));
-        if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
-            setX(originalX);
-        }
-
-        float originalY = getY();
         setY((float) (getY() + Math.sin(angleToWalk) * SPEED));
-        if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
-            setY(originalY);
-        }
     }
 
     private void attack() {
+
         if (canAttack) {
             canAttack = false;
 
@@ -121,14 +114,18 @@ public class Mercenary implements Knockable, Entity, Damageable, Collidable {
             Timer.schedule(new Timer.Task() {
                 @Override
                 public void run() {
-                    if (footman.isDead()) return;
-                    float distance = Geom.distanceBetween(footman, target);
+                    if (target != null && target.isDead()) {
+                        target = null;
+                        return;
+                    }
+                    if (footman.isDead()) {
+                        return;
+                    }
+                    float distance = Geom.distanceBetween(footman, (Entity)target);
                     float range = ATTACK_RANGE + target.getBoundingRectangle().getWidth() / 2f + footman.getBoundingRectangle().getWidth() / 2f;
                     if (distance <= range) {
                         ((Damageable) target).damage(DAMAGE);
-                        if (target == player) {
-                            Physics.knockback(footman, player, 20, collisionManager);
-                        }
+                        Physics.knockback((Entity)footman, (Knockable) target, 20, collisionManager);
                     }
                 }
             }, 0.3f);
@@ -137,7 +134,8 @@ public class Mercenary implements Knockable, Entity, Damageable, Collidable {
                 @Override
                 public void run() {
                     canAttack = true;
-                    state = State.PURSUE;
+                    state = State.IDLE;
+                    target = null;
                 }
             }, ATTACK_DELAY);
         }
@@ -149,53 +147,78 @@ public class Mercenary implements Knockable, Entity, Damageable, Collidable {
             case WALK_TO_GUARD:
                 walkToGuard();
                 break;
+            case IDLE:
+                idle();
+                break;
+            case PURSUE:
+                pursue();
+                break;
+            case ATTACK:
+                attack();
+                break;
+            case WALK_TO_BASE:
+                walkToBase();
+                break;
         }
     }
 
+    private void idle() {
+        if (waveManager.isOnIntermission()) {
+            state = State.WALK_TO_BASE;
+        } else {
+            state = State.WALK_TO_GUARD;
+        }
+    }
 
     private void walkToGuard() {
-//        if (Geom.distanceBetween(this, player) <= distanceToPursue) {
-//            state = State.PURSUE;
-//            target = player;
-//            return;
-//        }
-
-        double distanceToGuardPost = guardPost.dst(getCenter());
-
-        if (distanceToGuardPost <= 10) {
-            state = State.IDLE;
+        if (waveManager.isOnIntermission()) {
+            state = State.WALK_TO_BASE;
             return;
+        }
+
+        if (target == null) {
+            ArrayList<Enemy> enemies = (ArrayList<Enemy>)(ArrayList<?>)entityManager.getEntitiesByType(Enemy.class);
+            for (Enemy enemy : enemies) {
+                float distToEnemy = Geom.distanceBetween(this, (Entity)enemy);
+                if (distToEnemy <= distanceToPursue) {
+                    state = State.PURSUE;
+                    target = enemy;
+                    return;
+                }
+            }
         }
 
         walkTo(guardPost);
     }
 
-    private void pursue() {
-        if (Geom.distanceBetween(this, target) > distanceToPursue) {
+
+    private void walkToBase() {
+        if (!waveManager.isOnIntermission()) {
             state = State.WALK_TO_GUARD;
             return;
         }
 
-        float distance = Geom.distanceBetween(this, target);
+        walkTo(basePost);
+    }
+
+
+    private void pursue() {
+        if (Geom.distanceBetween(this, (Entity)target) > distanceToPursue) {
+            state = State.IDLE;
+            target = null;
+            return;
+        }
+
+        float distance = Geom.distanceBetween(this, (Entity)target);
         float range = ATTACK_RANGE + target.getBoundingRectangle().getWidth() / 2f + this.getBoundingRectangle().getWidth() / 2f;
         if (distance <= range) {
             state = State.ATTACK;
             return;
         }
 
-        float angleToWalk = (float) Math.atan2(player.getY() - getY(), player.getX() - getX());
-        float originalX = getX();
+        float angleToWalk = (float) Math.atan2(target.getY() - getY(), target.getX() - getX());
         setX((float) (getX() + Math.cos(angleToWalk) * SPEED));
-        if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
-            setX(originalX);
-        }
-
-        float originalY = getY();
         setY((float) (getY() + Math.sin(angleToWalk) * SPEED));
-        if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
-            setY(originalY);
-        }
-
     }
 
     public void damage(int amount) {

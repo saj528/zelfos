@@ -15,12 +15,11 @@ import java.util.ArrayList;
 
 import static java.lang.Math.sqrt;
 
-public class Archer extends Sprite implements EnemyInterface, Knockable, Entity, Damageable, Collidable {
+public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageable, Collidable {
 
     private final CoinManager coinManager;
     private ArrowManager arrowManager;
-    private LeakManager leakManager;
-    private int health = 2;
+    private int health = 5;
     private boolean isDead = false;
     private boolean isRed = false;
     public final int SPEED = 1;
@@ -37,6 +36,24 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
     private boolean canAttack = true;
     private int ATTACK_RANGE = 250;
 
+    private enum State {
+        WALK,
+        PURSUE,
+        ATTACK,
+        DEAD,
+    }
+
+    public Archer(float x, float y,ArrayList<Vector2> pathwayCoordinates, Player player, ArrowManager arrowManager, CoinManager coinManager) {
+        super(new Texture("archer.png"));
+        setPosition(x, y);
+        this.coinManager = coinManager;
+        this.nextPointToWalkTowards = pathwayCoordinates.get(0);
+        this.pathwayCoordinates = pathwayCoordinates;
+        this.player = player;
+        this.arrowManager = arrowManager;
+        this.state = State.WALK;
+    }
+
     @Override
     public Vector2 getCenter() {
         return Geom.getCenter(this);
@@ -45,7 +62,10 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
 
     @Override
     public ArrayList<Class> getIgnoreClassList() {
-        return new ArrayList<>();
+        ArrayList<Class> ignore = new ArrayList<>();
+        ignore.add(Enemy.class);
+        ignore.add(DeadZone.class);
+        return ignore;
     }
 
 
@@ -54,28 +74,34 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
         return getBoundingRectangle();
     }
 
-    private enum State {
-        WALK,
-        PURSUE,
-        ATTACK,
-        DEAD,
+
+    private void fireArrow() {
+        if (canAttack) {
+            Vector2 playerCenter = player.getCenter();
+            float dy = playerCenter.y - getCenter().y;
+            float dx = playerCenter.x - getCenter().x;
+            float angle = (float)Math.atan2(dy, dx);
+            arrowManager.createArrow(getCenter().x, getCenter().y, angle);
+            canAttack = false;
+
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+                    canAttack = true;
+                }
+            }, ATTACK_DELAY);
+        }
+
+        double distanceEnemyPlayer = Geom.distanceBetween(this, player);
+        if(distanceEnemyPlayer > ATTACK_RANGE){
+            state = State.PURSUE;
+        }
     }
 
-    public Archer(float x, float y,ArrayList<Vector2> pathwayCoordinates, Player player, LeakManager leakManager, ArrowManager arrowManager, CoinManager coinManager) {
-        super(new Texture("archer.png"));
-        setPosition(x, y);
-        this.coinManager = coinManager;
-        this.nextPointToWalkTowards = pathwayCoordinates.get(0);
-        this.pathwayCoordinates = pathwayCoordinates;
-        this.player = player;
-        this.leakManager = leakManager;
-        this.arrowManager = arrowManager;
-    }
-
-    public void stateMachine(State state){
-        this.state = state;
+    @Override
+    public void update(float delta){
         switch(state){
-            case WALK: // walk to end point
+            case WALK:
                 walkToEnd();
                 break;
             case DEAD:
@@ -91,46 +117,12 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
     }
 
 
-    private void fireArrow() {
-        if (canAttack) {
-            Vector2 playerCenter = new Vector2(0, 0);
-            player.getBoundingRectangle().getCenter(playerCenter);
-            float dy = playerCenter.y - getY();
-            float dx = playerCenter.x - getX();
-            float angle = (float)Math.atan2(dy, dx);
-            arrowManager.createArrow(getX(), getY(), angle);
-            canAttack = false;
-
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    canAttack = true;
-                }
-            }, ATTACK_DELAY);
-        }
-
-        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
-        if(distanceEnemyPlayer > ATTACK_RANGE){
-            stateMachine(State.PURSUE);
-        }
-    }
-
-    @Override
-    public void update(float delta){
-        if(startOfGame) {
-            startOfGame = false;
-            stateMachine(State.WALK);
-        }else{
-            stateMachine(state);
-        }
-    }
-
-
     private void walkToEnd() {
 
         double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
         if(distanceEnemyPlayer <= distanceToPursue){
-            stateMachine(State.PURSUE);
+            state = State.PURSUE;
+            return;
         }
         double distanceFromCurrentPathGoal = sqrt((getX() - nextPointToWalkTowards.x) * (getX()-nextPointToWalkTowards.x) + (getY()-nextPointToWalkTowards.y) * (getY()-nextPointToWalkTowards.y));
 
@@ -140,8 +132,7 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
                 nextPointToWalkTowards.x = pathwayCoordinates.get(pathCounter).x;
                 pathCounter++;
             }else{
-                stateMachine(State.DEAD);
-                leakManager.removeLeak();
+                state = State.DEAD;
                 return;
             }
         }
@@ -160,11 +151,13 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
     private void pursuePlayer(){
         double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
         if(distanceEnemyPlayer > distanceToPursue){
-            stateMachine(State.WALK);
+            state = State.WALK;
+            return;
         }
 
         if (distanceEnemyPlayer <= ATTACK_RANGE) {
-            stateMachine(State.ATTACK);
+            state = State.ATTACK;
+            return;
         }
 
         if(getY() < player.getY()) {
@@ -194,6 +187,26 @@ public class Archer extends Sprite implements EnemyInterface, Knockable, Entity,
                 isRed = false;
             }
         }, 0.2f);
+    }
+
+    @Override
+    public int getDamage() {
+        return 0;
+    }
+
+    @Override
+    public float getAttackDelay() {
+        return 0;
+    }
+
+    @Override
+    public float getAttackRange() {
+        return 0;
+    }
+
+    @Override
+    public float getSpeed() {
+        return 0;
     }
 
     @Override

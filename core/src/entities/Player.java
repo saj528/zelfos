@@ -8,10 +8,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
-import entities.enemies.EnemyInterface;
+import entities.enemies.Enemy;
 import helpers.Debug;
 import particles.DamageParticle;
-import particles.Particle;
 import scenes.game.*;
 import helpers.RedShader;
 
@@ -362,25 +361,25 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
                         if (hitbox.left.overlaps(enemy.getBoundingRectangle())) {
                             damageable.damage(SWORD_DAMAGE);
                             particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
-                            Physics.knockback(player, (Knockable) enemy, 30, collisionManager);
+                            Physics.knockback(player, (Knockable) enemy, 10, collisionManager);
                         }
                     } else if (isFacingRight) {
                         if (hitbox.right.overlaps(enemy.getBoundingRectangle())) {
                             damageable.damage(SWORD_DAMAGE);
                             particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
-                            Physics.knockback(player, (Knockable) enemy, 30, collisionManager);
+                            Physics.knockback(player, (Knockable) enemy, 10, collisionManager);
                         }
                     } else if (isFacingUp) {
                         if (hitbox.up.overlaps(enemy.getBoundingRectangle())) {
                             damageable.damage(SWORD_DAMAGE);
                             particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
-                            Physics.knockback(player, (Knockable) enemy, 30, collisionManager);
+                            Physics.knockback(player, (Knockable) enemy, 10, collisionManager);
                         }
                     } else if (isFacingDown) {
                         if (hitbox.down.overlaps(enemy.getBoundingRectangle())) {
                             damageable.damage(SWORD_DAMAGE);
                             particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
-                            Physics.knockback(player, (Knockable) enemy, 30, collisionManager);
+                            Physics.knockback(player, (Knockable) enemy, 10, collisionManager);
                         }
                     }
                 }
@@ -406,7 +405,10 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
 
     @Override
     public ArrayList<Class> getIgnoreClassList() {
-        return new ArrayList<>();
+        ArrayList<Class> ignore = new ArrayList<>();
+        ignore.add(Enemy.class);
+        ignore.add(Mercenary.class);
+        return ignore;
     }
 
 
