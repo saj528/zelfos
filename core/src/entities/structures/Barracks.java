@@ -10,11 +10,10 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.Entity;
+import entities.Mercenary;
 import entities.Player;
 import helpers.GameInfo;
-import scenes.game.CoinManager;
-import scenes.game.Collidable;
-import scenes.game.Geom;
+import scenes.game.*;
 
 import java.util.ArrayList;
 
@@ -22,6 +21,10 @@ public class Barracks implements Entity, Collidable {
 
     private final Player player;
     private final CoinManager coinManager;
+    private final EntityManager entityManager;
+    private final Vector2 northGuardPost;
+    private final Vector2 northBasePost;
+    private final CollisionManager collisionManager;
     private float x;
     private float y;
     private int COST = 1;
@@ -30,10 +33,14 @@ public class Barracks implements Entity, Collidable {
     private Texture barracks;
     BitmapFont font = new BitmapFont();
 
-    public Barracks(float x, float y, Player player, CoinManager coinManager) {
+    public Barracks(float x, float y, Player player, CoinManager coinManager, EntityManager entityManager, Vector2 northGuardPost, Vector2 northBasePost, CollisionManager collisionManager) {
         this.x = x;
         this.y = y;
+        this.entityManager = entityManager;
         this.coinManager = coinManager;
+        this.northGuardPost = northGuardPost;
+        this.northBasePost = northBasePost;
+        this.collisionManager = collisionManager;
         this.player = player;
         barracks = new Texture("barracks.png");
     }
@@ -80,7 +87,7 @@ public class Barracks implements Entity, Collidable {
             if (use && canBuyAgain && coinManager.getTotalCoins() >= COST) {
                 canBuyAgain = false;
                 coinManager.removeCoins(1);
-                // create npc
+                entityManager.addEntity(new Mercenary(northGuardPost, northBasePost, player, collisionManager));
 
                 Timer.schedule(new Timer.Task() {
                     @Override

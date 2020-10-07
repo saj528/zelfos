@@ -38,6 +38,7 @@ import particles.Particle;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.ListIterator;
 
 public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, LeakManager, FlashRedManager, ArrowManager, WaveManager, CoinManager, EntityManager, CollisionManager, ParticleManager {
 
@@ -62,7 +63,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     private final int INTERMISSION_TIME = 1;
     private int secondsUntilNextWave = INTERMISSION_TIME;
     private final HealthBar healthBar;
-    private int totalCoins = 0;
+    private int totalCoins = 5;
     private int leaks = 10;
     private int currentWaveIndex = 0;
     private final WavesHud wavesHud;
@@ -148,7 +149,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         entities.add(new Rocks(eastRocksPoint2.x, eastRocksPoint2.y));
 
 
-
         DeadZone deadZone = new DeadZone(getMapObjectRectangle("NorthDeadZone"));
         System.out.println(deadZone.getHitbox());
         entities.add(deadZone);
@@ -181,9 +181,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         //(TiledMapTileLayer)map.getLayers().get(objectLayerId);
         // MapObjects objects = collisionObjectLayer.getObjects();
-
+        Vector2 northGuardPost = getMapObjectLocation("NorthGuardPost");
+        Vector2 northBasePost = getMapObjectLocation("NorthBasePost");
         Vector2 barracksPoint = getMapObjectLocation("Barracks");
-        entities.add(new Barracks(barracksPoint.x, barracksPoint.y, player, this));
+        entities.add(new Barracks(barracksPoint.x, barracksPoint.y, player, this, this, northGuardPost, northBasePost, this));
 
         Vector2 clericsPoint = getMapObjectLocation("Cleric");
         entities.add(new Cleric(clericsPoint.x, clericsPoint.y, player, this));
@@ -349,7 +350,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         while (iterator.hasNext()) {
             Object next = iterator.next();
             if (next instanceof Killable) {
-                if (((Killable)next).isDead()) {
+                if (((Killable) next).isDead()) {
                     iterator.remove();
                 }
             }
@@ -410,8 +411,9 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             particle.update(delta);
         }
 
-        for (Entity entity : entities) {
-            entity.update(delta);
+        int size = entities.size();
+        for (int i = 0; i < size; i++) {
+            entities.get(i).update(delta);
         }
 
         removeDeadEntities(enemies);

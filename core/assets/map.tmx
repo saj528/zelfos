@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="31">
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="33">
  <editorsettings>
   <export target="map.csv" format="csv"/>
  </editorsettings>
@@ -247,6 +247,12 @@
    <point/>
   </object>
   <object id="29" name="Cleric" x="735.75" y="719.5">
+   <point/>
+  </object>
+  <object id="31" name="NorthGuardPost" x="815.652" y="304.348">
+   <point/>
+  </object>
+  <object id="32" name="NorthBasePost" x="814.783" y="686.957">
    <point/>
   </object>
  </objectgroup>
