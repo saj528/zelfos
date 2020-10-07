@@ -28,6 +28,7 @@ import entities.enemies.Archer;
 import entities.enemies.Footman;
 import entities.enemies.Hornet;
 import entities.enemies.Porcupine;
+import entities.structures.Barracks;
 import entities.structures.TownHall;
 import hud.*;
 import helpers.GameInfo;
@@ -68,7 +69,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     TiledMap tiledMap;
     TiledMapRenderer tiledMapRenderer;
 
-    private Wave[] waves;
+    private ArrayList<Wave> waves;
 
     private final HashSet<Integer> collidableTiles;
 
@@ -88,34 +89,27 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     }
 
     private void setupWaves() {
-        waves = new Wave[5];
-        EnemySet[] enemySets;
+        waves = new ArrayList<>();
+        ArrayList<EnemySet> enemySets;
 
-        enemySets = new EnemySet[4];
-        enemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH);
-        enemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH);
-        enemySets[2] = new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH);
-        enemySets[3] = new EnemySet(EnemySet.EnemyType.HORNET, 1, EnemySet.Lane.NORTH);
-        waves[0] = new Wave(enemySets);
+        enemySets = new ArrayList<>();
+        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH));
+        waves.add(new Wave(enemySets));
 
-        enemySets = new EnemySet[1];
-        enemySets[0] = new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH);
-        waves[1] = new Wave(enemySets);
+        enemySets = new ArrayList<>();
+        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 2, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH));
+        waves.add(new Wave(enemySets));
 
-        enemySets = new EnemySet[2];
-        enemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH);
-        enemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH);
-        waves[2] = new Wave(enemySets);
+        enemySets = new ArrayList<>();
+        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 4, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 3, EnemySet.Lane.NORTH));
+        waves.add(new Wave(enemySets));
 
-        enemySets = new EnemySet[2];
-        enemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 2, EnemySet.Lane.NORTH);
-        enemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 2, EnemySet.Lane.NORTH);
-        waves[3] = new Wave(enemySets);
-
-        enemySets = new EnemySet[2];
-        enemySets[0] = new EnemySet(EnemySet.EnemyType.SOLDIER, 2, EnemySet.Lane.NORTH);
-        enemySets[1] = new EnemySet(EnemySet.EnemyType.ARCHER, 4, EnemySet.Lane.NORTH);
-        waves[4] = new Wave(enemySets);
+        enemySets = new ArrayList<>();
+        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 5, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 2, EnemySet.Lane.NORTH));
+        waves.add(new Wave(enemySets));
     }
 
     public GameScene(GameMain game) {
@@ -154,6 +148,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         entities.add(new Rocks(eastRocksPoint2.x, eastRocksPoint2.y));
 
 
+
         DeadZone deadZone = new DeadZone(getMapObjectRectangle("NorthDeadZone"));
         System.out.println(deadZone.getHitbox());
         entities.add(deadZone);
@@ -187,6 +182,8 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         //(TiledMapTileLayer)map.getLayers().get(objectLayerId);
         // MapObjects objects = collisionObjectLayer.getObjects();
 
+        Vector2 barracksPoint = getMapObjectLocation("Barracks");
+        entities.add(new Barracks(barracksPoint.x, barracksPoint.y, player, this));
 
         collidableTiles = new HashSet<>();
         collidableTiles.add(156);
@@ -247,7 +244,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         points[2] = eastPoint;
         points[3] = westPoint;
 
-        Wave currentWave = waves[currentWaveIndex];
+        Wave currentWave = waves.get(currentWaveIndex);
         for (EnemySet enemySet : currentWave.getEnemySets()) {
             for (int i = 0; i < enemySet.getCount(); i++) {
                 int offsetSize = 200;
@@ -435,7 +432,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         if (!isOnIntermission && enemies.size() <= 0) {
             currentWaveIndex++;
-            if (currentWaveIndex >= waves.length) {
+            if (currentWaveIndex >= waves.size()) {
                 // you won
                 game.showWinScreen();
             } else {
@@ -635,6 +632,11 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     @Override
     public int getTotalCoins() {
         return totalCoins;
+    }
+
+    @Override
+    public void removeCoins(int amount) {
+        totalCoins -= amount;
     }
 
     @Override

@@ -1,13 +1,15 @@
 package scenes.game;
 
-public class Wave {
-    private EnemySet[] enemySets;
+import java.util.ArrayList;
 
-    public Wave(EnemySet[] enemySets) {
+public class Wave {
+    private ArrayList<EnemySet> enemySets;
+
+    public Wave(ArrayList<EnemySet> enemySets) {
         this.enemySets = enemySets;
     }
 
-    public EnemySet[] getEnemySets() {
+    public ArrayList<EnemySet> getEnemySets() {
         return enemySets;
     }
 }
