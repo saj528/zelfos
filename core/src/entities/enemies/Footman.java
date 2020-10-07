@@ -139,14 +139,19 @@ public class Footman extends Sprite implements Enemy, Knockable, Entity, Damagea
             if (updateLogic.getState() == Melee.State.WALK || updateLogic.getState() == Melee.State.PURSUE) {
                 batch.draw(walkAnimation.getKeyFrame(walkTime, true), getX(), getY());
             } else if (updateLogic.getState() == Melee.State.ATTACK) {
-                batch.draw(attackAnimation.getKeyFrame(attackTime, false), getX(), getY());
+                batch.draw(attackAnimation.getKeyFrame(attackTime, false), getX()-15, getY()-20);
             }
             batch.end();
             batch.setShader(null);
             Debug.drawHitbox(batch, getBoundingRectangle());
         }
 
-        @Override
+
+    @Override
+    public Rectangle getBoundingRectangle() {
+        return new Rectangle(getX() + 2, getY(), getWidth() - 14, getHeight() - 5);
+    }
+    @Override
         public void onAttackStart() {
             attackTime = 0f;
         }
@@ -162,4 +167,6 @@ public class Footman extends Sprite implements Enemy, Knockable, Entity, Damagea
         public Vector2 getCenter () {
             return Geom.getCenter(this);
         }
+
+
     }
