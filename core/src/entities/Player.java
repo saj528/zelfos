@@ -92,6 +92,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private boolean shouldFlashRed;
     private int attackOffsetX = 11;
     private int attackOffsetY = 13;
+    private boolean hasPotion = false;
 
     private enum DIRECTIONS {
         IDLE,
@@ -618,6 +619,21 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         dodgeRightFrames[4] = dodgeResetRightRegion[0][0];
         dodgeRight = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeRightFrames);
     }
+
+    public boolean getHasPotion() {
+        return hasPotion;
+    }
+
+    public void setHasPotion(boolean hasPotion) {
+        this.hasPotion = hasPotion;
+    }
+
+
+    public void usePotion() {
+        lives+=1;
+        hasPotion = false;
+    }
+
 
     public boolean isDead() {
         return lives <= 0;

@@ -29,6 +29,7 @@ import entities.enemies.Footman;
 import entities.enemies.Hornet;
 import entities.enemies.Porcupine;
 import entities.structures.Barracks;
+import entities.structures.PotionShop;
 import entities.structures.TownHall;
 import hud.*;
 import helpers.GameInfo;
@@ -63,6 +64,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     private final int INTERMISSION_TIME = 1;
     private int secondsUntilNextWave = INTERMISSION_TIME;
     private final HealthBar healthBar;
+    private final Inventory inventory;
     private int totalCoins = 5;
     private int leaks = 10;
     private int currentWaveIndex = 0;
@@ -189,6 +191,9 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         Vector2 clericsPoint = getMapObjectLocation("Cleric");
         entities.add(new Cleric(clericsPoint.x, clericsPoint.y, player, this));
 
+        Vector2 potionShopPoint = getMapObjectLocation("Potion");
+        entities.add(new PotionShop(potionShopPoint.x, potionShopPoint.y, player, this,this,this));
+
         collidableTiles = new HashSet<>();
         collidableTiles.add(156);
         collidableTiles.add(157);
@@ -205,6 +210,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         entities.add(townHall);
 
         healthBar = new HealthBar(player);
+        inventory = new Inventory(player);
 
         leaksHud = new Leaks(this, GameInfo.WIDTH / 2f, GameInfo.HEIGHT - 35);
 
@@ -395,6 +401,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             player.dodge();
         }
 
+        if (Gdx.input.isKeyPressed(Input.Keys.NUM_1) && player.getHasPotion()) {
+            player.usePotion();
+        }
+
         for (Entity enemy : enemies) {
             enemy.update(delta);
         }
@@ -506,6 +516,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         }
 
         healthBar.draw(batch);
+        inventory.draw(batch);
 //        leaksHud.draw(batch);
         wavesHud.draw(batch);
         coinsHud.draw(batch);

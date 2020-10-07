@@ -56,11 +56,6 @@ public class Cleric implements Entity, Collidable {
 
     }
 
-    public enum Behavior {
-        IDLE,
-        HEALING
-    }
-
     @Override
     public float getX() {
         return x;
@@ -126,7 +121,7 @@ public class Cleric implements Entity, Collidable {
     public void draw(Batch batch) {
         batch.begin();
         if(currentlyHealing){
-            batch.draw(clericHealingAnime.getKeyFrame(healingTime, false), getX(), getY());
+            batch.draw(clericHealingAnime.getKeyFrame(healingTime, true), getX(), getY());
             Timer.schedule(new Timer.Task() {
             @Override
             public void run() {
