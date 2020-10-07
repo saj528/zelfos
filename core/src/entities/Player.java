@@ -137,6 +137,10 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         return lives;
     }
 
+    public void setLives(int lives) {
+        this.lives = lives;
+    }
+
     public int getMaxLives() {
         return maxLives;
     }

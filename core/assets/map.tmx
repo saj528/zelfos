@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="29">
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="31">
  <editorsettings>
   <export target="map.csv" format="csv"/>
  </editorsettings>
@@ -244,6 +244,9 @@
   <object id="26" name="NorthDeadZone" x="678.261" y="22.6087" width="269.565" height="220"/>
   <object id="27" x="1125.22" y="125.217"/>
   <object id="28" name="Barracks" x="897.391" y="726.957">
+   <point/>
+  </object>
+  <object id="29" name="Cleric" x="735.75" y="719.5">
    <point/>
   </object>
  </objectgroup>

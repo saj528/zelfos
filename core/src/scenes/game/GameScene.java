@@ -185,6 +185,9 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         Vector2 barracksPoint = getMapObjectLocation("Barracks");
         entities.add(new Barracks(barracksPoint.x, barracksPoint.y, player, this));
 
+        Vector2 clericsPoint = getMapObjectLocation("Cleric");
+        entities.add(new Cleric(clericsPoint.x, clericsPoint.y, player, this));
+
         collidableTiles = new HashSet<>();
         collidableTiles.add(156);
         collidableTiles.add(157);
