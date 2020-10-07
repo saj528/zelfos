@@ -401,7 +401,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             player.dodge();
         }
 
-        if (Gdx.input.isKeyPressed(Input.Keys.NUM_1) && player.getHasPotion()) {
+        if (Gdx.input.isKeyPressed(Input.Keys.NUM_1) && player.getHasPotion() && player.getLives() != player.getMaxLives()) {
             player.usePotion();
         }
 
