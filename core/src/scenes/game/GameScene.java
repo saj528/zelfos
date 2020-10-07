@@ -96,7 +96,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         ArrayList<EnemySet> enemySets;
 
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         enemySets = new ArrayList<>();
