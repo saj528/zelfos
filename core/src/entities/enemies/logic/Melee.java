@@ -23,7 +23,7 @@ public class Melee implements UpdateLogic {
     private Entity target = null;
     private Vector2 nextPointToWalkTowards;
 
-    private enum State {
+    public enum State {
         WALK,
         PURSUE,
         ATTACK,
@@ -37,6 +37,10 @@ public class Melee implements UpdateLogic {
         this.player = player;
         this.pathwayCoordinates = pathwayCoordinates;
         this.nextPointToWalkTowards = pathwayCoordinates.get(0);
+    }
+
+    public State getState() {
+        return state;
     }
 
     @Override
@@ -126,6 +130,7 @@ public class Melee implements UpdateLogic {
         float range = ((Enemy)enemy).getAttackRange() + target.getBoundingRectangle().getWidth() / 2f + enemy.getBoundingRectangle().getWidth() / 2f;
         if (distance <= range) {
             state = State.ATTACK;
+            ((Enemy) enemy).onAttackStart();
             return;
         }
 

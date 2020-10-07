@@ -210,6 +210,11 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
     }
 
     @Override
+    public void onAttackStart() {
+
+    }
+
+    @Override
     public void draw(Batch batch) {
         if (isRed) {
             batch.setShader(RedShader.shaderProgram);

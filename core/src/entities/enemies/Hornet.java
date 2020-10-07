@@ -275,6 +275,11 @@ public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable 
     }
 
     @Override
+    public void onAttackStart() {
+
+    }
+
+    @Override
     public void draw(Batch batch) {
         if (isRed) {
             batch.setShader(RedShader.shaderProgram);

@@ -30,4 +30,6 @@ public interface Enemy extends Killable {
     float getAttackRange();
 
     float getSpeed();
+
+    void onAttackStart();
 }

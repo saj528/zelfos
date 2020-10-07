@@ -240,6 +240,11 @@ public class Porcupine extends Sprite implements Enemy, Knockable, Entity, Damag
     }
 
     @Override
+    public void onAttackStart() {
+
+    }
+
+    @Override
     public void draw(Batch batch) {
         if (isRed) {
             batch.setShader(RedShader.shaderProgram);
