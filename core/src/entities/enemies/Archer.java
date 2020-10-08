@@ -116,15 +116,15 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
     private void fireArrow() {
         if (canAttack) {
             attackTime = 0f;
-            Vector2 playerCenter = player.getCenter();
-            float dy = playerCenter.y - getCenter().y;
-            float dx = playerCenter.x - getCenter().x;
-            final float angle = (float)Math.atan2(dy, dx);
             canAttack = false;
 
             Timer.schedule(new Timer.Task() {
                 @Override
                 public void run() {
+                    Vector2 playerCenter = player.getCenter();
+                    float dy = playerCenter.y - getCenter().y;
+                    float dx = playerCenter.x - getCenter().x;
+                    final float angle = (float)Math.atan2(dy, dx);
                     arrowManager.createArrow(getCenter().x, getCenter().y, angle);
                 }
             }, ATTACK_DELAY);

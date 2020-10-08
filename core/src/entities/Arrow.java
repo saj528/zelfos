@@ -18,7 +18,7 @@ public class Arrow extends Sprite implements Killable, Entity {
     boolean isDead;
 
     public Arrow(float x, float y, float angle, Player player, CollisionManager collisionManager) {
-        super(new Texture("arrow.png"));
+        super(new Texture("playersprites/s_arrow.png"));
         this.angle = angle;
         setX(x);
         this.collisionManager = collisionManager;
