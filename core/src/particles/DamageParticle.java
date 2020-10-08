@@ -3,6 +3,7 @@ package particles;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Timer;
 import entities.Killable;
 import helpers.GameInfo;
@@ -34,7 +35,7 @@ public class DamageParticle implements Particle, Killable {
         }, 0.7f);
     }
 
-    public void draw(Batch batch) {
+    public void draw(Batch batch, ShapeRenderer shapeRenderer) {
         batch.begin();
         font.setColor(new Color(1, 1, 1, 1));
         font.getData().setScale(2);

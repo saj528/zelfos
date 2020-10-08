@@ -154,6 +154,11 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 //        waves.add(new Wave(enemySets));
     }
 
+    public void setupRocks(String name) {
+        Vector2 point = getMapObjectLocation(name);
+        entities.add(new Rocks(point.x, point.y));
+    }
+
     public GameScene(GameMain game) {
         this.game = game;
         camera = new OrthographicCamera();
@@ -182,13 +187,17 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         RectangleMapObject playerSpawn = (RectangleMapObject) objects.get("PlayerSpawn");
         Vector2 playerSpawnPoint = new Vector2(playerSpawn.getRectangle().x * 2, playerSpawn.getRectangle().y * 2);
 
-        Vector2 eastRocksPoint0 = getMapObjectLocation("EastRocks0");
-        entities.add(new Rocks(eastRocksPoint0.x, eastRocksPoint0.y));
-        Vector2 eastRocksPoint1 = getMapObjectLocation("EastRocks1");
-        entities.add(new Rocks(eastRocksPoint1.x, eastRocksPoint1.y));
-        Vector2 eastRocksPoint2 = getMapObjectLocation("EastRocks2");
-        entities.add(new Rocks(eastRocksPoint2.x, eastRocksPoint2.y));
+        setupRocks("EastRocks0");
+        setupRocks("EastRocks1");
+        setupRocks("EastRocks2");
 
+        setupRocks("WestRocks0");
+        setupRocks("WestRocks1");
+        setupRocks("WestRocks2");
+
+        setupRocks("SouthRocks0");
+        setupRocks("SouthRocks1");
+        setupRocks("SouthRocks2");
 
         DeadZone deadZone = new DeadZone(getMapObjectRectangle("NorthDeadZone"));
         System.out.println(deadZone.getHitbox());
@@ -445,6 +454,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             player.usePotion();
         }
 
+        if (Gdx.input.isKeyPressed(Input.Keys.Q)) {
+            player.special();
+        }
+
         for (Arrow arrow : arrows) {
             arrow.update(delta);
         }
@@ -507,33 +520,32 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         batch.setProjectionMatrix(camera.combined);
         batch.setShader(null);
 
-
         tiledMapRenderer.setView(camera);
         tiledMapRenderer.render();
 
-        player.draw(batch);
-
         ShapeRenderer shapeRenderer = new ShapeRenderer();
         shapeRenderer.setProjectionMatrix(camera.combined);
+
+        player.draw(batch, shapeRenderer);
 
         for (Bomb bomb : bombs) {
             bomb.draw(batch, shapeRenderer);
         }
 
         for (Arrow arrow : arrows) {
-            arrow.draw(batch);
+            arrow.draw(batch, shapeRenderer);
         }
 
         for (Coin coin : coins) {
-            coin.draw(batch);
+            coin.draw(batch, shapeRenderer);
         }
 
         for (Particle particle : particles) {
-            particle.draw(batch);
+            particle.draw(batch, shapeRenderer);
         }
 
         for (Entity entity : entities) {
-            entity.draw(batch);
+            entity.draw(batch, shapeRenderer);
         }
 
 //        townHall.draw(batch);

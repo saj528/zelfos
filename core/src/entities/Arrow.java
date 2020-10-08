@@ -3,6 +3,7 @@ package entities;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import scenes.game.CollisionManager;
 import scenes.game.Geom;
@@ -27,7 +28,7 @@ public class Arrow extends Sprite implements Killable, Entity {
         isDead = false;
     }
 
-    public void draw(Batch batch) {
+    public void draw(Batch batch, ShapeRenderer shapeRenderer) {
         setOrigin(getWidth() / 2, getHeight() / 2);
         setRotation(angle / (float)Math.PI * 180);
         batch.begin();

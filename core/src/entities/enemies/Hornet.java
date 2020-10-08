@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
@@ -280,7 +281,7 @@ public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable 
     }
 
     @Override
-    public void draw(Batch batch) {
+    public void draw(Batch batch, ShapeRenderer shapeRenderer) {
         if (isRed) {
             batch.setShader(RedShader.shaderProgram);
         } else {

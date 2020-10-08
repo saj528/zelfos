@@ -4,8 +4,11 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import scenes.game.CoinManager;
+
+import java.awt.*;
 
 public class Coin implements Killable{
     private final Animation<TextureRegion> coinAnimation;
@@ -49,7 +52,7 @@ public class Coin implements Killable{
 
     }
 
-    public void draw(Batch batch) {
+    public void draw(Batch batch, ShapeRenderer shapeRenderer) {
         batch.begin();
         batch.draw(coinAnimation.getKeyFrame(coinAnimationTime, true), x, y);
         batch.end();

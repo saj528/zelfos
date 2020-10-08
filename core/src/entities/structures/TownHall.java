@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import entities.Damageable;
@@ -79,7 +80,7 @@ public class TownHall implements Entity, Damageable, Collidable, Killable {
     }
 
     @Override
-    public void draw(Batch batch) {
+    public void draw(Batch batch, ShapeRenderer shapeRenderer) {
         batch.begin();
         batch.draw(townHallSprite, x, y);
         batch.end();

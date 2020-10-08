@@ -1,6 +1,7 @@
 package entities;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import entities.enemies.Enemy;
@@ -63,7 +64,7 @@ public class DeadZone implements Collidable, Entity {
     }
 
     @Override
-    public void draw(Batch batch) {
+    public void draw(Batch batch, ShapeRenderer shapeRenderer) {
 
     }
 }

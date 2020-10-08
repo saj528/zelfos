@@ -1,10 +1,14 @@
 package entities;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
@@ -16,6 +20,7 @@ import scenes.game.*;
 import helpers.RedShader;
 
 import java.util.ArrayList;
+import java.util.List;
 
 class AttackHitbox {
     public Rectangle up;
@@ -40,6 +45,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private final FlashRedManager flashRedManager;
     private final CollisionManager collisionManager;
     private final ParticleManager particleManager;
+    private final EntityManager entityManager;
     private Vector2 input_vector = Vector2.Zero;
     private Vector2 motion = Vector2.Zero;
     public final float ACCELERATION = 150.0f;
@@ -59,7 +65,9 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private boolean isRunning = false;
     private boolean canDropBomb = true;
     private float ATTACK_OFFSET = 0.05f;
+    private float SPECIAL_KNOCKBACK = 40f;
     private int SWORD_DAMAGE = 1;
+    private int SPECIAL_DAMAGE = 1;
     private Animation<Texture> downAnimation;
     private Animation<Texture> leftAnimation;
     private Animation<Texture> upAnimation;
@@ -72,8 +80,12 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private Animation<TextureRegion> dodgeDown;
     private Animation<TextureRegion> dodgeLeft;
     private Animation<TextureRegion> dodgeRight;
+    private Animation<TextureRegion> whirlwind;
+    private float WHIRLWIND_ANIMATION_SPEED = 0.05f;
     private float animationSpeed = 0.13f;
     private float attackTime = 0f;
+    private float whirlwindTime = 0f;
+    private boolean isUsingSpecial = false;
     private float dodgeTime = 0;
     private float walkTime = 0f;
     private int maxLives = 5;
@@ -83,6 +95,8 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private float ATTACK_ANIMATION_SPEED = 0.025f;
     private float ATTACK_COOLDOWN = ATTACK_ANIMATION_SPEED * 13;
     private float ATTACK_ANIMATION_DURATION = 0.2f;
+    private float SPECIAL_DISTANCE = 60f;
+    private float SPECIAL_COOLDOWN = 5.0f;
     private float DODGE_ANIMATION_DURATION = 0.5f;
     private float DODGE_ANIMATION_SPEED = 0.1f;
     private float DODGE_COOLDOWN = DODGE_ANIMATION_DURATION * 2;
@@ -93,6 +107,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private int attackOffsetX = 11;
     private int attackOffsetY = 13;
     private boolean hasPotion = false;
+    private boolean canSpecial = true;
 
     private enum DIRECTIONS {
         IDLE,
@@ -129,6 +144,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         this.collisionManager = collisionManager;
         isFacingDown = true;
         initPlayerTextures();
+        this.entityManager = entityManager;
         this.particleManager = particleManager;
         this.flashRedManager = flashRedManager;
         shouldFlashRed = false;
@@ -171,27 +187,34 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         return bombs;
     }
 
-    public void stateMachine(playerState state,float delta){
-        this.state = state;
-        switch(state){
-            case WALKING:
-                playerWalk();
-                break;
-            case ATTACKING:
+    public void special() {
+        if (canSpecial) {
+            canSpecial = false;
+            whirlwindTime = 0f;
+            isUsingSpecial = true;
 
-                break;
-            case TAKINGDAMAGE:
+            ArrayList<Enemy> enemies = (ArrayList<Enemy>) (List<?>) entityManager.getEntitiesByType(Enemy.class);
 
-                break;
-            case BOMBING:
+            for (Enemy enemy : enemies) {
+                if (Geom.distanceBetween((Entity) enemy, this) < SPECIAL_DISTANCE) {
+                    enemy.damage(SPECIAL_DAMAGE);
+                    Physics.knockback(this, (Knockable) enemy, SPECIAL_KNOCKBACK, collisionManager);
+                }
+            }
 
-                break;
-            case DODGING:
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+                    canSpecial = true;
+                }
+            }, SPECIAL_COOLDOWN);
 
-                break;
-            case DEAD:
-
-                break;
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+                    isUsingSpecial = false;
+                }
+            }, WHIRLWIND_ANIMATION_SPEED * 8);
         }
     }
 
@@ -207,7 +230,6 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         isRunningLeft = false;
         isRunningRight = false;
         isRunning = false;
-
 
         if (!strafe) {
             strifeDirection = Direction.None;
@@ -405,6 +427,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         attackTime += delta;
         walkTime += delta;
         dodgeTime += delta;
+        whirlwindTime += delta;
     }
 
     @Override
@@ -422,14 +445,16 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
 
 
     @Override
-    public void draw(Batch batch) {
+    public void draw(Batch batch, ShapeRenderer shapeRenderer) {
         batch.begin();
 
         if (shouldFlashRed) {
             batch.setShader(RedShader.shaderProgram);
         }
 
-        if (showAttackAnimation) {
+        if (isUsingSpecial) {
+            batch.draw(whirlwind.getKeyFrame(whirlwindTime, false), getX() - attackOffsetX, getY() - attackOffsetY);
+        } else if (showAttackAnimation) {
             if (isFacingLeft) {
                 batch.draw(attackLeft.getKeyFrame(attackTime, false), getX() - attackOffsetX, getY() - attackOffsetY);
             } else if (isFacingRight) {
@@ -505,9 +530,17 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         } else if (isFacingDown) {
             Debug.drawHitbox(batch, hitbox.down);
         }
+
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(new Color(1, 0, 0, 0.2f));
+        shapeRenderer.circle(getCenter().x, getCenter().y, SPECIAL_DISTANCE);
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
-    public void initPlayerTextures(){
+    public void initPlayerTextures() {
         Texture playerAttackSheet = new Texture("playersprites/player_attack_frames.png");
         TextureRegion[][] playerAttackSheetRegions = TextureRegion.split(playerAttackSheet,
                 playerAttackSheet.getWidth() / 4,
@@ -519,17 +552,19 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
                 playerDodgeSheet.getHeight() / 4);
 
         Texture dodgeResetDown = new Texture("playersprites/RunDown/run_down_1.png");
-        TextureRegion[][] dodgeResetDownRegion = TextureRegion.split(dodgeResetDown,dodgeResetDown.getWidth(),dodgeResetDown.getHeight());
+        TextureRegion[][] dodgeResetDownRegion = TextureRegion.split(dodgeResetDown, dodgeResetDown.getWidth(), dodgeResetDown.getHeight());
 
         Texture dodgeResetUp = new Texture("playersprites/RunUp/run_up_1.png");
-        TextureRegion[][] dodgeResetUpRegion = TextureRegion.split(dodgeResetUp,dodgeResetUp.getWidth(),dodgeResetUp.getHeight());
+        TextureRegion[][] dodgeResetUpRegion = TextureRegion.split(dodgeResetUp, dodgeResetUp.getWidth(), dodgeResetUp.getHeight());
 
         Texture dodgeResetRight = new Texture("playersprites/RunRight/run_right_1.png");
-        TextureRegion[][] dodgeResetRightRegion = TextureRegion.split(dodgeResetRight ,dodgeResetRight.getWidth(),dodgeResetRight.getHeight());
+        TextureRegion[][] dodgeResetRightRegion = TextureRegion.split(dodgeResetRight, dodgeResetRight.getWidth(), dodgeResetRight.getHeight());
 
         Texture dodgeResetLeft = new Texture("playersprites/RunLeft/run_left_1.png");
-        TextureRegion[][] dodgeResetLeftRegion = TextureRegion.split(dodgeResetLeft,dodgeResetLeft.getWidth(),dodgeResetLeft.getHeight());
+        TextureRegion[][] dodgeResetLeftRegion = TextureRegion.split(dodgeResetLeft, dodgeResetLeft.getWidth(), dodgeResetLeft.getHeight());
 
+        Texture whirlwindTexture = new Texture("playersprites/player_attack_whirlwind_8.png");
+        TextureRegion[][] whirlwindRegion = TextureRegion.split(whirlwindTexture, whirlwindTexture.getWidth() / 4, whirlwindTexture.getHeight() / 2);
 
         Texture[] downFrames = new Texture[6];
         downFrames[0] = new Texture("playersprites/RunDown/run_down_1.png");
@@ -581,6 +616,17 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         dodgeLeftFrames[4] = dodgeResetLeftRegion[0][0];
         dodgeLeft = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeLeftFrames);
 
+
+        TextureRegion[] whirlwindFrames = new TextureRegion[8];
+        whirlwindFrames[0] = whirlwindRegion[0][0];
+        whirlwindFrames[1] = whirlwindRegion[0][1];
+        whirlwindFrames[2] = whirlwindRegion[0][2];
+        whirlwindFrames[3] = whirlwindRegion[0][3];
+        whirlwindFrames[4] = whirlwindRegion[1][0];
+        whirlwindFrames[5] = whirlwindRegion[1][1];
+        whirlwindFrames[6] = whirlwindRegion[1][2];
+        whirlwindFrames[7] = whirlwindRegion[1][3];
+        whirlwind = new Animation<TextureRegion>(WHIRLWIND_ANIMATION_SPEED, whirlwindFrames);
 
         Texture[] upFrames = new Texture[6];
         upFrames[0] = new Texture("playersprites/RunUp/run_up_1.png");
