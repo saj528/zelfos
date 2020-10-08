@@ -92,7 +92,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         // wave 1
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         // wave 2
@@ -125,16 +125,16 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         // wave 6
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 3, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 4, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 2, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 2, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 1, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         // wave 7
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 10, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 4, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 6, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 5, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 2, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         // wave 8

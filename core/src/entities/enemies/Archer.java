@@ -32,13 +32,14 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
     private float distanceToPursue = 300;
     private Vector2 nextPointToWalkTowards;
     private ArrayList<Vector2> pathwayCoordinates;
-    private float ATTACK_DELAY = 3.0f;
+    private float ATTACK_DELAY = 0.9f;
     private int pathCounter = 1;
     private Player player;
     private boolean canAttack = true;
     private int ATTACK_RANGE = 250;
     private final float WALK_ANIMATION_SPEED = 0.13f;
-    private final float ATTACK_ANIMATION_SPEED = 0.3f;
+    private final float ATTACK_ANIMATION_SPEED = 0.15f;
+    private final float ATTACK_COOLDOWN = 3f;
     private Animation<TextureRegion> attackAnimation;
     private Animation<TextureRegion> walkAnimation;
     private float attackTime = 0f;
@@ -114,19 +115,27 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
 
     private void fireArrow() {
         if (canAttack) {
+            attackTime = 0f;
             Vector2 playerCenter = player.getCenter();
             float dy = playerCenter.y - getCenter().y;
             float dx = playerCenter.x - getCenter().x;
-            float angle = (float)Math.atan2(dy, dx);
-            arrowManager.createArrow(getCenter().x, getCenter().y, angle);
+            final float angle = (float)Math.atan2(dy, dx);
             canAttack = false;
+
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+                    arrowManager.createArrow(getCenter().x, getCenter().y, angle);
+                }
+            }, ATTACK_DELAY);
+
 
             Timer.schedule(new Timer.Task() {
                 @Override
                 public void run() {
                     canAttack = true;
                 }
-            }, ATTACK_DELAY);
+            }, ATTACK_COOLDOWN);
         }
 
         double distanceEnemyPlayer = Geom.distanceBetween(this, player);
@@ -194,8 +203,9 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
             return;
         }
 
-        if (distanceEnemyPlayer <= ATTACK_RANGE) {
+        if (distanceEnemyPlayer <= ATTACK_RANGE - 30) {
             state = State.ATTACK;
+            attackTime = 0f;
             return;
         }
 
@@ -264,7 +274,7 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
         if(state == State.WALK || state == State.PURSUE){
             batch.draw(walkAnimation.getKeyFrame(walkTime, true), getX(), getY());
         }else if(state == State.ATTACK){
-            batch.draw(attackAnimation.getKeyFrame(attackTime, false), getX()-15, getY()-20);
+            batch.draw(attackAnimation.getKeyFrame(attackTime, false), getX(), getY());
         }
         batch.end();
         batch.setShader(null);
