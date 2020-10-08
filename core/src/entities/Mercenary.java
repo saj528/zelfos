@@ -33,7 +33,7 @@ public class Mercenary implements Knockable, Entity, Damageable, Killable, Colli
     private Enemy target;
     private int pathCounter = 1;
     private boolean canAttack = true;
-    private int ATTACK_RANGE = 10;
+    private int ATTACK_RANGE = 30;
     private float x;
     private float y;
     private WaveManager waveManager;
@@ -109,7 +109,7 @@ public class Mercenary implements Knockable, Entity, Damageable, Killable, Colli
         if (canAttack) {
             canAttack = false;
 
-            final Mercenary footman = this;
+            final Mercenary mercenary = this;
 
             Timer.schedule(new Timer.Task() {
                 @Override
@@ -118,14 +118,14 @@ public class Mercenary implements Knockable, Entity, Damageable, Killable, Colli
                         target = null;
                         return;
                     }
-                    if (footman.isDead()) {
+                    if (mercenary.isDead()) {
                         return;
                     }
-                    float distance = Geom.distanceBetween(footman, (Entity)target);
-                    float range = ATTACK_RANGE + target.getBoundingRectangle().getWidth() / 2f + footman.getBoundingRectangle().getWidth() / 2f;
+                    float distance = Geom.distanceBetween(mercenary, (Entity)target);
+                    float range = ATTACK_RANGE + target.getBoundingRectangle().getWidth() / 2f + mercenary.getBoundingRectangle().getWidth() / 2f;
                     if (distance <= range) {
                         ((Damageable) target).damage(DAMAGE);
-                        Physics.knockback((Entity)footman, (Knockable) target, 20, collisionManager);
+                        Physics.knockback((Entity)mercenary, (Knockable) target, 20, collisionManager);
                     }
                 }
             }, 0.3f);

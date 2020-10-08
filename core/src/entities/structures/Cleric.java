@@ -145,7 +145,7 @@ public class Cleric implements Entity, Collidable {
             } else {
                 font.setColor(new Color(1, 0, 0, 1));
             }
-            font.draw(batch, "Heal " + COST + "Gp (E)", x, y + cleric.getHeight() / 2);
+            font.draw(batch, "Heal " + COST + "Gp (E)", x, y + cleric.getHeight() + 20);
             batch.end();
         }
 

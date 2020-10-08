@@ -88,7 +88,7 @@ public class Barracks implements Entity, Collidable {
             boolean use = Gdx.input.isKeyPressed(Input.Keys.E);
             if (use && canBuy()) {
                 canBuyAgain = false;
-                coinManager.removeCoins(1);
+                coinManager.removeCoins(COST);
                 entityManager.addEntity(new Mercenary(northGuardPost, northBasePost, collisionManager, waveManager, entityManager));
 
                 Timer.schedule(new Timer.Task() {
@@ -118,7 +118,7 @@ public class Barracks implements Entity, Collidable {
             } else {
                 font.setColor(new Color(1, 0, 0, 1));
             }
-            font.draw(batch, "Hire Mercenary " + COST + "GP (E)", x, y + barracks.getHeight() / 2);
+            font.draw(batch, "Hire Mercenary " + COST + "GP (E)", x, y + barracks.getHeight() + 20);
             batch.end();
         }
 

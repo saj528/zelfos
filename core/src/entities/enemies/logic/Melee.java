@@ -127,7 +127,7 @@ public class Melee implements UpdateLogic {
         }
 
         float distance = Geom.distanceBetween(enemy, target);
-        float range = ((Enemy)enemy).getAttackRange() - 10;
+        float range = ((Enemy)enemy).getAttackRange() - 10 + target.getBoundingRectangle().getWidth() / 2f + enemy.getBoundingRectangle().getWidth() / 2f;
         if (distance <= range) {
             state = State.ATTACK;
             ((Enemy) enemy).onAttackStart();
@@ -148,7 +148,7 @@ public class Melee implements UpdateLogic {
                 public void run() {
                     if (((Killable)entity).isDead()) return;
                     float distance = Geom.distanceBetween(entity, target);
-                    float range = ((Enemy)enemy).getAttackRange();
+                    float range = ((Enemy)enemy).getAttackRange() + target.getBoundingRectangle().getWidth() / 2f + entity.getBoundingRectangle().getWidth() / 2f;
                     if (distance <= range) {
                         ((Damageable) target).damage(((Enemy)enemy).getDamage());
                         if (target instanceof Knockable) {

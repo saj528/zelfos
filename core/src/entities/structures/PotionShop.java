@@ -78,7 +78,7 @@ public class PotionShop implements Entity, Collidable {
             showText = true;
 
             boolean use = Gdx.input.isKeyPressed(Input.Keys.E);
-            if (use && canBuyAgain && coinManager.getTotalCoins() >= COST && !player.getHasPotion()) {
+            if (use && canBuy()) {
                 canBuyAgain = false;
                 coinManager.removeCoins(2);
                 player.setHasPotion(true);
@@ -89,9 +89,16 @@ public class PotionShop implements Entity, Collidable {
                         canBuyAgain = true;
                     }
                 }, 0.5f);
+
             }
         }
     }
+
+
+    private boolean canBuy() {
+        return canBuyAgain && coinManager.getTotalCoins() >= COST && !player.getHasPotion();
+    }
+
 
     @Override
     public void draw(Batch batch) {
@@ -101,8 +108,12 @@ public class PotionShop implements Entity, Collidable {
 
         if (showText) {
             batch.begin();
-            font.setColor(new Color(1, 1, 1, 1));
-            font.draw(batch, "Buy Healing Potion 2Gp (E)", x, y + potionShop.getHeight() / 2);
+            if (canBuy()) {
+                font.setColor(new Color(0, 1, 0, 1));
+            } else {
+                font.setColor(new Color(1, 0, 0, 1));
+            }
+            font.draw(batch, "Buy Healing Potion " + COST + "Gp (E)", x, y + potionShop.getHeight() + 20);
             batch.end();
         }
 
