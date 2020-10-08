@@ -1,8 +1,10 @@
 package entities.enemies;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
@@ -35,6 +37,12 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
     private Player player;
     private boolean canAttack = true;
     private int ATTACK_RANGE = 250;
+    private final float WALK_ANIMATION_SPEED = 0.13f;
+    private final float ATTACK_ANIMATION_SPEED = 0.3f;
+    private Animation<TextureRegion> attackAnimation;
+    private Animation<TextureRegion> walkAnimation;
+    private float attackTime = 0f;
+    private float walkTime = 0f;
 
     private enum State {
         WALK,
@@ -44,14 +52,43 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
     }
 
     public Archer(float x, float y,ArrayList<Vector2> pathwayCoordinates, Player player, ArrowManager arrowManager, CoinManager coinManager) {
-        super(new Texture("archer.png"));
+        super(new Texture("archer_walking_6.png"), 0, 0, 32, 32);
         setPosition(x, y);
+        attackTime = 0;
+        walkTime = 0;
         this.coinManager = coinManager;
         this.nextPointToWalkTowards = pathwayCoordinates.get(0);
         this.pathwayCoordinates = pathwayCoordinates;
         this.player = player;
         this.arrowManager = arrowManager;
         this.state = State.WALK;
+        initTextures();
+    }
+
+    private void initTextures() {
+        Texture attackAnimationSheet = new Texture("archer_attack_6.png");
+        TextureRegion[][] attackAnimationSheetRegion = TextureRegion.split(attackAnimationSheet, attackAnimationSheet.getWidth() / 6, attackAnimationSheet.getHeight());
+
+        TextureRegion[] attackAnimationFrames = new TextureRegion[6];
+        attackAnimationFrames[0] = attackAnimationSheetRegion[0][0];
+        attackAnimationFrames[1] = attackAnimationSheetRegion[0][1];
+        attackAnimationFrames[2] = attackAnimationSheetRegion[0][2];
+        attackAnimationFrames[3] = attackAnimationSheetRegion[0][3];
+        attackAnimationFrames[4] = attackAnimationSheetRegion[0][4];
+        attackAnimationFrames[5] = attackAnimationSheetRegion[0][5];
+        attackAnimation = new Animation<TextureRegion>(ATTACK_ANIMATION_SPEED, attackAnimationFrames);
+
+        Texture walkAnimationSheet = new Texture("archer_walking_6.png");
+        TextureRegion[][] walkAnimationSheetRegion = TextureRegion.split(walkAnimationSheet, walkAnimationSheet.getWidth() / 6, walkAnimationSheet.getHeight());
+
+        TextureRegion[] walkAnimationFrames = new TextureRegion[6];
+        walkAnimationFrames[0] = walkAnimationSheetRegion[0][0];
+        walkAnimationFrames[1] = walkAnimationSheetRegion[0][1];
+        walkAnimationFrames[2] = walkAnimationSheetRegion[0][2];
+        walkAnimationFrames[3] = walkAnimationSheetRegion[0][3];
+        walkAnimationFrames[4] = walkAnimationSheetRegion[0][4];
+        walkAnimationFrames[5] = walkAnimationSheetRegion[0][5];
+        walkAnimation = new Animation<TextureRegion>(WALK_ANIMATION_SPEED, walkAnimationFrames);
     }
 
     @Override
@@ -100,6 +137,8 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
 
     @Override
     public void update(float delta){
+        attackTime += delta;
+        walkTime += delta;
         switch(state){
             case WALK:
                 walkToEnd();
@@ -222,7 +261,11 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
             batch.setShader(null);
         }
         batch.begin();
-        batch.draw(this.getTexture(), getX(), getY());
+        if(state == State.WALK || state == State.PURSUE){
+            batch.draw(walkAnimation.getKeyFrame(walkTime, true), getX(), getY());
+        }else if(state == State.ATTACK){
+            batch.draw(attackAnimation.getKeyFrame(attackTime, false), getX()-15, getY()-20);
+        }
         batch.end();
         batch.setShader(null);
         Debug.drawHitbox(batch, getBoundingRectangle());
