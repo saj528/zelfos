@@ -19,10 +19,10 @@ import java.util.ArrayList;
 public class Footman extends Sprite implements Enemy, Knockable, Entity, Damageable, Collidable {
 
     private static final float ATTACK_DELAY = 0.7f;
-    private static final float ATTACK_RANGE = 10f;
+    private static final float ATTACK_RANGE = 35f;
     private static final int DAMAGE = 1;
     private final CoinManager coinManager;
-    private int health = 8;
+    private int health = 7;
     private boolean isDead = false;
     private boolean isRed = false;
     public final float SPEED = 1.4f;

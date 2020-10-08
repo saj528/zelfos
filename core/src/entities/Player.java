@@ -23,13 +23,13 @@ class AttackHitbox {
     public Rectangle down;
 
     public AttackHitbox(Player player) {
-        int offset = 50;
-        int size = 40;
+        int size = 20;
+        Vector2 playerCenter = player.getCenter();
 
-        up = new Rectangle(player.getX() - 8, player.getY() + 25, size, size);
-        left = new Rectangle(player.getX() - 40, player.getY() - 5, size, size);
-        right = new Rectangle(player.getX() + 20, player.getY() - 5, size, size);
-        down = new Rectangle(player.getX() - 10, player.getY() - offset + 10, size, size);
+        up = new Rectangle(playerCenter.x - size / 2, playerCenter.y + player.getHeight() / 2, size, size);
+        left = new Rectangle(playerCenter.x - size - player.getWidth() / 2, playerCenter.y - size / 2, size, size);
+        right = new Rectangle(playerCenter.x + player.getWidth() / 2, playerCenter.y - size / 2, size, size);
+        down = new Rectangle(playerCenter.x - size / 2, playerCenter.y - player.getHeight() / 2 - size, size, size);
     }
 
 }
