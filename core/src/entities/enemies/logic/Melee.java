@@ -107,14 +107,14 @@ public class Melee implements UpdateLogic {
 
         float angleToWalk = (float) Math.atan2(point.y - enemyCenter.y, point.x - enemyCenter.x);
         float originalX = enemy.getX();
-        enemy.setX((float) (enemy.getX() + Math.cos(angleToWalk) * ((Enemy)enemy).getSpeed()));
-        if (collisionManager.isCollidingWithMap((Collidable)enemy) || collisionManager.isCollidingWithOtherCollidables((Collidable)enemy)) {
+        enemy.setX((float) (enemy.getX() + Math.cos(angleToWalk) * ((Enemy) enemy).getSpeed()));
+        if (collisionManager.isCollidingWithMap((Collidable) enemy) || collisionManager.isCollidingWithOtherCollidables((Collidable) enemy)) {
             enemy.setX(originalX);
         }
 
         float originalY = enemy.getY();
-        enemy.setY((float) (enemy.getY() + Math.sin(angleToWalk) * ((Enemy)enemy).getSpeed()));
-        if (collisionManager.isCollidingWithMap((Collidable)enemy) || collisionManager.isCollidingWithOtherCollidables((Collidable)enemy)) {
+        enemy.setY((float) (enemy.getY() + Math.sin(angleToWalk) * ((Enemy) enemy).getSpeed()));
+        if (collisionManager.isCollidingWithMap((Collidable) enemy) || collisionManager.isCollidingWithOtherCollidables((Collidable) enemy)) {
             enemy.setY(originalY);
         }
     }
@@ -127,7 +127,7 @@ public class Melee implements UpdateLogic {
         }
 
         float distance = Geom.distanceBetween(enemy, target);
-        float range = ((Enemy)enemy).getAttackRange() - 10 + target.getBoundingRectangle().getWidth() / 2f + enemy.getBoundingRectangle().getWidth() / 2f;
+        float range = ((Enemy) enemy).getAttackRange() - 10 + target.getBoundingRectangle().getWidth() / 2f + enemy.getBoundingRectangle().getWidth() / 2f;
         if (distance <= range) {
             state = State.ATTACK;
             ((Enemy) enemy).onAttackStart();
@@ -146,13 +146,14 @@ public class Melee implements UpdateLogic {
             Timer.schedule(new Timer.Task() {
                 @Override
                 public void run() {
-                    if (((Killable)entity).isDead()) return;
+                    if (((Killable) entity).isDead()) return;
+                    if (target == null) return;
                     float distance = Geom.distanceBetween(entity, target);
-                    float range = ((Enemy)enemy).getAttackRange() + target.getBoundingRectangle().getWidth() / 2f + entity.getBoundingRectangle().getWidth() / 2f;
+                    float range = ((Enemy) enemy).getAttackRange() + target.getBoundingRectangle().getWidth() / 2f + entity.getBoundingRectangle().getWidth() / 2f;
                     if (distance <= range) {
-                        ((Damageable) target).damage(((Enemy)enemy).getDamage());
+                        ((Damageable) target).damage(((Enemy) enemy).getDamage());
                         if (target instanceof Knockable) {
-                            Physics.knockback(entity, (Knockable)target, 20, collisionManager);
+                            Physics.knockback(entity, (Knockable) target, 20, collisionManager);
                         }
                     }
                 }
@@ -165,7 +166,7 @@ public class Melee implements UpdateLogic {
                     target = null;
                     state = State.WALK;
                 }
-            }, ((Enemy)enemy).getAttackDelay());
+            }, ((Enemy) enemy).getAttackDelay());
         }
     }
 }

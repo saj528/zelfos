@@ -1,5 +1,6 @@
 package scenes.game;
 
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import entities.Entity;
 
@@ -21,7 +22,8 @@ public class Geom {
 
     public static Vector2 getCenter(Entity entity) {
         Vector2 center = new Vector2(0, 0);
-        entity.getBoundingRectangle().getCenter(center);
+        Rectangle rect = entity.getBoundingRectangle();
+        rect.getCenter(center);
         return center;
     }
 

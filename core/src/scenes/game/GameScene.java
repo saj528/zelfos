@@ -92,43 +92,42 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         // wave 1
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         // wave 2
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 3, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         // wave 3
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 2, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 2, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         // wave 3
+        enemySets = new ArrayList<>();
+        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 2, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 2, EnemySet.Lane.NORTH));
+        waves.add(new Wave(enemySets));
+
+        // wave 4
         enemySets = new ArrayList<>();
         enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 3, EnemySet.Lane.NORTH));
         enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
-        // wave 4
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 1, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 5, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 3, EnemySet.Lane.NORTH));
-        waves.add(new Wave(enemySets));
-
         // wave 5
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 6, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 2, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         // wave 6
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 6, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 10, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 3, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 4, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 2, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         // wave 7
@@ -333,7 +332,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                         entities.add(new Hornet(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, this, this, this, this));
                         break;
                     case PORCUPINE:
-                        entities.add(new Porcupine(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, this, this));
+                        entities.add(new Porcupine(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, this, this, this));
                         break;
                 }
             }

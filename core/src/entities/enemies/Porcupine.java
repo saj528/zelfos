@@ -9,38 +9,33 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.*;
+import entities.enemies.logic.Melee;
 import helpers.Debug;
 import helpers.RedShader;
 import scenes.game.*;
 
 import java.util.ArrayList;
 
-public class Porcupine extends Sprite implements Enemy, Knockable, Entity, Damageable, Collidable {
+public class Porcupine implements Enemy, Knockable, Entity, Damageable, Collidable {
 
     private final CoinManager coinManager;
-    private final CollisionManager collisionManager;
-    private int health = 3;
+    private int health = 2;
     private boolean isDead = false;
     private boolean isRed = false;
-    public final int SPEED = 1;
+    public final float SPEED = 1.5f;
     private int DAMAGE = 1;
-    private State state = State.WALK;
-    private float distanceToPursue = 100;
-    private Vector2 nextPointToWalkTowards;
-    private ArrayList<Vector2> pathwayCoordinates;
-    private float ATTACK_DELAY = 1.0f;
+    private float ATTACK_DELAY = 0.3f;
     private int pathCounter = 1;
-    private Player player;
-    private boolean canAttack = true;
-    private int ATTACK_RANGE = 30;
+    private float x;
+    private float y;
+    private int ATTACK_RANGE = 20;
     private Animation<TextureRegion> porcupineAttack;
     private Animation<TextureRegion> porcupineWalk;
     private float WALK_ANIMATION_SPEED = 0.13f;
-    private float ATTACK_ANIMATION_SPEED = 0.025f;
-    private float ATTACK_COOLDOWN = ATTACK_ANIMATION_SPEED * 13;
-    private float ATTACK_ANIMATION_DURATION = 0.2f;
+    private float ATTACK_ANIMATION_SPEED = 0.1f;
     private float attackTime = 0f;
     private float walkTime = 0f;
+    private final Melee updateLogic;
 
     @Override
     public Rectangle getHitbox() {
@@ -51,30 +46,20 @@ public class Porcupine extends Sprite implements Enemy, Knockable, Entity, Damag
     public ArrayList<Class> getIgnoreClassList() {
         ArrayList<Class> ignore = new ArrayList<>();
         ignore.add(Enemy.class);
+        ignore.add(Mercenary.class);
         ignore.add(DeadZone.class);
         return ignore;
     }
 
-
-    private enum State {
-        WALK,
-        PURSUE,
-        ATTACK,
-        DEAD,
-    }
-
-    public Porcupine(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, CoinManager coinManager, CollisionManager collisionManager) {
-        setPosition(x, y);
+    public Porcupine(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, CoinManager coinManager, CollisionManager collisionManager, EntityManager entityManager) {
+        this.x = x;
+        this.y = y;
         this.coinManager = coinManager;
-        this.collisionManager = collisionManager;
-        this.nextPointToWalkTowards = pathwayCoordinates.get(0);
-        this.pathwayCoordinates = pathwayCoordinates;
-        this.player = player;
         initTextures();
+        updateLogic = new Melee(this, entityManager, player, pathwayCoordinates, collisionManager);
     }
 
     private void initTextures() {
-
         Texture porcupineAttackSheet = new Texture("enemysprites/s_porcupine_attack_strip5.png");
         TextureRegion[][] porcupineAttackSheetRegions = TextureRegion.split(porcupineAttackSheet,
                 porcupineAttackSheet.getWidth() / 5,
@@ -84,7 +69,6 @@ public class Porcupine extends Sprite implements Enemy, Knockable, Entity, Damag
         TextureRegion[][] porcupineWalkSheetRegions = TextureRegion.split(porcupineWalkSheet,
                 porcupineWalkSheet.getWidth() / 3,
                 porcupineWalkSheet.getHeight());
-
 
         TextureRegion[] attackFrames = new TextureRegion[5];
         attackFrames[0] = porcupineAttackSheetRegions[0][0];
@@ -99,106 +83,6 @@ public class Porcupine extends Sprite implements Enemy, Knockable, Entity, Damag
         walkFrames[1] = porcupineWalkSheetRegions[0][1];
         walkFrames[2] = porcupineWalkSheetRegions[0][2];
         porcupineWalk = new Animation<TextureRegion>(WALK_ANIMATION_SPEED, walkFrames);
-
-    }
-
-    public void stateMachine(State state){
-        this.state = state;
-        switch(state){
-            case WALK:
-                walkToEnd();
-                break;
-            case DEAD:
-                isDead = true;
-                break;
-            case PURSUE:
-                pursuePlayer();
-                break;
-            case ATTACK:
-                attackPlayer();
-                break;
-        }
-    }
-
-    private void attackPlayer() {
-        if (canAttack) {
-            canAttack = false;
-
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    if (getDistanceToPlayer() <= ATTACK_RANGE) {
-                        player.damage(DAMAGE);
-                    }
-                }
-            }, 0.5f);
-
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    canAttack = true;
-                    stateMachine(State.PURSUE);
-                }
-            }, ATTACK_DELAY);
-        }
-
-
-    }
-
-
-    private void walkToEnd() {
-
-        if(getDistanceToPlayer() <= distanceToPursue){
-            stateMachine(State.PURSUE);
-        }
-        double distanceFromCurrentPathGoal = nextPointToWalkTowards.dst(new Vector2(getX(), getY()));
-
-        if(distanceFromCurrentPathGoal <= 10){
-            if(pathwayCoordinates.size() > pathCounter){
-                nextPointToWalkTowards.y = pathwayCoordinates.get(pathCounter).y;
-                nextPointToWalkTowards.x = pathwayCoordinates.get(pathCounter).x;
-                pathCounter++;
-            }else{
-                stateMachine(State.DEAD);
-                return;
-            }
-        }
-
-        float angleToWalk = (float)Math.atan2(nextPointToWalkTowards.y - getY(), nextPointToWalkTowards.x - getX());
-        float originalX = getX();
-        setX((float) (getX() + Math.cos(angleToWalk) * SPEED));
-        if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
-            setX(originalX);
-        }
-
-        float originalY = getY();
-        setY((float) (getY() + Math.sin(angleToWalk) * SPEED));
-        if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
-            setY(originalY);
-        }
-    }
-
-    private void pursuePlayer(){
-        if(getDistanceToPlayer() > distanceToPursue){
-            stateMachine(State.WALK);
-        }
-
-        if (getDistanceToPlayer() <= ATTACK_RANGE) {
-            stateMachine(State.ATTACK);
-        }
-
-        float angleToWalk = (float)Math.atan2(player.getY() - getY(), player.getX() - getX());
-        float originalX = getX();
-        setX((float) (getX() + Math.cos(angleToWalk) * SPEED));
-        if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
-            setX(originalX);
-        }
-
-        float originalY = getY();
-        setY((float) (getY() + Math.sin(angleToWalk) * SPEED));
-        if (collisionManager.isCollidingWithMap(this) || collisionManager.isCollidingWithOtherCollidables(this)) {
-            setY(originalY);
-        }
 
     }
 
@@ -220,28 +104,58 @@ public class Porcupine extends Sprite implements Enemy, Knockable, Entity, Damag
     }
 
     @Override
+    public Rectangle getBoundingRectangle() {
+        return new Rectangle(x, y, getWidth(), getHeight());
+    }
+
+    @Override
+    public Texture getTexture() {
+        return null;
+    }
+
+    @Override
+    public float getX() {
+        return x;
+    }
+
+    @Override
+    public float getY() {
+        return y;
+    }
+
+    @Override
+    public float getWidth() {
+        return 30;
+    }
+
+    @Override
+    public float getHeight() {
+        return 30;
+    }
+
+    @Override
     public int getDamage() {
-        return 0;
+        return DAMAGE;
     }
 
     @Override
     public float getAttackDelay() {
-        return 0;
+        return ATTACK_DELAY;
     }
 
     @Override
     public float getAttackRange() {
-        return 0;
+        return ATTACK_RANGE;
     }
 
     @Override
     public float getSpeed() {
-        return 0;
+        return SPEED;
     }
 
     @Override
     public void onAttackStart() {
-
+        attackTime = 0f;
     }
 
     @Override
@@ -252,10 +166,10 @@ public class Porcupine extends Sprite implements Enemy, Knockable, Entity, Damag
             batch.setShader(null);
         }
         batch.begin();
-        if(state == State.WALK || state == State.PURSUE) {
+        if (updateLogic.getState() == Melee.State.WALK || updateLogic.getState() == Melee.State.PURSUE) {
             batch.draw(porcupineWalk.getKeyFrame(walkTime, true), getX(), getY());
-        }else if(state == State.ATTACK){
-            batch.draw(porcupineAttack.getKeyFrame(attackTime, true), getX(), getY());
+        } else if (updateLogic.getState() == Melee.State.ATTACK) {
+            batch.draw(porcupineAttack.getKeyFrame(attackTime, false), getX(), getY());
         }
         batch.end();
         batch.setShader(null);
@@ -267,17 +181,7 @@ public class Porcupine extends Sprite implements Enemy, Knockable, Entity, Damag
         return isDead;
     }
 
-    public void dispose(){
-    }
-
-    public float getDistanceToPlayer() {
-        Vector2 enemyCenter = new Vector2(0, 0);
-        Vector2 playerCenter = new Vector2(0, 0);
-
-        getBoundingRectangle().getCenter(enemyCenter);
-        player.getBoundingRectangle().getCenter(playerCenter);
-
-        return enemyCenter.dst(playerCenter);
+    public void dispose() {
     }
 
     @Override
@@ -287,9 +191,19 @@ public class Porcupine extends Sprite implements Enemy, Knockable, Entity, Damag
 
     @Override
     public void update(float delta) {
-        stateMachine(state);
+        updateLogic.update(delta);
         attackTime += delta;
         walkTime += delta;
 
+    }
+
+    @Override
+    public void setX(float x) {
+        this.x = x;
+    }
+
+    @Override
+    public void setY(float y) {
+this.y = y;
     }
 }
