@@ -25,13 +25,13 @@ public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable 
     private int health = 1;
     private boolean isDead = false;
     private boolean isRed = false;
-    public final float SPEED = 1.5f;
+    public final float SPEED = 1.3f;
     private int DAMAGE = 1;
     boolean startOfGame = true;
     private State state;
     private float x;
     private float y;
-    private float distanceToPursue = 150;
+    private float distanceToPursue = 200;
     private float walkTime;
     private Vector2 nextPointToWalkTowards;
     private ArrayList<Vector2> pathwayCoordinates;
@@ -40,7 +40,7 @@ public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable 
     private int pathCounter = 1;
     private Player player;
     private boolean canAttack = true;
-    private int ATTACK_RANGE = 100;
+    private int ATTACK_RANGE = 150;
 
 
     private enum State {

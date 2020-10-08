@@ -22,7 +22,7 @@ public class Footman extends Sprite implements Enemy, Knockable, Entity, Damagea
     private static final float ATTACK_RANGE = 25f;
     private static final int DAMAGE = 1;
     private final CoinManager coinManager;
-    private int health = 7;
+    private int health = 5;
     private boolean isDead = false;
     private boolean isRed = false;
     public final float SPEED = 1.4f;

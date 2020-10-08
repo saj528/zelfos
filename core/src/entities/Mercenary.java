@@ -22,7 +22,7 @@ public class Mercenary implements Knockable, Entity, Damageable, Killable, Colli
     private int health = 5;
     private boolean isDead = false;
     private boolean isRed = false;
-    public final int SPEED = 1;
+    public final float SPEED = 1.4f;
     private int DAMAGE = 1;
     private State state = State.WALK_TO_BASE;
     private Texture mercenaryTexture;
@@ -33,7 +33,7 @@ public class Mercenary implements Knockable, Entity, Damageable, Killable, Colli
     private Enemy target;
     private int pathCounter = 1;
     private boolean canAttack = true;
-    private int ATTACK_RANGE = 30;
+    private int ATTACK_RANGE = 20;
     private float x;
     private float y;
     private WaveManager waveManager;

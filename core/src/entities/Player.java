@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.enemies.Enemy;
+import entities.structures.Cleric;
 import helpers.Debug;
 import particles.DamageParticle;
 import scenes.game.*;
@@ -87,7 +88,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private float DODGE_COOLDOWN = DODGE_ANIMATION_DURATION * 2;
     private float DODGE_TO_ATTACK_COOLDOWN = DODGE_ANIMATION_DURATION;
     private int DODGE_DISTANCE = 40;
-    private int bombs = 100;
+    private int bombs = 0;
     private boolean shouldFlashRed;
     private int attackOffsetX = 11;
     private int attackOffsetY = 13;
@@ -160,6 +161,14 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
             }
         }, 0.5f);
 
+    }
+
+    public void addBomb() {
+        bombs++;
+    }
+
+    public int getTotalBombs() {
+        return bombs;
     }
 
     public void stateMachine(playerState state,float delta){
@@ -632,7 +641,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
 
 
     public void usePotion() {
-        lives+=1;
+        lives += Cleric.POTION_HEAL;
         hasPotion = false;
     }
 

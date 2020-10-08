@@ -21,7 +21,7 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
 
     private final CoinManager coinManager;
     private ArrowManager arrowManager;
-    private int health = 5;
+    private int health = 3;
     private boolean isDead = false;
     private boolean isRed = false;
     public final int SPEED = 1;

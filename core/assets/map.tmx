@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="34">
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="35">
  <editorsettings>
   <export target="map.csv" format="csv"/>
  </editorsettings>
@@ -256,6 +256,9 @@
    <point/>
   </object>
   <object id="33" name="Potion" x="663" y="888.667">
+   <point/>
+  </object>
+  <object id="34" name="BombShop" x="874.783" y="886.087">
    <point/>
   </object>
  </objectgroup>

@@ -11,7 +11,7 @@ import scenes.game.Physics;
 public class Stinger extends Sprite implements Killable, Entity {
 
     private final CollisionManager collisionManager;
-    float SPEED = 4.0f;
+    float SPEED = 3.5f;
     final int DAMAGE = 1;
     float angle;
     Player player;

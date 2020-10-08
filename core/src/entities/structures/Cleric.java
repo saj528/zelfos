@@ -25,9 +25,10 @@ public class Cleric implements Entity, Collidable {
     private Animation<TextureRegion> clericIdleAnime;
     private float x;
     private float y;
-    private int COST = 3;
+    private int COST = 1;
     private boolean showText = false;
     private boolean canBuyAgain = true;
+    public static int POTION_HEAL = 2;
     private Texture cleric;
     private boolean currentlyHealing = false;
     private float healingTime = 0f;

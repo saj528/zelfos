@@ -25,10 +25,7 @@ import com.badlogic.gdx.utils.Timer;
 import com.zelfos.game.GameMain;
 import entities.*;
 import entities.enemies.*;
-import entities.structures.Barracks;
-import entities.structures.Cleric;
-import entities.structures.PotionShop;
-import entities.structures.TownHall;
+import entities.structures.*;
 import hud.*;
 import helpers.GameInfo;
 import particles.Particle;
@@ -56,13 +53,14 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     private final Texture fullScreenRedFlashTexture;
     private boolean isOnIntermission = false;
     private final CountdownHud countdownHud;
-    private final int INTERMISSION_TIME = 5;
+    private final int INTERMISSION_TIME = 10;
     private int secondsUntilNextWave = INTERMISSION_TIME;
     private final HealthBar healthBar;
     private final Inventory inventory;
     private int totalCoins = 0;
     private int currentWaveIndex = 0;
     private final WavesHud wavesHud;
+    private BombsHud bombsHud;
     TiledMap tiledMap;
     TiledMapRenderer tiledMapRenderer;
 
@@ -89,7 +87,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         waves = new ArrayList<>();
         ArrayList<EnemySet> enemySets;
 
-
         // wave 1
         enemySets = new ArrayList<>();
         enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH));
@@ -106,25 +103,25 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
-        // wave 3
+        // wave 4
         enemySets = new ArrayList<>();
         enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 2, EnemySet.Lane.NORTH));
         enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 2, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
-        // wave 4
+        // wave 5
         enemySets = new ArrayList<>();
         enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 3, EnemySet.Lane.NORTH));
         enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
-        // wave 5
+        // wave 6
         enemySets = new ArrayList<>();
         enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 2, EnemySet.Lane.NORTH));
         enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
-        // wave 6
+        // wave 7
         enemySets = new ArrayList<>();
         enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 2, EnemySet.Lane.NORTH));
         enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 1, EnemySet.Lane.NORTH));
@@ -132,29 +129,29 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
-        // wave 7
+        // wave 8
         enemySets = new ArrayList<>();
         enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 5, EnemySet.Lane.NORTH));
         enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 2, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
-        // wave 8
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 20, EnemySet.Lane.NORTH));
-        waves.add(new Wave(enemySets));
-
         // wave 9
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 20, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 4, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         // wave 10
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 10, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 10, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 10, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 10, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 4, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 3, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 2, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 2, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
+
+        // wave 11
+//        enemySets = new ArrayList<>();
+//        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 5, EnemySet.Lane.NORTH));
+//        waves.add(new Wave(enemySets));
     }
 
     public GameScene(GameMain game) {
@@ -236,6 +233,9 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         Vector2 potionShopPoint = getMapObjectLocation("Potion");
         entities.add(new PotionShop(potionShopPoint.x, potionShopPoint.y, player, this,this,this));
 
+        Vector2 bombShopPoint = getMapObjectLocation("BombShop");
+        entities.add(new BombShop(bombShopPoint.x, bombShopPoint.y, player, this,this,this));
+
         collidableTiles = new HashSet<>();
         collidableTiles.add(156);
         collidableTiles.add(157);
@@ -255,6 +255,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         inventory = new Inventory(player);
 
         countdownHud = new CountdownHud(this);
+        bombsHud = new BombsHud(player);
 
         compassHud = new CompassHud(this, player);
 
@@ -550,6 +551,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 //        leaksHud.draw(batch);
         wavesHud.draw(batch);
         coinsHud.draw(batch);
+        bombsHud.draw(batch);
         compassHud.draw(batch);
 
         if (isOnIntermission) {

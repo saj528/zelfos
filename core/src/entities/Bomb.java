@@ -18,9 +18,9 @@ import scenes.game.EnemyManager;
 import java.util.ArrayList;
 
 public class Bomb extends Sprite implements Knockable, Killable, Entity {
-    private final float BOMB_TIME = 3.0f;
-    private final int BLAST_RADIUS = 100;
-    private final int BLAST_DAMAGE = 1;
+    private final float BOMB_TIME = 2.0f;
+    private final int BLAST_RADIUS = 80;
+    private final int BLAST_DAMAGE = 3;
     private final CollisionManager collisionManager;
     private boolean isDead = false;
     private boolean isRed = false;
