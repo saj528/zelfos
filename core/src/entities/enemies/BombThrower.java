@@ -10,7 +10,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.*;
-import entities.GoblinBomb;
+import entities.projectile.GoblinBomb;
 import helpers.Debug;
 import helpers.RedShader;
 import scenes.game.*;
