@@ -15,6 +15,7 @@ import com.badlogic.gdx.utils.Timer;
 import entities.enemies.Enemy;
 import entities.structures.Cleric;
 import helpers.Debug;
+import helpers.GameInfo;
 import particles.DamageParticle;
 import scenes.game.*;
 import helpers.RedShader;
@@ -46,7 +47,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private final CollisionManager collisionManager;
     private final ParticleManager particleManager;
     private final EntityManager entityManager;
-    private Vector2 input_vector = Vector2.Zero;
+    private Vector2 inputVector = Vector2.Zero;
     private Vector2 motion = Vector2.Zero;
     public final float ACCELERATION = 150.0f;
     public final float MAX_SPEED = 3;
@@ -218,12 +219,19 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         }
     }
 
-    private void playerWalk() {
-    }
-
     public void updatePlayerMovement(boolean left, boolean right, boolean up, boolean down, boolean strafe, float delta) {
-        input_vector.x = (right ? 1 : 0) - (left ? 1 : 0);
-        input_vector.y = (up ? 1 : 0) - (down ? 1 : 0);
+        inputVector.x = 0;
+        inputVector.y = 0;
+
+        if (right) {
+            inputVector.x = 1;
+        } else if (left) {
+            inputVector.x = -1;
+        } else if (up) {
+            inputVector.y = 1;
+        } else if (down) {
+            inputVector.y = -1;
+        }
 
         isRunningDown = false;
         isRunningUp = false;
@@ -235,16 +243,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
             strifeDirection = Direction.None;
         }
 
-        if (up) {
-            isRunningUp = true;
-            isRunning = true;
-            if (!strafe) {
-                isFacingUp = true;
-                isFacingDown = false;
-                isFacingLeft = false;
-                isFacingRight = false;
-            }
-        } else if (left) {
+        if (left) {
             isRunningLeft = true;
             isRunning = true;
             if (!strafe) {
@@ -271,7 +270,16 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
                 isFacingLeft = false;
                 isFacingRight = false;
             }
-        }
+        } else if (up) {
+            isRunningUp = true;
+            isRunning = true;
+            if (!strafe) {
+                isFacingUp = true;
+                isFacingDown = false;
+                isFacingLeft = false;
+                isFacingRight = false;
+            }
+        } else
 
         if (strafe && strifeDirection == Direction.None) {
             if (isFacingUp) {
@@ -287,11 +295,11 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     }
 
     public void updateX(float delta) {
-        setX(getX() + input_vector.x * ACCELERATION * delta);
+        setX(getX() + inputVector.x * ACCELERATION * delta);
     }
 
     public void updateY(float delta) {
-        setY(getY() + input_vector.y * ACCELERATION * delta);
+        setY(getY() + inputVector.y * ACCELERATION * delta);
     }
 
     public void dropBomb(BombManager bombManager) {
@@ -520,24 +528,26 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
 
         batch.setShader(null);
 
-        AttackHitbox hitbox = new AttackHitbox(this);
-        if (isFacingLeft) {
-            Debug.drawHitbox(batch, hitbox.left);
-        } else if (isFacingRight) {
-            Debug.drawHitbox(batch, hitbox.right);
-        } else if (isFacingUp) {
-            Debug.drawHitbox(batch, hitbox.up);
-        } else if (isFacingDown) {
-            Debug.drawHitbox(batch, hitbox.down);
-        }
+        if (GameInfo.DEBUG) {
+            AttackHitbox hitbox = new AttackHitbox(this);
+            if (isFacingLeft) {
+                Debug.drawHitbox(batch, hitbox.left);
+            } else if (isFacingRight) {
+                Debug.drawHitbox(batch, hitbox.right);
+            } else if (isFacingUp) {
+                Debug.drawHitbox(batch, hitbox.up);
+            } else if (isFacingDown) {
+                Debug.drawHitbox(batch, hitbox.down);
+            }
 
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(new Color(1, 0, 0, 0.2f));
-        shapeRenderer.circle(getCenter().x, getCenter().y, SPECIAL_DISTANCE);
-        shapeRenderer.end();
-        Gdx.gl.glDisable(GL20.GL_BLEND);
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(new Color(1, 0, 0, 0.2f));
+            shapeRenderer.circle(getCenter().x, getCenter().y, SPECIAL_DISTANCE);
+            shapeRenderer.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+        }
     }
 
     public void initPlayerTextures() {
