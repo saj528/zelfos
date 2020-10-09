@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.*;
+import entities.GoblinBomb;
 import helpers.Debug;
 import helpers.RedShader;
 import scenes.game.*;
@@ -18,10 +19,11 @@ import java.util.ArrayList;
 
 import static java.lang.Math.sqrt;
 
-public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageable, Collidable {
+public class BombThrower extends Sprite implements Enemy, Knockable, Entity, Damageable, Collidable {
 
     private final CoinManager coinManager;
-    private ArrowManager arrowManager;
+    private final CollisionManager collisionManager;
+    private EntityManager entityManager;
     private int health = 3;
     private boolean isDead = false;
     private boolean isRed = false;
@@ -53,16 +55,17 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
         DEAD,
     }
 
-    public Archer(float x, float y,ArrayList<Vector2> pathwayCoordinates, Player player, ArrowManager arrowManager, CoinManager coinManager) {
+    public BombThrower(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, EntityManager entityManager, CoinManager coinManager, CollisionManager collisionManager) {
         super(new Texture("archer_walking_6.png"), 0, 0, 32, 32);
         setPosition(x, y);
+        this.collisionManager = collisionManager;
         attackTime = 0;
         walkTime = 0;
         this.coinManager = coinManager;
         this.nextPointToWalkTowards = pathwayCoordinates.get(0);
         this.pathwayCoordinates = pathwayCoordinates;
         this.player = player;
-        this.arrowManager = arrowManager;
+        this.entityManager = entityManager;
         this.state = State.WALK;
         initTextures();
     }
@@ -127,7 +130,7 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
                     float dy = playerCenter.y - getCenter().y;
                     float dx = playerCenter.x - getCenter().x;
                     final float angle = (float)Math.atan2(dy, dx);
-                    arrowManager.createArrow(getCenter().x, getCenter().y, angle);
+                    entityManager.addEntity(new GoblinBomb(getCenter().x, getCenter().y, player.getCenter(), entityManager, player, collisionManager));
                 }
             }, ATTACK_DELAY);
 

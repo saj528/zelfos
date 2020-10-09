@@ -11,6 +11,7 @@ public class EnemySet {
         SOLDIER,
         HORNET,
         PORCUPINE,
+        WIZARD,
     }
 
     public enum Lane {

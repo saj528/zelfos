@@ -89,7 +89,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         // wave 1
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.WIZARD, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         // wave 2
@@ -344,6 +344,9 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                         break;
                     case PORCUPINE:
                         entities.add(new Porcupine(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, this, this, this));
+                        break;
+                    case WIZARD:
+                        entities.add(new BombThrower(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, this, this, this));
                         break;
                 }
             }
