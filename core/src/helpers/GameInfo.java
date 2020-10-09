@@ -8,4 +8,5 @@ public class GameInfo {
     //used to scale in game pixel size for movement
     //stands for pixel per meter
     public static final int PPM = 100;
+    public static final boolean DEBUG = false;
 }

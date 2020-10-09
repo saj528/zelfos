@@ -15,6 +15,8 @@ import com.badlogic.gdx.utils.Timer;
 import entities.enemies.Enemy;
 import entities.structures.Cleric;
 import helpers.Debug;
+import helpers.GameInfo;
+import helpers.WhiteShader;
 import particles.DamageParticle;
 import scenes.game.*;
 import helpers.RedShader;
@@ -62,6 +64,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private boolean isFacingDown = false;
     private boolean isFacingLeft = false;
     private boolean isFacingRight = false;
+    private boolean isRolling = false;
     private boolean isRunning = false;
     private boolean canDropBomb = true;
     private float ATTACK_OFFSET = 0.05f;
@@ -163,6 +166,8 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     }
 
     public void damage(int amount) {
+        if (isRolling) return;
+
         lives -= amount;
 
         // flashes the screen red
@@ -235,16 +240,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
             strifeDirection = Direction.None;
         }
 
-        if (up) {
-            isRunningUp = true;
-            isRunning = true;
-            if (!strafe) {
-                isFacingUp = true;
-                isFacingDown = false;
-                isFacingLeft = false;
-                isFacingRight = false;
-            }
-        } else if (left) {
+        if (left) {
             isRunningLeft = true;
             isRunning = true;
             if (!strafe) {
@@ -268,6 +264,15 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
             if (!strafe) {
                 isFacingDown = true;
                 isFacingUp = false;
+                isFacingLeft = false;
+                isFacingRight = false;
+            }
+        } else if (up) {
+            isRunningUp = true;
+            isRunning = true;
+            if (!strafe) {
+                isFacingUp = true;
+                isFacingDown = false;
                 isFacingLeft = false;
                 isFacingRight = false;
             }
@@ -313,6 +318,8 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         canAttack = false;
         canDodge = false;
         dodgeTime = 0;
+        isRolling = true;
+
         showDodgeAnimation = true;
 
         Timer.schedule(new Timer.Task() {
@@ -350,6 +357,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
             @Override
             public void run() {
                 canAttack = true;
+                isRolling = false;
             }
         }, DODGE_TO_ATTACK_COOLDOWN);
 
@@ -452,6 +460,10 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
             batch.setShader(RedShader.shaderProgram);
         }
 
+        if (isRolling) {
+            batch.setShader(WhiteShader.shaderProgram);
+        }
+
         if (isUsingSpecial) {
             batch.draw(whirlwind.getKeyFrame(whirlwindTime, false), getX() - attackOffsetX, getY() - attackOffsetY);
         } else if (showAttackAnimation) {
@@ -520,24 +532,26 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
 
         batch.setShader(null);
 
-        AttackHitbox hitbox = new AttackHitbox(this);
-        if (isFacingLeft) {
-            Debug.drawHitbox(batch, hitbox.left);
-        } else if (isFacingRight) {
-            Debug.drawHitbox(batch, hitbox.right);
-        } else if (isFacingUp) {
-            Debug.drawHitbox(batch, hitbox.up);
-        } else if (isFacingDown) {
-            Debug.drawHitbox(batch, hitbox.down);
-        }
+        if (GameInfo.DEBUG) {
+            AttackHitbox hitbox = new AttackHitbox(this);
+            if (isFacingLeft) {
+                Debug.drawHitbox(batch, hitbox.left);
+            } else if (isFacingRight) {
+                Debug.drawHitbox(batch, hitbox.right);
+            } else if (isFacingUp) {
+                Debug.drawHitbox(batch, hitbox.up);
+            } else if (isFacingDown) {
+                Debug.drawHitbox(batch, hitbox.down);
+            }
 
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(new Color(1, 0, 0, 0.2f));
-        shapeRenderer.circle(getCenter().x, getCenter().y, SPECIAL_DISTANCE);
-        shapeRenderer.end();
-        Gdx.gl.glDisable(GL20.GL_BLEND);
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(new Color(1, 0, 0, 0.2f));
+            shapeRenderer.circle(getCenter().x, getCenter().y, SPECIAL_DISTANCE);
+            shapeRenderer.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+        }
     }
 
     public void initPlayerTextures() {
