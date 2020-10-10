@@ -1,15 +1,17 @@
-package particles;
+package entities;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.Killable;
 import helpers.GameInfo;
 import scenes.game.WaveManager;
 
-public class DamageParticle implements Particle, Killable {
+public class DamageParticle implements Entity, Killable {
 
     private final int amount;
     private float x;
@@ -24,7 +26,7 @@ public class DamageParticle implements Particle, Killable {
         this.x = x;
         this.y = y;
         this.vy = 9f;
-        this.vx = (float)(Math.random() * 6f - 3f);
+        this.vx = (float) (Math.random() * 6f - 3f);
         this.isDead = false;
 
         Timer.schedule(new Timer.Task() {
@@ -43,8 +45,38 @@ public class DamageParticle implements Particle, Killable {
         batch.end();
     }
 
+    @Override
+    public float getX() {
+        return x;
+    }
+
+    @Override
+    public float getY() {
+        return y;
+    }
+
+    @Override
+    public void setX(float x) {
+        this.x = x;
+    }
+
+    @Override
+    public void setY(float y) {
+        this.y = y;
+    }
+
+    @Override
+    public Rectangle getBoundingRectangle() {
+        return null;
+    }
+
+    @Override
+    public Vector2 getCenter() {
+        return null;
+    }
+
     public void update(float delta) {
-        this.vy -= 0.2f;
+        this.vy -= 0.4f;
         this.y += this.vy;
         this.x += this.vx;
     }

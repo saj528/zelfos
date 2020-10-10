@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.*;
 import entities.enemies.logic.Range;
+import entities.projectile.Stinger;
 import helpers.Debug;
 import helpers.RedShader;
 import scenes.game.*;

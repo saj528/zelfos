@@ -17,7 +17,6 @@ import entities.structures.Cleric;
 import helpers.Debug;
 import helpers.GameInfo;
 import helpers.WhiteShader;
-import particles.DamageParticle;
 import scenes.game.*;
 import helpers.RedShader;
 
@@ -46,7 +45,6 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
 
     private final FlashRedManager flashRedManager;
     private final CollisionManager collisionManager;
-    private final ParticleManager particleManager;
     private final EntityManager entityManager;
     private Vector2 input_vector = Vector2.Zero;
     private Vector2 motion = Vector2.Zero;
@@ -140,7 +138,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private Direction strifeDirection = Direction.None;
 
 
-    public Player(float x, float y, FlashRedManager flashRedManager, EntityManager entityManager, CollisionManager collisionManager, ParticleManager particleManager) {
+    public Player(float x, float y, FlashRedManager flashRedManager, EntityManager entityManager, CollisionManager collisionManager) {
         super(new Texture("playersprites/RunDown/run_down_1.png"));
         setPosition(x, y);
         setTexture(playerDown);
@@ -148,7 +146,6 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         isFacingDown = true;
         initPlayerTextures();
         this.entityManager = entityManager;
-        this.particleManager = particleManager;
         this.flashRedManager = flashRedManager;
         shouldFlashRed = false;
     }
@@ -404,25 +401,25 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
                     if (isFacingLeft) {
                         if (hitbox.left.overlaps(enemy.getBoundingRectangle())) {
                             damageable.damage(SWORD_DAMAGE);
-                            particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
+                            entityManager.addEntity(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
                             Physics.knockback(player, (Knockable) enemy, 10, collisionManager);
                         }
                     } else if (isFacingRight) {
                         if (hitbox.right.overlaps(enemy.getBoundingRectangle())) {
                             damageable.damage(SWORD_DAMAGE);
-                            particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
+                            entityManager.addEntity(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
                             Physics.knockback(player, (Knockable) enemy, 10, collisionManager);
                         }
                     } else if (isFacingUp) {
                         if (hitbox.up.overlaps(enemy.getBoundingRectangle())) {
                             damageable.damage(SWORD_DAMAGE);
-                            particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
+                            entityManager.addEntity(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
                             Physics.knockback(player, (Knockable) enemy, 10, collisionManager);
                         }
                     } else if (isFacingDown) {
                         if (hitbox.down.overlaps(enemy.getBoundingRectangle())) {
                             damageable.damage(SWORD_DAMAGE);
-                            particleManager.addParticle(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
+                            entityManager.addEntity(new DamageParticle(enemy.getX(), enemy.getY(), SWORD_DAMAGE));
                             Physics.knockback(player, (Knockable) enemy, 10, collisionManager);
                         }
                     }

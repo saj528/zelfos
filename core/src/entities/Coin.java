@@ -6,14 +6,16 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import scenes.game.CoinManager;
+import scenes.game.Geom;
 
 import java.awt.*;
 
-public class Coin implements Killable{
+public class Coin implements Killable, Entity {
     private final Animation<TextureRegion> coinAnimation;
-    private final float x;
-    private final float y;
+    private float x;
+    private float y;
     private Animation<TextureRegion> coinTexture;
     private float coinAnimationTime = 0;
     private float coinAnimationSpeed = 0.25f;
@@ -40,6 +42,36 @@ public class Coin implements Killable{
         coinFrames[4] = coinSheetRegions[0][4];
         coinFrames[5] = coinSheetRegions[0][5];
         coinAnimation = new Animation<>(coinAnimationSpeed, coinFrames);
+    }
+
+    @Override
+    public float getX() {
+        return x;
+    }
+
+    @Override
+    public float getY() {
+        return y;
+    }
+
+    @Override
+    public void setX(float x) {
+        this.x = x;
+    }
+
+    @Override
+    public void setY(float y) {
+        this.y = y;
+    }
+
+    @Override
+    public Rectangle getBoundingRectangle() {
+        return new Rectangle(x, y, coinAnimation.getKeyFrame(coinAnimationTime).getRegionWidth(), coinAnimation.getKeyFrame(coinAnimationTime).getRegionHeight());
+    }
+
+    @Override
+    public Vector2 getCenter() {
+        return Geom.getCenter(this);
     }
 
     public void update(float delta) {

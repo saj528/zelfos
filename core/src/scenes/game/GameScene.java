@@ -25,10 +25,10 @@ import com.badlogic.gdx.utils.Timer;
 import com.zelfos.game.GameMain;
 import entities.*;
 import entities.enemies.*;
+import entities.projectile.Arrow;
 import entities.structures.*;
 import hud.*;
 import helpers.GameInfo;
-import particles.Particle;
 
 
 import java.util.ArrayList;
@@ -36,17 +36,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, FlashRedManager, ArrowManager, WaveManager, CoinManager, EntityManager, CollisionManager, ParticleManager {
+public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, FlashRedManager, ArrowManager, WaveManager, CoinManager, EntityManager, CollisionManager {
 
     private final GameMain game;
     private final Player player;
     private final OrthographicCamera camera;
     private final OrthographicCamera hudCamera;
-    private final ArrayList<Bomb> bombs = new ArrayList<>();
-    private final ArrayList<Arrow> arrows = new ArrayList<>();
-    private final ArrayList<Coin> coins = new ArrayList<>();
     private final ArrayList<Entity> entities = new ArrayList<>();
-    private final ArrayList<Particle> particles = new ArrayList<>();
     private TownHall townHall;
     private final CoinsHud coinsHud;
     private final CompassHud compassHud;
@@ -91,7 +87,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         // wave 1
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.BOMB_THROWER, 1, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         // wave 2
@@ -214,7 +210,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         System.out.println(deadZone.getHitbox());
         entities.add(deadZone);
 
-        player = new Player(playerSpawnPoint.x, playerSpawnPoint.y, this, this, this, this);
+        player = new Player(playerSpawnPoint.x, playerSpawnPoint.y, this, this, this);
 
         hudCamera = new OrthographicCamera();
         hudCamera.setToOrtho(
@@ -223,25 +219,12 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                 GameInfo.HEIGHT
         );
 
-        //pathwayCoordinates.add(new Vector2(1500, 1100));
-        //pathwayCoordinates.add(new Vector2(-100, -100));
-
         Pixmap pixmap = new Pixmap(GameInfo.WIDTH, GameInfo.HEIGHT, Pixmap.Format.RGBA8888);
         pixmap.setColor(new Color(1, 0, 0, 0.4f));
         pixmap.fillRectangle(0, 0, GameInfo.WIDTH, GameInfo.HEIGHT);
         fullScreenRedFlashTexture = new Texture(pixmap);
         pixmap.dispose();
 
-        //enemies.add(new Enemy(start.getRectangle().x + 700, start.getRectangle().y + 1000, pathwayCoordinates,player));
-        //enemies.add(new Enemy(1500, 500, pathwayCoordinates,player));
-
-
-        //int objectLayerId = 5;
-        //TiledMapTileLayer collisionObjectLayer = (TiledMapTileLayer)map.getLayers().get(objectLayerId);
-        // MapObjects objects = collisionObjectLayer.getObjects();
-
-        //(TiledMapTileLayer)map.getLayers().get(objectLayerId);
-        // MapObjects objects = collisionObjectLayer.getObjects();
         Vector2 northGuardPost = getMapObjectLocation("NorthGuardPost");
         Vector2 northBasePost = getMapObjectLocation("NorthBasePost");
         Vector2 barracksPoint = getMapObjectLocation("Barracks");
@@ -273,7 +256,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         healthBar = new HealthBar(player);
         inventory = new Inventory(player);
-
         countdownHud = new CountdownHud(this);
         bombsHud = new BombsHud(player);
 
@@ -400,7 +382,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     }
 
     public void createBomb(float x, float y) {
-        bombs.add(new Bomb(player.getX(), player.getY(), this, this));
+        entities.add(new Bomb(player.getX(), player.getY(), this, this));
     }
 
     public boolean isCollidingWithMap(Collidable collidable) {
@@ -508,27 +490,11 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             player.special();
         }
 
-        for (Arrow arrow : arrows) {
-            arrow.update(delta);
-        }
-
-        for (Coin coin : coins) {
-            coin.update(delta);
-        }
-
-        for (Particle particle : particles) {
-            particle.update(delta);
-        }
-
         int size = entities.size();
         for (int i = 0; i < size; i++) {
             entities.get(i).update(delta);
         }
 
-        removeDeadEntities(bombs);
-        removeDeadEntities(arrows);
-        removeDeadEntities(coins);
-        removeDeadEntities(particles);
         removeDeadEntities(entities);
 
         if (forceCameraTo != null) {
@@ -551,7 +517,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         if (!isOnIntermission && getEntitiesByType(Enemy.class).size() <= 0) {
             currentWaveIndex++;
             if (currentWaveIndex >= waves.size()) {
-                // you won
                 game.showWinScreen();
             } else {
                 startIntermission();
@@ -583,27 +548,9 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         player.draw(batch, shapeRenderer);
 
-        for (Bomb bomb : bombs) {
-            bomb.draw(batch, shapeRenderer);
-        }
-
-        for (Arrow arrow : arrows) {
-            arrow.draw(batch, shapeRenderer);
-        }
-
-        for (Coin coin : coins) {
-            coin.draw(batch, shapeRenderer);
-        }
-
-        for (Particle particle : particles) {
-            particle.draw(batch, shapeRenderer);
-        }
-
         for (Entity entity : entities) {
             entity.draw(batch, shapeRenderer);
         }
-
-//        townHall.draw(batch);
 
         batch.setProjectionMatrix(hudCamera.combined);
 
@@ -615,7 +562,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         healthBar.draw(batch);
         inventory.draw(batch);
-//        leaksHud.draw(batch);
         wavesHud.draw(batch);
         coinsHud.draw(batch);
         bombsHud.draw(batch);
@@ -685,7 +631,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
     @Override
     public void createArrow(float x, float y, float angle) {
-        arrows.add(new Arrow(x, y, angle, player, this));
+        entities.add(new Arrow(x, y, angle, player, this));
     }
 
     @Override
@@ -701,23 +647,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     @Override
     public void startIntermission() {
         isOnIntermission = true;
-//        secondsUntilNextWave = INTERMISSION_TIME;
-
-//        final Timer.Task countdown = Timer.schedule(new Timer.Task() {
-//            @Override
-//            public void run() {
-//                secondsUntilNextWave--;
-//            }
-//        }, 0f, 1.0f);
-//
-//        Timer.schedule(new Timer.Task() {
-//            @Override
-//            public void run() {
-//                isOnIntermission = false;
-//                countdown.cancel();
-//                spawnNextWave();
-//            }
-//        }, INTERMISSION_TIME);
     }
 
     @Override
@@ -727,7 +656,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
     @Override
     public void createCoin(float x, float y) {
-        coins.add(new Coin(x, y, player, this));
+        entities.add(new Coin(x, y, player, this));
     }
 
     @Override
@@ -777,8 +706,4 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         return entitiesByType;
     }
 
-    @Override
-    public void addParticle(Particle particle) {
-        particles.add(particle);
-    }
 }
