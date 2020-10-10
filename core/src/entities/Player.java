@@ -169,6 +169,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         if (experience >= getExperienceUntilNextLevel()) {
             experience = 0;
             level++;
+            entityManager.addEntity(new LevelUpParticle(getX(), getY()));
         }
     }
 
