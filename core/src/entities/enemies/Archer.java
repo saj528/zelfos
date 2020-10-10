@@ -48,7 +48,7 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
         entityManager.addEntity(new Arrow(getX(), getY(), angle, player, collisionManager));
     }
 
-    public Archer(float x, float y,ArrayList<Vector2> pathwayCoordinates, Player player, ArrowManager arrowManager, CoinManager coinManager, CollisionManager collisionManager, EntityManager entityManager) {
+    public Archer(float x, float y,ArrayList<Vector2> pathwayCoordinates, Player player, CoinManager coinManager, CollisionManager collisionManager, EntityManager entityManager) {
         super(new Texture("archer_walking_6.png"), 0, 0, 32, 32);
         setPosition(x, y);
         attackTime = 0;

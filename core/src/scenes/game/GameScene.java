@@ -17,6 +17,7 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.objects.TiledMapTileMapObject;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
@@ -36,19 +37,18 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, FlashRedManager, ArrowManager, WaveManager, CoinManager, EntityManager, CollisionManager {
+public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, FlashRedManager, ArrowManager, CoinManager, EntityManager, CollisionManager {
 
     private final GameMain game;
     private final Player player;
     private final OrthographicCamera camera;
     private final OrthographicCamera hudCamera;
+    private WaveManager waveManager;
     private final ArrayList<Entity> entities = new ArrayList<>();
-    private TownHall townHall;
     private final CoinsHud coinsHud;
     private final CompassHud compassHud;
     private boolean shouldFlashRed = false;
     private final Texture fullScreenRedFlashTexture;
-    private boolean isOnIntermission = false;
     private final CountdownHud countdownHud;
     private final int INTERMISSION_TIME = 10;
     private int secondsUntilNextWave = INTERMISSION_TIME;
@@ -58,113 +58,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     private int totalCoins = 0;
     private int currentWaveIndex = 0;
     private final WavesHud wavesHud;
+    private MapManager mapManager;
     private BombsHud bombsHud;
-    TiledMap tiledMap;
     TiledMapRenderer tiledMapRenderer;
 
-    private ArrayList<Wave> waves;
-
-    private final HashSet<Integer> collidableTiles;
-
-    private Vector2 getMapObjectLocation(String name) {
-        MapLayer waypoint = tiledMap.getLayers().get("Waypoint");
-        MapObjects objects = waypoint.getObjects();
-        RectangleMapObject obj = (RectangleMapObject) objects.get(name);
-        Vector2 point = new Vector2(obj.getRectangle().x * 2, obj.getRectangle().y * 2);
-        return point;
-    }
-
-    private Rectangle getMapObjectRectangle(String name) {
-        MapLayer waypoint = tiledMap.getLayers().get("Waypoint");
-        MapObjects objects = waypoint.getObjects();
-        RectangleMapObject obj = (RectangleMapObject) objects.get(name);
-        return new Rectangle(obj.getRectangle().x * 2, obj.getRectangle().y * 2, obj.getRectangle().width * 2, obj.getRectangle().height * 2);
-    }
-
-    private void setupWaves() {
-        waves = new ArrayList<>();
-        ArrayList<EnemySet> enemySets;
-
-        // wave 1
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH));
-        waves.add(new Wave(enemySets));
-
-        // wave 2
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 2, EnemySet.Lane.NORTH));
-        waves.add(new Wave(enemySets));
-
-        // wave 3
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 1, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH));
-        waves.add(new Wave(enemySets));
-
-        // wave 4
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 2, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 2, EnemySet.Lane.NORTH));
-        waves.add(new Wave(enemySets));
-
-        // wave 5
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 3, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH));
-        waves.add(new Wave(enemySets));
-
-        // wave 6
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 2, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH));
-        waves.add(new Wave(enemySets));
-
-        // wave 7
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 2, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 1, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH));
-        waves.add(new Wave(enemySets));
-
-        // wave 8
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 5, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 2, EnemySet.Lane.NORTH));
-        waves.add(new Wave(enemySets));
-
-        // wave 9
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 4, EnemySet.Lane.NORTH));
-        waves.add(new Wave(enemySets));
-
-        // wave 10
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 4, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 3, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 2, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 2, EnemySet.Lane.NORTH));
-        waves.add(new Wave(enemySets));
-
-        // wave 11
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 4, EnemySet.Lane.EAST));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 2, EnemySet.Lane.EAST));
-        waves.add(new Wave(enemySets));
-
-        // wave 12
-        enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.EAST));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.EAST));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH));
-        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH));
-        waves.add(new Wave(enemySets));
-    }
-
-    public void setupRocks(String name, Rocks.Direction direction) {
-        Vector2 point = getMapObjectLocation(name);
-        entities.add(new Rocks(point.x, point.y, direction));
-    }
 
     public GameScene(GameMain game) {
         this.game = game;
@@ -175,42 +72,14 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                 GameInfo.HEIGHT
         );
 
-        setupWaves();
-
         coinsHud = new CoinsHud(this);
 
-        wavesHud = new WavesHud(this);
 
-        tiledMap = new TmxMapLoader().load("map.tmx");
-        tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap, 2);
-
-
-        MapLayer waypoint = tiledMap.getLayers().get("Waypoint");
-        MapObjects objects = waypoint.getObjects();
-
-        RectangleMapObject end = (RectangleMapObject) objects.get("End");
-        Vector2 endPoint = new Vector2(end.getRectangle().x * 2, end.getRectangle().y * 2);
-
-        RectangleMapObject playerSpawn = (RectangleMapObject) objects.get("PlayerSpawn");
-        Vector2 playerSpawnPoint = new Vector2(playerSpawn.getRectangle().x * 2, playerSpawn.getRectangle().y * 2);
-
-        setupRocks("EastRocks0", Rocks.Direction.EAST);
-        setupRocks("EastRocks1", Rocks.Direction.EAST);
-        setupRocks("EastRocks2", Rocks.Direction.EAST);
-
-        setupRocks("WestRocks0", Rocks.Direction.WEST);
-        setupRocks("WestRocks1", Rocks.Direction.WEST);
-        setupRocks("WestRocks2", Rocks.Direction.WEST);
-
-        setupRocks("SouthRocks0", Rocks.Direction.SOUTH);
-        setupRocks("SouthRocks1", Rocks.Direction.SOUTH);
-        setupRocks("SouthRocks2", Rocks.Direction.SOUTH);
-
-        DeadZone deadZone = new DeadZone(getMapObjectRectangle("NorthDeadZone"));
-        System.out.println(deadZone.getHitbox());
-        entities.add(deadZone);
-
-        player = new Player(playerSpawnPoint.x, playerSpawnPoint.y, this, this, this);
+        player = new Player(0, 0, this, this, this);
+        waveManager = new WaveManager(this, this, player);
+        mapManager = new MapManager(this, waveManager, player, this, this);
+        waveManager.setMapManager(mapManager);
+        tiledMapRenderer = new OrthogonalTiledMapRenderer(mapManager.getTiledMap(), 2);
 
         hudCamera = new OrthographicCamera();
         hudCamera.setToOrtho(
@@ -218,6 +87,11 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                 GameInfo.WIDTH,
                 GameInfo.HEIGHT
         );
+        wavesHud = new WavesHud(waveManager);
+
+        Vector2 playerStart = mapManager.getMapPoint("PlayerSpawn");
+        player.setX(playerStart.x);
+        player.setY(playerStart.y);
 
         Pixmap pixmap = new Pixmap(GameInfo.WIDTH, GameInfo.HEIGHT, Pixmap.Format.RGBA8888);
         pixmap.setColor(new Color(1, 0, 0, 0.4f));
@@ -225,156 +99,24 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         fullScreenRedFlashTexture = new Texture(pixmap);
         pixmap.dispose();
 
-        Vector2 northGuardPost = getMapObjectLocation("NorthGuardPost");
-        Vector2 northBasePost = getMapObjectLocation("NorthBasePost");
-        Vector2 barracksPoint = getMapObjectLocation("Barracks");
-        entities.add(new Barracks(barracksPoint.x, barracksPoint.y, player, this, this, northGuardPost, northBasePost, this, this));
-
-        Vector2 clericsPoint = getMapObjectLocation("Cleric");
-        entities.add(new Cleric(clericsPoint.x, clericsPoint.y, player, this, this));
-
-        Vector2 potionShopPoint = getMapObjectLocation("Potion");
-        entities.add(new PotionShop(potionShopPoint.x, potionShopPoint.y, player, this,this,this, this));
-
-        Vector2 bombShopPoint = getMapObjectLocation("BombShop");
-        entities.add(new BombShop(bombShopPoint.x, bombShopPoint.y, player, this,this,this, this));
-
-        collidableTiles = new HashSet<>();
-        collidableTiles.add(156);
-        collidableTiles.add(157);
-        collidableTiles.add(158);
-        collidableTiles.add(168);
-        collidableTiles.add(169);
-        collidableTiles.add(170);
-        collidableTiles.add(180);
-        collidableTiles.add(181);
-        collidableTiles.add(182);
-
-
-        townHall = new TownHall(endPoint.x, endPoint.y);
-        entities.add(townHall);
-
         healthBar = new HealthBar(player);
         inventory = new Inventory(player);
-        countdownHud = new CountdownHud(this);
+        countdownHud = new CountdownHud(waveManager);
         bombsHud = new BombsHud(player);
 
         compassHud = new CompassHud(this, player);
 
-        startIntermission();
+        waveManager.startIntermission();
+    }
+
+    @Override
+    public Player getPlayer() {
+        return player;
     }
 
     @Override
     public void addEntity(Entity entity) {
         entities.add(entity);
-    }
-
-    public void spawnNextWave() {
-        isOnIntermission = false;
-        final ArrowManager arrowManager = this;
-
-        if (currentWaveIndex == 10) {
-            ArrayList<Rocks> eastRocks = new ArrayList<Rocks>();
-            ArrayList<Rocks> rocks = (ArrayList<Rocks>)(List<?>)getEntitiesByType(Rocks.class);
-            for (Rocks rock : rocks) {
-                if (rock.getDirection() == Rocks.Direction.EAST) {
-                    eastRocks.add(rock);
-                }
-            }
-            forceCameraTo = eastRocks.get(1).getCenter();
-
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    ArrayList<Rocks> rocks = (ArrayList<Rocks>)(List<?>)getEntitiesByType(Rocks.class);
-                    for (Rocks rock : rocks) {
-                        if (rock.getDirection() == Rocks.Direction.EAST) {
-                            rock.remove();
-                        }
-                    }
-                }
-            }, 1.5f);
-
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    forceCameraTo = null;
-                }
-            }, 3.0f);
-        }
-
-        MapLayer waypoint = tiledMap.getLayers().get("Waypoint");
-        MapObjects objects = waypoint.getObjects();
-
-        RectangleMapObject north = (RectangleMapObject) objects.get("North");
-        Vector2 northPoint = new Vector2((int) north.getRectangle().x * 2, (int) north.getRectangle().y * 2);
-
-        RectangleMapObject south = (RectangleMapObject) objects.get("South");
-        Vector2 southPoint = new Vector2((int) south.getRectangle().x * 2, (int) south.getRectangle().y * 2);
-
-        RectangleMapObject east = (RectangleMapObject) objects.get("East");
-        Vector2 eastPoint = new Vector2((int) east.getRectangle().x * 2, (int) east.getRectangle().y * 2);
-
-        RectangleMapObject west = (RectangleMapObject) objects.get("West");
-        Vector2 westPoint = new Vector2((int) west.getRectangle().x * 2, (int) west.getRectangle().y * 2);
-
-        RectangleMapObject end = (RectangleMapObject) objects.get("End");
-        Vector2 endPoint = new Vector2((int) end.getRectangle().x * 2, (int) end.getRectangle().y * 2);
-
-        Vector2[] points = new Vector2[4];
-        points[0] = northPoint;
-        points[1] = southPoint;
-        points[2] = eastPoint;
-        points[3] = westPoint;
-
-        Wave currentWave = waves.get(currentWaveIndex);
-        for (EnemySet enemySet : currentWave.getEnemySets()) {
-            for (int i = 0; i < enemySet.getCount(); i++) {
-                int offsetSize = 200;
-                int ox = (int) (Math.random() * offsetSize) - offsetSize / 2;
-                int oy = (int) (Math.random() * offsetSize) - offsetSize / 2;
-
-                ArrayList<Vector2> pathwayCoordinates = new ArrayList<>();
-                pathwayCoordinates.add(new Vector2(endPoint.x + ox, endPoint.y + oy));
-
-                Vector2 spawnPoint;
-                switch (enemySet.getLane()) {
-                    case NORTH:
-                        spawnPoint = points[0];
-                        break;
-                    case SOUTH:
-                        spawnPoint = points[1];
-                        break;
-                    case EAST:
-                        spawnPoint = points[2];
-                        break;
-                    case WEST:
-                        spawnPoint = points[3];
-                        break;
-                    default:
-                        spawnPoint = points[0];
-                        break;
-                }
-
-                switch (enemySet.getEnemyType()) {
-                    case SOLDIER:
-                        entities.add(new Footman(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, this, this, this));
-                        break;
-                    case ARCHER:
-                        entities.add(new Archer(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, arrowManager, this, this, this));
-                        break;
-                    case HORNET:
-                        entities.add(new Hornet(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, this, this, this, this));
-                        break;
-                    case PORCUPINE:
-                        entities.add(new Porcupine(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, this, this, this));
-                        break;
-                    case BOMB_THROWER:
-                        entities.add(new BombThrower(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, this, this, this));
-                        break;
-                }
-            }
-        }
     }
 
     public ArrayList<Entity> getEnemies() {
@@ -386,13 +128,13 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     }
 
     public boolean isCollidingWithMap(Collidable collidable) {
-        TiledMapTileLayer groundLayer = (TiledMapTileLayer) tiledMap.getLayers().get("Ground");
+        TiledMapTileLayer groundLayer = (TiledMapTileLayer) mapManager.getTiledMap().getLayers().get("Ground");
         for (int j = 0; j < groundLayer.getHeight(); j++) {
             for (int i = 0; i < groundLayer.getWidth(); i++) {
                 TiledMapTileLayer.Cell cell = groundLayer.getCell(j, i);
                 if (cell != null) {
                     int id = cell.getTile().getId() - 1;
-                    if (collidableTiles.contains(id)) {
+                    if (mapManager.getCollidableTiles().contains(id)) {
                         Rectangle tileRectangle = new Rectangle(j * 32, i * 32, 32, 32);
                         Rectangle playerRectangle = collidable.getHitbox();
 
@@ -439,6 +181,10 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         }
     }
 
+    public void setForceCameraTo(Vector2 forceCameraTo) {
+        this.forceCameraTo = forceCameraTo;
+    }
+
     public void update(float delta) {
         float originalX = player.getX();
         float originalY = player.getY();
@@ -454,8 +200,8 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         player.update(delta);
 
-        if (enter && isOnIntermission()) {
-            spawnNextWave();
+        if (enter && waveManager.isOnIntermission()) {
+            waveManager.spawnNextWave();
         }
 
         if (bombInput && player.hasBombs()) {
@@ -510,16 +256,15 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
             game.showMainMenuScene();
         }
 
-        if (townHall.isDead()) {
+        if (((TownHall) getEntityByType(TownHall.class)).isDead()) {
             game.showMainMenuScene();
         }
 
-        if (!isOnIntermission && getEntitiesByType(Enemy.class).size() <= 0) {
-            currentWaveIndex++;
-            if (currentWaveIndex >= waves.size()) {
+        if (!waveManager.isOnIntermission() && getEntitiesByType(Enemy.class).size() <= 0) {
+            if (waveManager.isOnFinalWave()) {
                 game.showWinScreen();
             } else {
-                startIntermission();
+                waveManager.startIntermission();
             }
         }
 
@@ -567,7 +312,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         bombsHud.draw(batch);
         compassHud.draw(batch);
 
-        if (isOnIntermission) {
+        if (waveManager.isOnIntermission()) {
             countdownHud.draw(batch);
         }
     }
@@ -595,7 +340,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     @Override
     public void dispose() {
         player.getTexture().dispose();
-        tiledMap.dispose();
     }
 
     @Override
@@ -634,25 +378,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         entities.add(new Arrow(x, y, angle, player, this));
     }
 
-    @Override
-    public int getCurrentWave() {
-        return currentWaveIndex + 1;
-    }
-
-    @Override
-    public int getSecondsUntilNextWave() {
-        return secondsUntilNextWave;
-    }
-
-    @Override
-    public void startIntermission() {
-        isOnIntermission = true;
-    }
-
-    @Override
-    public boolean isOnIntermission() {
-        return isOnIntermission;
-    }
 
     @Override
     public void createCoin(float x, float y) {
@@ -686,9 +411,9 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     }
 
     @Override
-    public Entity getEntityByType(String className) {
+    public Entity getEntityByType(Class clazz) {
         for (Entity entity : entities) {
-            if (entity.getClass().getName().equals(className)) {
+            if (clazz.isInstance(entity)) {
                 return entity;
             }
         }

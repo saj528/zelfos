@@ -77,7 +77,7 @@ public class Melee implements UpdateLogic {
             return;
         }
 
-        TownHall townHall = (TownHall) entityManager.getEntityByType(TownHall.class.getName());
+        TownHall townHall = (TownHall) entityManager.getEntityByType(TownHall.class);
         float dist = Geom.distanceBetween(enemy, townHall);
         if (dist <= PURSUE_DISTANCE) {
             state = State.PURSUE;

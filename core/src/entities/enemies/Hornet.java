@@ -50,7 +50,7 @@ public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable,
         entityManager.addEntity(new Stinger(getX(), getY(), angle, player, collisionManager));
     }
 
-    public Hornet(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, ArrowManager arrowManager, CoinManager coinManager, EntityManager entityManager, CollisionManager collisionManager) {
+    public Hornet(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, CoinManager coinManager, EntityManager entityManager, CollisionManager collisionManager) {
         Texture hornetSheet = new Texture("hornet.png");
         TextureRegion[][] hornetRegions = TextureRegion.split(hornetSheet,
                 hornetSheet.getWidth() / 2,
