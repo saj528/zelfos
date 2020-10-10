@@ -21,6 +21,7 @@ import com.zelfos.game.GameMain;
 import entities.*;
 import entities.enemies.*;
 import entities.structures.*;
+import helpers.AmbientShader;
 import hud.*;
 import helpers.GameInfo;
 
@@ -45,6 +46,7 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
     private int secondsUntilNextWave = INTERMISSION_TIME;
     private final HealthBar healthBar;
     private Vector2 forceCameraTo;
+    private ExperienceHud experienceHud;
     private final Inventory inventory;
     private int totalCoins = 0;
     private int currentWaveIndex = 0;
@@ -70,7 +72,7 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
         waveManager = new WaveManager(this, this, player);
         mapManager = new MapManager(this, waveManager, player, this, this);
         waveManager.setMapManager(mapManager);
-        tiledMapRenderer = new OrthogonalTiledMapRenderer(mapManager.getTiledMap(), 2);
+        tiledMapRenderer = new OrthogonalTiledMapRenderer(mapManager.getTiledMap(), 2, game.getBatch());
 
         hudCamera = new OrthographicCamera();
         hudCamera.setToOrtho(
@@ -79,6 +81,7 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
                 GameInfo.HEIGHT
         );
         wavesHud = new WavesHud(waveManager);
+        experienceHud = new ExperienceHud(player);
 
         Vector2 playerStart = mapManager.getMapPoint("PlayerSpawn");
         player.setX(playerStart.x);
@@ -157,15 +160,33 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
     }
 
     public void removeDeadEntities(ArrayList killables) {
-        Iterator iterator = killables.iterator();
-        while (iterator.hasNext()) {
-            Object next = iterator.next();
+        int size = killables.size();
+        for (int i = size - 1; i >= 0; i--) {
+            Object next = killables.get(i);
             if (next instanceof Killable) {
                 if (((Killable) next).isDead()) {
-                    iterator.remove();
+                    killables.remove(i);
+                    if (next instanceof Enemy) {
+                        player.addExperience(10);
+                        addEntity(new ExperienceParticle(player.getX(), player.getY(), 10));
+                    }
                 }
             }
         }
+
+//        Iterator iterator = killables.iterator();
+//        while (iterator.hasNext()) {
+//            Object next = iterator.next();
+//            if (next instanceof Killable) {
+//                if (((Killable) next).isDead()) {
+//                    iterator.remove();
+//                    if (next instanceof Enemy) {
+//                        player.addExperience(10);
+//                        addEntity(new ExperienceParticle(player.getX(), player.getY(), 10));
+//                    }
+//                }
+//            }
+//        }
     }
 
     public void setForceCameraTo(Vector2 forceCameraTo) {
@@ -270,8 +291,8 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
         Gdx.gl.glClearColor(0, 1, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.setProjectionMatrix(camera.combined);
-        batch.setShader(null);
 
+//        batch.setShader(AmbientShader.shaderProgram);
         tiledMapRenderer.setView(camera);
         tiledMapRenderer.render();
 
@@ -298,6 +319,7 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
         coinsHud.draw(batch);
         bombsHud.draw(batch);
         compassHud.draw(batch);
+        experienceHud.draw(batch);
 
         if (waveManager.isOnIntermission()) {
             countdownHud.draw(batch);

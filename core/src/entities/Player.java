@@ -63,6 +63,8 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private boolean isFacingLeft = false;
     private boolean isFacingRight = false;
     private boolean isRolling = false;
+    private int level = 1;
+    private int experience = 0;
     private boolean isRunning = false;
     private boolean canDropBomb = true;
     private float ATTACK_OFFSET = 0.05f;
@@ -148,6 +150,26 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         this.entityManager = entityManager;
         this.flashRedManager = flashRedManager;
         shouldFlashRed = false;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public int getExperience() {
+        return experience;
+    }
+
+    public int getExperienceUntilNextLevel() {
+        return (int)Math.pow(5, level) + 25;
+    }
+
+    public void addExperience(int amount) {
+        experience += amount;
+        if (experience >= getExperienceUntilNextLevel()) {
+            experience = 0;
+            level++;
+        }
     }
 
     public int getLives() {
