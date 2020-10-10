@@ -3,6 +3,7 @@ package hud;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import helpers.GameInfo;
 import scenes.game.WaveManager;
 
@@ -15,9 +16,15 @@ public class CountdownHud {
     }
 
     public void draw(Batch batch) {
-        batch.begin();
-        font.setColor(new Color(0, 0, 1, 1));
-        font.draw(batch, "Next wave in " + waveManager.getSecondsUntilNextWave() + " seconds!", GameInfo.WIDTH / 2, GameInfo.HEIGHT - 60);
-        batch.end();
+        String text = "Press ENTER to start the next wave!";
+        if (waveManager.isOnIntermission()) {
+            GlyphLayout glyphLayout = new GlyphLayout();
+            glyphLayout.setText(font, text);
+
+            batch.begin();
+            font.setColor(new Color(1, 0, 0, 1));
+            font.draw(batch, text, GameInfo.WIDTH / 2 - glyphLayout.width / 2, GameInfo.HEIGHT - glyphLayout.height - 5);
+            batch.end();
+        }
     }
 }

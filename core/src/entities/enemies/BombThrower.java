@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.*;
+import entities.enemies.logic.Range;
 import entities.projectile.GoblinBomb;
 import helpers.Debug;
 import helpers.RedShader;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 
 import static java.lang.Math.sqrt;
 
-public class BombThrower extends Sprite implements Enemy, Knockable, Entity, Damageable, Collidable {
+public class BombThrower extends Sprite implements Enemy, Knockable, Entity, Damageable, Collidable, Ranged {
 
     private final CoinManager coinManager;
     private final CollisionManager collisionManager;
@@ -29,31 +30,16 @@ public class BombThrower extends Sprite implements Enemy, Knockable, Entity, Dam
     private boolean isRed = false;
     public final int SPEED = 1;
     private int DAMAGE = 1;
-    private float current_point_y;
-    boolean startOfGame = true;
-    private State state;
-    private float distanceToPursue = 300;
-    private Vector2 nextPointToWalkTowards;
-    private ArrayList<Vector2> pathwayCoordinates;
-    private float ATTACK_DELAY = 0.9f;
-    private int pathCounter = 1;
+    private float ATTACK_DELAY = 2.0f;
     private Player player;
-    private boolean canAttack = true;
     private int ATTACK_RANGE = 250;
     private final float WALK_ANIMATION_SPEED = 0.13f;
     private final float ATTACK_ANIMATION_SPEED = 0.15f;
-    private final float ATTACK_COOLDOWN = 3f;
     private Animation<TextureRegion> attackAnimation;
     private Animation<TextureRegion> walkAnimation;
     private float attackTime = 0f;
     private float walkTime = 0f;
-
-    private enum State {
-        WALK,
-        PURSUE,
-        ATTACK,
-        DEAD,
-    }
+    private Range updateLogic;
 
     public BombThrower(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, EntityManager entityManager, CoinManager coinManager, CollisionManager collisionManager) {
         super(new Texture("archer_walking_6.png"), 0, 0, 32, 32);
@@ -62,11 +48,9 @@ public class BombThrower extends Sprite implements Enemy, Knockable, Entity, Dam
         attackTime = 0;
         walkTime = 0;
         this.coinManager = coinManager;
-        this.nextPointToWalkTowards = pathwayCoordinates.get(0);
-        this.pathwayCoordinates = pathwayCoordinates;
         this.player = player;
         this.entityManager = entityManager;
-        this.state = State.WALK;
+        updateLogic = new Range(this, entityManager, player, pathwayCoordinates, collisionManager);
         initTextures();
     }
 
@@ -117,114 +101,13 @@ public class BombThrower extends Sprite implements Enemy, Knockable, Entity, Dam
     }
 
 
-    private void fireArrow() {
-        if (canAttack) {
-            attackTime = 0f;
-            canAttack = false;
-
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    if (isDead()) return;
-                    Vector2 playerCenter = player.getCenter();
-                    float dy = playerCenter.y - getCenter().y;
-                    float dx = playerCenter.x - getCenter().x;
-                    final float angle = (float)Math.atan2(dy, dx);
-                    entityManager.addEntity(new GoblinBomb(getCenter().x, getCenter().y, player.getCenter(), entityManager, player, collisionManager));
-                }
-            }, ATTACK_DELAY);
-
-
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    canAttack = true;
-                }
-            }, ATTACK_COOLDOWN);
-        }
-
-        double distanceEnemyPlayer = Geom.distanceBetween(this, player);
-        if(distanceEnemyPlayer > ATTACK_RANGE){
-            state = State.PURSUE;
-        }
-    }
-
     @Override
-    public void update(float delta){
+    public void update(float delta) {
         attackTime += delta;
         walkTime += delta;
-        switch(state){
-            case WALK:
-                walkToEnd();
-                break;
-            case DEAD:
-                isDead = true;
-                break;
-            case PURSUE:
-                pursuePlayer();
-                break;
-            case ATTACK:
-                fireArrow();
-                break;
-        }
+        updateLogic.update(delta);
     }
 
-
-    private void walkToEnd() {
-
-        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
-        if(distanceEnemyPlayer <= distanceToPursue){
-            state = State.PURSUE;
-            return;
-        }
-        double distanceFromCurrentPathGoal = sqrt((getX() - nextPointToWalkTowards.x) * (getX()-nextPointToWalkTowards.x) + (getY()-nextPointToWalkTowards.y) * (getY()-nextPointToWalkTowards.y));
-
-        if(distanceFromCurrentPathGoal <= 10){
-            if(pathwayCoordinates.size() > pathCounter){
-                nextPointToWalkTowards.y = pathwayCoordinates.get(pathCounter).y;
-                nextPointToWalkTowards.x = pathwayCoordinates.get(pathCounter).x;
-                pathCounter++;
-            }else{
-                state = State.DEAD;
-                return;
-            }
-        }
-        if(getY() < nextPointToWalkTowards.y) {
-            setY(getY() + SPEED);
-        }else if(getY() > nextPointToWalkTowards.y){
-            setY(getY() - SPEED);
-        }
-        if(getX() < nextPointToWalkTowards.x){
-            setX(getX() + SPEED);
-        }else if(getX() > nextPointToWalkTowards.x){
-            setX(getX() - SPEED);
-        }
-    }
-
-    private void pursuePlayer(){
-        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
-        if(distanceEnemyPlayer > distanceToPursue){
-            state = State.WALK;
-            return;
-        }
-
-        if (distanceEnemyPlayer <= ATTACK_RANGE - 30) {
-            state = State.ATTACK;
-            attackTime = 0f;
-            return;
-        }
-
-        if(getY() < player.getY()) {
-            setY(getY() + SPEED);
-        }else if(getY() > player.getY()){
-            setY(getY() - SPEED);
-        }
-        if(getX() < player.getX()){
-            setX(getX() + SPEED);
-        }else if(getX() > player.getX()){
-            setX(getX() - SPEED);
-        }
-    }
 
     public void damage(int amount) {
         health -= amount;
@@ -245,27 +128,27 @@ public class BombThrower extends Sprite implements Enemy, Knockable, Entity, Dam
 
     @Override
     public int getDamage() {
-        return 0;
+        return DAMAGE;
     }
 
     @Override
     public float getAttackDelay() {
-        return 0;
+        return ATTACK_DELAY;
     }
 
     @Override
     public float getAttackRange() {
-        return 0;
+        return ATTACK_RANGE;
     }
 
     @Override
     public float getSpeed() {
-        return 0;
+        return SPEED;
     }
 
     @Override
     public void onAttackStart() {
-
+        attackTime = 0f;
     }
 
     @Override
@@ -276,9 +159,9 @@ public class BombThrower extends Sprite implements Enemy, Knockable, Entity, Dam
             batch.setShader(null);
         }
         batch.begin();
-        if(state == State.WALK || state == State.PURSUE){
+        if (updateLogic.getState() == Range.State.WALK || updateLogic.getState() == Range.State.PURSUE) {
             batch.draw(walkAnimation.getKeyFrame(walkTime, true), getX(), getY());
-        }else if(state == State.ATTACK){
+        } else if (updateLogic.getState() == Range.State.ATTACK) {
             batch.draw(attackAnimation.getKeyFrame(attackTime, false), getX(), getY());
         }
         batch.end();
@@ -290,6 +173,11 @@ public class BombThrower extends Sprite implements Enemy, Knockable, Entity, Dam
         return isDead;
     }
 
-    public void dispose(){
+    public void dispose() {
+    }
+
+    @Override
+    public void fireProjectile(Entity target) {
+        entityManager.addEntity(new GoblinBomb(getCenter().x, getCenter().y, player.getCenter(), entityManager, player, collisionManager));
     }
 }

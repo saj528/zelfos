@@ -14,6 +14,7 @@ import entities.Entity;
 import entities.Mercenary;
 import entities.Player;
 import helpers.GameInfo;
+import helpers.WhiteShader;
 import scenes.game.*;
 
 import java.util.ArrayList;
@@ -80,6 +81,7 @@ public class Barracks implements Entity, Collidable {
 
     @Override
     public void update(float delta) {
+        if (!waveManager.isOnIntermission()) return;
         showText = false;
 
         float dist = Geom.distanceBetween(player, this);
@@ -108,11 +110,15 @@ public class Barracks implements Entity, Collidable {
 
     @Override
     public void draw(Batch batch, ShapeRenderer shapeRenderer) {
+        if (!waveManager.isOnIntermission()) {
+            batch.setShader(WhiteShader.shaderProgram);
+        }
         batch.begin();
         batch.draw(barracks, x, y);
         batch.end();
+        batch.setShader(null);
 
-        if (showText) {
+        if (showText && waveManager.isOnIntermission()) {
             batch.begin();
             if (canBuy()) {
                 font.setColor(new Color(0, 1, 0, 1));

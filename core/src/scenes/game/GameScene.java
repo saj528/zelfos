@@ -34,6 +34,7 @@ import particles.Particle;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, FlashRedManager, ArrowManager, WaveManager, CoinManager, EntityManager, CollisionManager, ParticleManager {
 
@@ -56,6 +57,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     private final int INTERMISSION_TIME = 10;
     private int secondsUntilNextWave = INTERMISSION_TIME;
     private final HealthBar healthBar;
+    private Vector2 forceCameraTo;
     private final Inventory inventory;
     private int totalCoins = 0;
     private int currentWaveIndex = 0;
@@ -89,7 +91,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
 
         // wave 1
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.WIZARD, 1, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.BOMB_THROWER, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         // wave 2
@@ -149,14 +151,23 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         waves.add(new Wave(enemySets));
 
         // wave 11
-//        enemySets = new ArrayList<>();
-//        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 5, EnemySet.Lane.NORTH));
-//        waves.add(new Wave(enemySets));
+        enemySets = new ArrayList<>();
+        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 4, EnemySet.Lane.EAST));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 2, EnemySet.Lane.EAST));
+        waves.add(new Wave(enemySets));
+
+        // wave 12
+        enemySets = new ArrayList<>();
+        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.EAST));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.EAST));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH));
+        waves.add(new Wave(enemySets));
     }
 
-    public void setupRocks(String name) {
+    public void setupRocks(String name, Rocks.Direction direction) {
         Vector2 point = getMapObjectLocation(name);
-        entities.add(new Rocks(point.x, point.y));
+        entities.add(new Rocks(point.x, point.y, direction));
     }
 
     public GameScene(GameMain game) {
@@ -187,17 +198,17 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         RectangleMapObject playerSpawn = (RectangleMapObject) objects.get("PlayerSpawn");
         Vector2 playerSpawnPoint = new Vector2(playerSpawn.getRectangle().x * 2, playerSpawn.getRectangle().y * 2);
 
-        setupRocks("EastRocks0");
-        setupRocks("EastRocks1");
-        setupRocks("EastRocks2");
+        setupRocks("EastRocks0", Rocks.Direction.EAST);
+        setupRocks("EastRocks1", Rocks.Direction.EAST);
+        setupRocks("EastRocks2", Rocks.Direction.EAST);
 
-        setupRocks("WestRocks0");
-        setupRocks("WestRocks1");
-        setupRocks("WestRocks2");
+        setupRocks("WestRocks0", Rocks.Direction.WEST);
+        setupRocks("WestRocks1", Rocks.Direction.WEST);
+        setupRocks("WestRocks2", Rocks.Direction.WEST);
 
-        setupRocks("SouthRocks0");
-        setupRocks("SouthRocks1");
-        setupRocks("SouthRocks2");
+        setupRocks("SouthRocks0", Rocks.Direction.SOUTH);
+        setupRocks("SouthRocks1", Rocks.Direction.SOUTH);
+        setupRocks("SouthRocks2", Rocks.Direction.SOUTH);
 
         DeadZone deadZone = new DeadZone(getMapObjectRectangle("NorthDeadZone"));
         System.out.println(deadZone.getHitbox());
@@ -237,13 +248,13 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         entities.add(new Barracks(barracksPoint.x, barracksPoint.y, player, this, this, northGuardPost, northBasePost, this, this));
 
         Vector2 clericsPoint = getMapObjectLocation("Cleric");
-        entities.add(new Cleric(clericsPoint.x, clericsPoint.y, player, this));
+        entities.add(new Cleric(clericsPoint.x, clericsPoint.y, player, this, this));
 
         Vector2 potionShopPoint = getMapObjectLocation("Potion");
-        entities.add(new PotionShop(potionShopPoint.x, potionShopPoint.y, player, this,this,this));
+        entities.add(new PotionShop(potionShopPoint.x, potionShopPoint.y, player, this,this,this, this));
 
         Vector2 bombShopPoint = getMapObjectLocation("BombShop");
-        entities.add(new BombShop(bombShopPoint.x, bombShopPoint.y, player, this,this,this));
+        entities.add(new BombShop(bombShopPoint.x, bombShopPoint.y, player, this,this,this, this));
 
         collidableTiles = new HashSet<>();
         collidableTiles.add(156);
@@ -277,7 +288,38 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     }
 
     public void spawnNextWave() {
+        isOnIntermission = false;
         final ArrowManager arrowManager = this;
+
+        if (currentWaveIndex == 10) {
+            ArrayList<Rocks> eastRocks = new ArrayList<Rocks>();
+            ArrayList<Rocks> rocks = (ArrayList<Rocks>)(List<?>)getEntitiesByType(Rocks.class);
+            for (Rocks rock : rocks) {
+                if (rock.getDirection() == Rocks.Direction.EAST) {
+                    eastRocks.add(rock);
+                }
+            }
+            forceCameraTo = eastRocks.get(1).getCenter();
+
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+                    ArrayList<Rocks> rocks = (ArrayList<Rocks>)(List<?>)getEntitiesByType(Rocks.class);
+                    for (Rocks rock : rocks) {
+                        if (rock.getDirection() == Rocks.Direction.EAST) {
+                            rock.remove();
+                        }
+                    }
+                }
+            }, 1.5f);
+
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+                    forceCameraTo = null;
+                }
+            }, 3.0f);
+        }
 
         MapLayer waypoint = tiledMap.getLayers().get("Waypoint");
         MapObjects objects = waypoint.getObjects();
@@ -337,7 +379,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                         entities.add(new Footman(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, this, this, this));
                         break;
                     case ARCHER:
-                        entities.add(new Archer(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, arrowManager, this));
+                        entities.add(new Archer(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, arrowManager, this, this, this));
                         break;
                     case HORNET:
                         entities.add(new Hornet(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, this, this, this, this));
@@ -345,7 +387,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                     case PORCUPINE:
                         entities.add(new Porcupine(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, this, this, this));
                         break;
-                    case WIZARD:
+                    case BOMB_THROWER:
                         entities.add(new BombThrower(spawnPoint.x + ox, spawnPoint.y + oy, pathwayCoordinates, player, this, this, this));
                         break;
                 }
@@ -424,10 +466,15 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         boolean right = Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D);
         boolean up = Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W);
         boolean down = Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S);
+        boolean enter = Gdx.input.isKeyPressed(Input.Keys.ENTER);
         boolean bombInput = Gdx.input.isKeyPressed(Input.Keys.B);
         boolean shift = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT);
 
         player.update(delta);
+
+        if (enter && isOnIntermission()) {
+            spawnNextWave();
+        }
 
         if (bombInput && player.hasBombs()) {
             player.dropBomb(this);
@@ -484,8 +531,13 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         removeDeadEntities(particles);
         removeDeadEntities(entities);
 
-        camera.position.x = player.getX();
-        camera.position.y = player.getY();
+        if (forceCameraTo != null) {
+            camera.position.x = forceCameraTo.x;
+            camera.position.y = forceCameraTo.y;
+        } else {
+            camera.position.x = player.getX();
+            camera.position.y = player.getY();
+        }
         camera.update();
 
         if (player.isDead()) {
@@ -649,23 +701,23 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
     @Override
     public void startIntermission() {
         isOnIntermission = true;
-        secondsUntilNextWave = INTERMISSION_TIME;
+//        secondsUntilNextWave = INTERMISSION_TIME;
 
-        final Timer.Task countdown = Timer.schedule(new Timer.Task() {
-            @Override
-            public void run() {
-                secondsUntilNextWave--;
-            }
-        }, 0f, 1.0f);
-
-        Timer.schedule(new Timer.Task() {
-            @Override
-            public void run() {
-                isOnIntermission = false;
-                countdown.cancel();
-                spawnNextWave();
-            }
-        }, INTERMISSION_TIME);
+//        final Timer.Task countdown = Timer.schedule(new Timer.Task() {
+//            @Override
+//            public void run() {
+//                secondsUntilNextWave--;
+//            }
+//        }, 0f, 1.0f);
+//
+//        Timer.schedule(new Timer.Task() {
+//            @Override
+//            public void run() {
+//                isOnIntermission = false;
+//                countdown.cancel();
+//                spawnNextWave();
+//            }
+//        }, INTERMISSION_TIME);
     }
 
     @Override

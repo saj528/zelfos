@@ -23,8 +23,8 @@ public class DamageParticle implements Particle, Killable {
         this.amount = amount;
         this.x = x;
         this.y = y;
-        this.vy = 7f;
-        this.vx = 3f;
+        this.vy = 9f;
+        this.vx = (float)(Math.random() * 6f - 3f);
         this.isDead = false;
 
         Timer.schedule(new Timer.Task() {
@@ -37,14 +37,14 @@ public class DamageParticle implements Particle, Killable {
 
     public void draw(Batch batch, ShapeRenderer shapeRenderer) {
         batch.begin();
-        font.setColor(new Color(1, 1, 1, 1));
-        font.getData().setScale(2);
+        font.setColor(new Color(1, 0, 0, 1));
+        font.getData().setScale(1.7f);
         font.draw(batch, amount + "", x, y);
         batch.end();
     }
 
     public void update(float delta) {
-        this.vy -= 0.3f;
+        this.vy -= 0.2f;
         this.y += this.vy;
         this.x += this.vx;
     }

@@ -12,6 +12,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.Entity;
 import entities.Player;
+import helpers.WhiteShader;
 import scenes.game.*;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class BombShop implements Entity, Collidable {
     private final CoinManager coinManager;
     private final EntityManager entityManager;
     private final CollisionManager collisionManager;
+    private final WaveManager waveManager;
     private float x;
     private float y;
     private int COST = 4;
@@ -29,9 +31,10 @@ public class BombShop implements Entity, Collidable {
     private Texture bombShop;
     BitmapFont font = new BitmapFont();
 
-    public BombShop(float x, float y, Player player, CoinManager coinManager, EntityManager entityManager, CollisionManager collisionManager) {
+    public BombShop(float x, float y, Player player, CoinManager coinManager, EntityManager entityManager, CollisionManager collisionManager, WaveManager waveManager) {
         this.x = x;
         this.y = y;
+        this.waveManager = waveManager;
         this.entityManager = entityManager;
         this.coinManager = coinManager;
         this.collisionManager = collisionManager;
@@ -71,6 +74,8 @@ public class BombShop implements Entity, Collidable {
 
     @Override
     public void update(float delta) {
+        if (!waveManager.isOnIntermission()) return;
+
         showText = false;
 
         float dist = Geom.distanceBetween(player, this);
@@ -100,11 +105,15 @@ public class BombShop implements Entity, Collidable {
 
     @Override
     public void draw(Batch batch, ShapeRenderer shapeRenderer) {
+        if (!waveManager.isOnIntermission()) {
+            batch.setShader(WhiteShader.shaderProgram);
+        }
         batch.begin();
         batch.draw(bombShop, x, y);
         batch.end();
+        batch.setShader(null);
 
-        if (showText) {
+        if (showText && waveManager.isOnIntermission()) {
             batch.begin();
             if (canBuy()) {
                 font.setColor(new Color(0, 1, 0, 1));

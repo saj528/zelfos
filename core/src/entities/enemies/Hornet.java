@@ -9,27 +9,25 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.*;
+import entities.enemies.logic.Range;
 import helpers.Debug;
 import helpers.RedShader;
 import scenes.game.*;
 
 import java.util.ArrayList;
 
-import static java.lang.Math.sqrt;
 
-public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable {
+public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable, Ranged {
 
     private final CoinManager coinManager;
     private final EntityManager entityManager;
     private final CollisionManager collisionManager;
-    private ArrowManager arrowManager;
     private int health = 1;
     private boolean isDead = false;
     private boolean isRed = false;
     public final float SPEED = 1.3f;
     private int DAMAGE = 1;
-    boolean startOfGame = true;
-    private State state;
+    private Range updateLogic;
     private float x;
     private float y;
     private float distanceToPursue = 200;
@@ -43,12 +41,12 @@ public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable 
     private boolean canAttack = true;
     private int ATTACK_RANGE = 150;
 
-
-    private enum State {
-        WALK,
-        PURSUE,
-        ATTACK,
-        DEAD,
+    @Override
+    public void fireProjectile(Entity target) {
+        float dy = target.getY() - getY();
+        float dx = target.getX() - getX();
+        float angle = (float) Math.atan2(dy, dx);
+        entityManager.addEntity(new Stinger(getX(), getY(), angle, player, collisionManager));
     }
 
     public Hornet(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, ArrowManager arrowManager, CoinManager coinManager, EntityManager entityManager, CollisionManager collisionManager) {
@@ -64,6 +62,7 @@ public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable 
         walkTime = 0;
         setX(x);
         setY(y);
+        this.updateLogic = new Range(this, entityManager, player, pathwayCoordinates, collisionManager);
         this.coinManager = coinManager;
         this.collisionManager = collisionManager;
         this.nextPointToWalkTowards = pathwayCoordinates.get(0);
@@ -102,110 +101,11 @@ public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable 
         return getBoundingRectangle();
     }
 
-    public void stateMachine(State state) {
-        this.state = state;
-        switch (state) {
-            case WALK: // walk to end point
-                walkToEnd();
-                break;
-            case DEAD:
-                isDead = true;
-                break;
-            case PURSUE:
-                pursuePlayer();
-                break;
-            case ATTACK:
-                fireArrow();
-                break;
-        }
-    }
-
-
-    private void fireArrow() {
-        if (canAttack) {
-            Vector2 playerCenter = new Vector2(0, 0);
-            player.getBoundingRectangle().getCenter(playerCenter);
-            float dy = playerCenter.y - getY();
-            float dx = playerCenter.x - getX();
-            float angle = (float) Math.atan2(dy, dx);
-            entityManager.addEntity(new Stinger(getX(), getY(), angle, player, collisionManager));
-            canAttack = false;
-
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    canAttack = true;
-                }
-            }, ATTACK_DELAY);
-        }
-
-        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX() - player.getX()) + (getY() - player.getY()) * (getY() - player.getY()));
-        if (distanceEnemyPlayer > ATTACK_RANGE) {
-            stateMachine(State.PURSUE);
-        }
-    }
 
     @Override
     public void update(float delta) {
         walkTime += delta;
-        if (startOfGame) {
-            startOfGame = false;
-            stateMachine(State.WALK);
-        } else {
-            stateMachine(state);
-        }
-    }
-
-    private void walkToEnd() {
-
-        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX() - player.getX()) + (getY() - player.getY()) * (getY() - player.getY()));
-        if (distanceEnemyPlayer <= distanceToPursue) {
-            stateMachine(State.PURSUE);
-        }
-        double distanceFromCurrentPathGoal = sqrt((getX() - nextPointToWalkTowards.x) * (getX() - nextPointToWalkTowards.x) + (getY() - nextPointToWalkTowards.y) * (getY() - nextPointToWalkTowards.y));
-
-        if (distanceFromCurrentPathGoal <= 10) {
-            if (pathwayCoordinates.size() > pathCounter) {
-                nextPointToWalkTowards.y = pathwayCoordinates.get(pathCounter).y;
-                nextPointToWalkTowards.x = pathwayCoordinates.get(pathCounter).x;
-                pathCounter++;
-            } else {
-                stateMachine(State.DEAD);
-                return;
-            }
-        }
-        if (getY() < nextPointToWalkTowards.y) {
-            setY(getY() + SPEED);
-        } else if (getY() > nextPointToWalkTowards.y) {
-            setY(getY() - SPEED);
-        }
-        if (getX() < nextPointToWalkTowards.x) {
-            setX(getX() + SPEED);
-        } else if (getX() > nextPointToWalkTowards.x) {
-            setX(getX() - SPEED);
-        }
-    }
-
-    private void pursuePlayer() {
-        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX() - player.getX()) + (getY() - player.getY()) * (getY() - player.getY()));
-        if (distanceEnemyPlayer > distanceToPursue) {
-            stateMachine(State.WALK);
-        }
-
-        if (distanceEnemyPlayer <= ATTACK_RANGE) {
-            stateMachine(State.ATTACK);
-        }
-
-        if (getY() < player.getY()) {
-            setY(getY() + SPEED);
-        } else if (getY() > player.getY()) {
-            setY(getY() - SPEED);
-        }
-        if (getX() < player.getX()) {
-            setX(getX() + SPEED);
-        } else if (getX() > player.getX()) {
-            setX(getX() - SPEED);
-        }
+        updateLogic.update(delta);
     }
 
     public void damage(int amount) {
@@ -257,27 +157,26 @@ public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable 
 
     @Override
     public int getDamage() {
-        return 0;
+        return DAMAGE;
     }
 
     @Override
     public float getAttackDelay() {
-        return 0;
+        return ATTACK_DELAY;
     }
 
     @Override
     public float getAttackRange() {
-        return 0;
+        return ATTACK_RANGE;
     }
 
     @Override
     public float getSpeed() {
-        return 0;
+        return SPEED;
     }
 
     @Override
     public void onAttackStart() {
-
     }
 
     @Override

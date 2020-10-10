@@ -11,18 +11,40 @@ import scenes.game.Geom;
 
 import java.util.ArrayList;
 
-public class Rocks implements Entity, Collidable {
+public class Rocks implements Entity, Collidable, Killable {
 
+    private final Direction direction;
     private Sprite rocksSprite;
     private float x;
     private float y;
+    private boolean isDead;
 
-    public Rocks(float x, float y) {
+    @Override
+    public boolean isDead() {
+        return isDead;
+    }
+
+    public void remove() {
+        isDead = true;
+    }
+
+    public enum Direction {
+        NORTH,
+        SOUTH,
+        EAST,
+        WEST
+    }
+
+    public Rocks(float x, float y, Direction direction) {
         rocksSprite = new Sprite(new Texture("rocks.png"));
         this.x = x - rocksSprite.getWidth() / 2f;
         this.y = y - rocksSprite.getHeight() / 2f;
+        this.direction = direction;
     }
 
+    public Direction getDirection() {
+        return direction;
+    }
 
     @Override
     public ArrayList<Class> getIgnoreClassList() {

@@ -11,9 +11,11 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.Entity;
 import entities.Player;
+import helpers.WhiteShader;
 import scenes.game.CoinManager;
 import scenes.game.Collidable;
 import scenes.game.Geom;
+import scenes.game.WaveManager;
 
 import java.util.ArrayList;
 
@@ -22,6 +24,7 @@ public class Cleric implements Entity, Collidable {
     private static final float ANIMATION_SPEED = 0.5f;
     private final Player player;
     private final CoinManager coinManager;
+    private final WaveManager waveManager;
     private Animation<TextureRegion> clericHealingAnime;
     private Animation<TextureRegion> clericIdleAnime;
     private float x;
@@ -36,10 +39,11 @@ public class Cleric implements Entity, Collidable {
     BitmapFont font = new BitmapFont();
 
 
-    public Cleric(float x, float y, Player player, CoinManager coinManager) {
+    public Cleric(float x, float y, Player player, CoinManager coinManager, WaveManager waveManager) {
         this.x = x;
         this.y = y;
         this.coinManager = coinManager;
+        this.waveManager = waveManager;
         this.player = player;
         cleric = new Texture("clericIdle.png");
         initTextures();
@@ -91,6 +95,7 @@ public class Cleric implements Entity, Collidable {
 
     @Override
     public void update(float delta) {
+        if (!waveManager.isOnIntermission()) return;
         showText = false;
         healingTime += delta;
         float dist = Geom.distanceBetween(player, this);
@@ -126,6 +131,9 @@ public class Cleric implements Entity, Collidable {
 
     @Override
     public void draw(Batch batch, ShapeRenderer shapeRenderer) {
+        if (!waveManager.isOnIntermission()) {
+            batch.setShader(WhiteShader.shaderProgram);
+        }
         batch.begin();
         if (currentlyHealing) {
             batch.draw(clericHealingAnime.getKeyFrame(healingTime, true), getX(), getY());
@@ -139,8 +147,9 @@ public class Cleric implements Entity, Collidable {
             batch.draw(cleric, x, y);
         }
         batch.end();
+        batch.setShader(null);
 
-        if (showText) {
+        if (showText && waveManager.isOnIntermission()) {
             batch.begin();
             if (canBuy()) {
                 font.setColor(new Color(0, 1, 0, 1));

@@ -10,61 +10,54 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.*;
+import entities.enemies.logic.Range;
 import helpers.Debug;
 import helpers.RedShader;
 import scenes.game.*;
 
 import java.util.ArrayList;
 
-import static java.lang.Math.sqrt;
-
-public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageable, Collidable {
+public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageable, Collidable, Ranged {
 
     private final CoinManager coinManager;
-    private ArrowManager arrowManager;
+    private final CollisionManager collisionManager;
+    private final EntityManager entityManager;
     private int health = 3;
     private boolean isDead = false;
     private boolean isRed = false;
     public final int SPEED = 1;
-    private int DAMAGE = 1;
-    private float current_point_y;
-    boolean startOfGame = true;
-    private State state;
-    private float distanceToPursue = 300;
-    private Vector2 nextPointToWalkTowards;
-    private ArrayList<Vector2> pathwayCoordinates;
-    private float ATTACK_DELAY = 0.9f;
-    private int pathCounter = 1;
+    public final float ATTACK_DELAY = 3.0f;
+    public final float ATTACK_RANGE = 150;
+    public final int DAMAGE = 1;
     private Player player;
-    private boolean canAttack = true;
-    private int ATTACK_RANGE = 250;
     private final float WALK_ANIMATION_SPEED = 0.13f;
     private final float ATTACK_ANIMATION_SPEED = 0.15f;
-    private final float ATTACK_COOLDOWN = 3f;
     private Animation<TextureRegion> attackAnimation;
     private Animation<TextureRegion> walkAnimation;
+    private Range updateLogic;
     private float attackTime = 0f;
     private float walkTime = 0f;
 
-    private enum State {
-        WALK,
-        PURSUE,
-        ATTACK,
-        DEAD,
+    @Override
+    public void fireProjectile(Entity target) {
+        Vector2 targetCenter = target.getCenter();
+        float dy = targetCenter.y - getCenter().y;
+        float dx = targetCenter.x - getCenter().x;
+        final float angle = (float)Math.atan2(dy, dx);
+        entityManager.addEntity(new Arrow(getX(), getY(), angle, player, collisionManager));
     }
 
-    public Archer(float x, float y,ArrayList<Vector2> pathwayCoordinates, Player player, ArrowManager arrowManager, CoinManager coinManager) {
+    public Archer(float x, float y,ArrayList<Vector2> pathwayCoordinates, Player player, ArrowManager arrowManager, CoinManager coinManager, CollisionManager collisionManager, EntityManager entityManager) {
         super(new Texture("archer_walking_6.png"), 0, 0, 32, 32);
         setPosition(x, y);
         attackTime = 0;
         walkTime = 0;
+        this.entityManager = entityManager;
+        this.collisionManager = collisionManager;
         this.coinManager = coinManager;
-        this.nextPointToWalkTowards = pathwayCoordinates.get(0);
-        this.pathwayCoordinates = pathwayCoordinates;
         this.player = player;
-        this.arrowManager = arrowManager;
-        this.state = State.WALK;
         initTextures();
+        updateLogic = new Range(this, entityManager, player, pathwayCoordinates, collisionManager);
     }
 
     private void initTextures() {
@@ -113,114 +106,11 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
         return getBoundingRectangle();
     }
 
-
-    private void fireArrow() {
-        if (canAttack) {
-            attackTime = 0f;
-            canAttack = false;
-
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    if (isDead()) return;
-                    Vector2 playerCenter = player.getCenter();
-                    float dy = playerCenter.y - getCenter().y;
-                    float dx = playerCenter.x - getCenter().x;
-                    final float angle = (float)Math.atan2(dy, dx);
-                    arrowManager.createArrow(getCenter().x, getCenter().y, angle);
-                }
-            }, ATTACK_DELAY);
-
-
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    canAttack = true;
-                }
-            }, ATTACK_COOLDOWN);
-        }
-
-        double distanceEnemyPlayer = Geom.distanceBetween(this, player);
-        if(distanceEnemyPlayer > ATTACK_RANGE){
-            state = State.PURSUE;
-        }
-    }
-
     @Override
     public void update(float delta){
         attackTime += delta;
         walkTime += delta;
-        switch(state){
-            case WALK:
-                walkToEnd();
-                break;
-            case DEAD:
-                isDead = true;
-                break;
-            case PURSUE:
-                pursuePlayer();
-                break;
-            case ATTACK:
-                fireArrow();
-                break;
-        }
-    }
-
-
-    private void walkToEnd() {
-
-        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
-        if(distanceEnemyPlayer <= distanceToPursue){
-            state = State.PURSUE;
-            return;
-        }
-        double distanceFromCurrentPathGoal = sqrt((getX() - nextPointToWalkTowards.x) * (getX()-nextPointToWalkTowards.x) + (getY()-nextPointToWalkTowards.y) * (getY()-nextPointToWalkTowards.y));
-
-        if(distanceFromCurrentPathGoal <= 10){
-            if(pathwayCoordinates.size() > pathCounter){
-                nextPointToWalkTowards.y = pathwayCoordinates.get(pathCounter).y;
-                nextPointToWalkTowards.x = pathwayCoordinates.get(pathCounter).x;
-                pathCounter++;
-            }else{
-                state = State.DEAD;
-                return;
-            }
-        }
-        if(getY() < nextPointToWalkTowards.y) {
-            setY(getY() + SPEED);
-        }else if(getY() > nextPointToWalkTowards.y){
-            setY(getY() - SPEED);
-        }
-        if(getX() < nextPointToWalkTowards.x){
-            setX(getX() + SPEED);
-        }else if(getX() > nextPointToWalkTowards.x){
-            setX(getX() - SPEED);
-        }
-    }
-
-    private void pursuePlayer(){
-        double distanceEnemyPlayer = sqrt((getX() - player.getX()) * (getX()-player.getX()) + (getY()-player.getY()) * (getY()-player.getY()));
-        if(distanceEnemyPlayer > distanceToPursue){
-            state = State.WALK;
-            return;
-        }
-
-        if (distanceEnemyPlayer <= ATTACK_RANGE - 30) {
-            state = State.ATTACK;
-            attackTime = 0f;
-            return;
-        }
-
-        if(getY() < player.getY()) {
-            setY(getY() + SPEED);
-        }else if(getY() > player.getY()){
-            setY(getY() - SPEED);
-        }
-        if(getX() < player.getX()){
-            setX(getX() + SPEED);
-        }else if(getX() > player.getX()){
-            setX(getX() - SPEED);
-        }
+        updateLogic.update(delta);
     }
 
     public void damage(int amount) {
@@ -242,27 +132,27 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
 
     @Override
     public int getDamage() {
-        return 0;
+        return DAMAGE;
     }
 
     @Override
     public float getAttackDelay() {
-        return 0;
+        return ATTACK_DELAY;
     }
 
     @Override
     public float getAttackRange() {
-        return 0;
+        return ATTACK_RANGE;
     }
 
     @Override
     public float getSpeed() {
-        return 0;
+        return SPEED;
     }
 
     @Override
     public void onAttackStart() {
-
+        attackTime = 0f;
     }
 
     @Override
@@ -273,9 +163,9 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
             batch.setShader(null);
         }
         batch.begin();
-        if(state == State.WALK || state == State.PURSUE){
+        if(updateLogic.getState() == Range.State.WALK || updateLogic.getState() == Range.State.PURSUE){
             batch.draw(walkAnimation.getKeyFrame(walkTime, true), getX(), getY());
-        }else if(state == State.ATTACK){
+        }else if(updateLogic.getState() == Range.State.ATTACK){
             batch.draw(attackAnimation.getKeyFrame(attackTime, false), getX(), getY());
         }
         batch.end();

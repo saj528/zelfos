@@ -389,10 +389,15 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
             }
         }, ATTACK_COOLDOWN);
 
+        final boolean isFacingLeft = this.isFacingLeft;
+        final boolean isFacingRight = this.isFacingRight;
+        final boolean isFacingDown = this.isFacingDown;
+        final boolean isFacingUp = this.isFacingUp;
+
         Timer.schedule(new Timer.Task() {
             @Override
             public void run() {
-                AttackHitbox hitbox = new AttackHitbox(player);
+                final AttackHitbox hitbox = new AttackHitbox(player);
 
                 for (Entity enemy : enemies) {
                     Damageable damageable = (Damageable) enemy;
