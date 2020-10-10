@@ -5,19 +5,21 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import entities.Entity;
 import entities.Player;
+import entities.enemies.Enemy;
 import helpers.GameInfo;
 import scenes.game.EnemyManager;
+import scenes.game.EntityManager;
 
 public class CompassHud {
-    private final EnemyManager enemyManager;
     private final Player player;
     private final Sprite northArrow;
     private final Sprite southArrow;
     private final Sprite eastArrow;
     private final Sprite westArrow;
+    private final EntityManager entityManager;
 
-    public CompassHud(EnemyManager enemyManager, Player player) {
-        this.enemyManager = enemyManager;
+    public CompassHud(EntityManager entityManager, Player player) {
+        this.entityManager = entityManager;
         this.player = player;
 
         Texture compass = new Texture("compass.png");
@@ -40,7 +42,7 @@ public class CompassHud {
     }
 
     public boolean hasEnemiesNorth() {
-        for (Entity enemy : enemyManager.getEnemies()) {
+        for (Entity enemy : entityManager.getEntitiesByType(Enemy.class)) {
             if (enemy.getY() > player.getY() + GameInfo.HEIGHT / 2f) {
                 return true;
             }
@@ -49,7 +51,7 @@ public class CompassHud {
     }
 
     public boolean hasEnemiesSouth() {
-        for (Entity enemy : enemyManager.getEnemies()) {
+        for (Entity enemy : entityManager.getEntitiesByType(Enemy.class)) {
             if (enemy.getY() < player.getY() - GameInfo.HEIGHT / 2f) {
                 return true;
             }
@@ -58,7 +60,7 @@ public class CompassHud {
     }
 
     public boolean hasEnemiesWest() {
-        for (Entity enemy : enemyManager.getEnemies()) {
+        for (Entity enemy : entityManager.getEntitiesByType(Enemy.class)) {
             if (enemy.getX() < player.getX() - GameInfo.WIDTH / 2f) {
                 return true;
             }
@@ -67,7 +69,7 @@ public class CompassHud {
     }
 
     public boolean hasEnemiesEast() {
-        for (Entity enemy : enemyManager.getEnemies()) {
+        for (Entity enemy : entityManager.getEntitiesByType(Enemy.class)) {
             if (enemy.getX() > player.getX() + GameInfo.WIDTH / 2f) {
                 return true;
             }

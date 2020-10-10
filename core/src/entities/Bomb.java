@@ -9,13 +9,12 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
-import scenes.game.CollisionManager;
-import scenes.game.Geom;
-import scenes.game.Physics;
+import entities.enemies.Enemy;
+import scenes.game.*;
 import helpers.RedShader;
-import scenes.game.EnemyManager;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Bomb extends Sprite implements Knockable, Killable, Entity {
     private final float BOMB_TIME = 2.0f;
@@ -26,12 +25,12 @@ public class Bomb extends Sprite implements Knockable, Killable, Entity {
     private boolean isRed = false;
     private float flashDelay = 0.5f;
 
-    public Bomb(float x, float y, final EnemyManager enemyManager, final CollisionManager collisionManager) {
+    public Bomb(float x, float y, final EntityManager entityManager, final CollisionManager collisionManager) {
         super(new Texture("bomb.png"));
         setPosition(x, y);
         this.collisionManager = collisionManager;
         final Entity bomb = this;
-        final ArrayList<Entity> enemyEntities = (ArrayList<Entity>)(Object)enemyManager.getEnemies();
+        final ArrayList<Entity> enemyEntities = (ArrayList<Entity>)(List<?>)entityManager.getEntitiesByType(Enemy.class);
 
         Timer.schedule(new Timer.Task() {
             @Override

@@ -10,14 +10,8 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.maps.MapLayer;
-import com.badlogic.gdx.maps.MapObjects;
-import com.badlogic.gdx.maps.objects.RectangleMapObject;
-import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
-import com.badlogic.gdx.maps.tiled.TmxMapLoader;
-import com.badlogic.gdx.maps.tiled.objects.TiledMapTileMapObject;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
@@ -26,18 +20,15 @@ import com.badlogic.gdx.utils.Timer;
 import com.zelfos.game.GameMain;
 import entities.*;
 import entities.enemies.*;
-import entities.projectile.Arrow;
 import entities.structures.*;
 import hud.*;
 import helpers.GameInfo;
 
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 
-public class GameScene implements Screen, ContactListener, BombManager, EnemyManager, FlashRedManager, ArrowManager, CoinManager, EntityManager, CollisionManager {
+public class GameScene implements Screen, ContactListener, FlashRedManager, CoinManager, EntityManager, CollisionManager {
 
     private final GameMain game;
     private final Player player;
@@ -123,10 +114,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         return getEntitiesByType(Enemy.class);
     }
 
-    public void createBomb(float x, float y) {
-        entities.add(new Bomb(player.getX(), player.getY(), this, this));
-    }
-
     public boolean isCollidingWithMap(Collidable collidable) {
         TiledMapTileLayer groundLayer = (TiledMapTileLayer) mapManager.getTiledMap().getLayers().get("Ground");
         for (int j = 0; j < groundLayer.getHeight(); j++) {
@@ -205,7 +192,7 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
         }
 
         if (bombInput && player.hasBombs()) {
-            player.dropBomb(this);
+            player.dropBomb();
         }
 
         player.updatePlayerMovement(left, right, up, down, shift, delta);
@@ -371,11 +358,6 @@ public class GameScene implements Screen, ContactListener, BombManager, EnemyMan
                 shouldFlashRed = false;
             }
         }, time);
-    }
-
-    @Override
-    public void createArrow(float x, float y, float angle) {
-        entities.add(new Arrow(x, y, angle, player, this));
     }
 
 

@@ -296,11 +296,11 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         setY(getY() + input_vector.y * ACCELERATION * delta);
     }
 
-    public void dropBomb(BombManager bombManager) {
+    public void dropBomb() {
         if (canDropBomb && bombs > 0) {
             bombs--;
             canDropBomb = false;
-            bombManager.createBomb(getX(), getY());
+            entityManager.addEntity(new Bomb(getX(), getY(), entityManager, collisionManager));
             Timer.schedule(new Timer.Task() {
                 @Override
                 public void run() {
