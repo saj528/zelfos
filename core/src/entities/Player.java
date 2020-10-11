@@ -111,6 +111,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private int DODGE_DISTANCE = 40;
     private int bombs = 0;
     private boolean shouldFlashRed;
+    private boolean isMusketUnlocked = false;
     private int attackOffsetX = 11;
     private int attackOffsetY = 13;
     private boolean hasPotion = false;
@@ -168,7 +169,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     }
 
     public int getExperienceUntilNextLevel() {
-        return (int)(Math.pow(7, level) / 10) * 10 + 150;
+        return (int) (Math.pow(7, level) / 10) * 10 + 150;
     }
 
     public void addExperience(int amount) {
@@ -183,6 +184,10 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
 
     public void unlockDodge() {
         isDodgeUnlocked = true;
+    }
+
+    public void unlockMusket() {
+        isMusketUnlocked = true;
     }
 
     public void unlockWhirlwind() {
@@ -276,6 +281,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     }
 
     public void fire() {
+        if (!isMusketUnlocked()) return;
         musket.attack();
     }
 
@@ -301,7 +307,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
                 isFacingDown = false;
                 isFacingUp = false;
                 isFacingRight = false;
-                facingAngle = (float)Math.PI;
+                facingAngle = (float) Math.PI;
             }
         } else if (right) {
             isRunningRight = true;
@@ -311,7 +317,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
                 isFacingDown = false;
                 isFacingLeft = false;
                 isFacingUp = false;
-                facingAngle = (float)0;
+                facingAngle = (float) 0;
             }
         } else if (down) {
             isRunningDown = true;
@@ -321,7 +327,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
                 isFacingUp = false;
                 isFacingLeft = false;
                 isFacingRight = false;
-                facingAngle = (float)-Math.PI / 2;
+                facingAngle = (float) -Math.PI / 2;
             }
         } else if (up) {
             isRunningUp = true;
@@ -331,7 +337,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
                 isFacingDown = false;
                 isFacingLeft = false;
                 isFacingRight = false;
-                facingAngle = (float)Math.PI / 2;
+                facingAngle = (float) Math.PI / 2;
             }
         }
 
@@ -499,6 +505,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         walkTime += delta;
         dodgeTime += delta;
         whirlwindTime += delta;
+        musket.update(delta);
     }
 
     @Override
@@ -527,7 +534,9 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
             batch.setShader(WhiteShader.shaderProgram);
         }
 
-        if (isUsingSpecial) {
+        if (musket.isFiring()) {
+            musket.draw(getX(), getY(), batch);
+        } else if (isUsingSpecial) {
             batch.draw(whirlwind.getKeyFrame(whirlwindTime, false), getX() - attackOffsetX, getY() - attackOffsetY);
         } else if (showAttackAnimation) {
             if (isFacingLeft) {
@@ -765,6 +774,10 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
 
     public boolean isDodgeUnlocked() {
         return isDodgeUnlocked;
+    }
+
+    public boolean isMusketUnlocked() {
+        return isMusketUnlocked;
     }
 
     public boolean isWhirlwindUnlocked() {

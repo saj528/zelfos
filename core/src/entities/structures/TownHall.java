@@ -125,6 +125,20 @@ public class TownHall implements Entity, Damageable, Collidable, Killable {
                     }
                 }, 0.5f);
             }
+
+            boolean fDown = Gdx.input.isKeyPressed(Input.Keys.F);
+            if (fDown && canBuy()) {
+                canBuyAgain = false;
+                player.removeSkillPoint();
+                player.unlockMusket();
+
+                Timer.schedule(new Timer.Task() {
+                    @Override
+                    public void run() {
+                        canBuyAgain = true;
+                    }
+                }, 0.5f);
+            }
         }
     }
 
@@ -176,6 +190,9 @@ public class TownHall implements Entity, Damageable, Collidable, Killable {
             }
             if (!player.isWhirlwindUnlocked()) {
                 font.draw(batch, "Unlock Whirlwind (Q to buy & use)", x, y + getHeight() + 80);
+            }
+            if (!player.isMusketUnlocked()) {
+                font.draw(batch, "Unlock Musket (F to buy & use)", x, y + getHeight() + 100);
             }
             batch.end();
         }

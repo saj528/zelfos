@@ -5,10 +5,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
-import entities.Entity;
-import entities.Killable;
-import entities.Knockable;
-import entities.Player;
+import entities.*;
 import entities.enemies.Enemy;
 import scenes.game.CollisionManager;
 import scenes.game.EntityManager;
@@ -28,7 +25,7 @@ public class Bullet extends Sprite implements Killable, Entity {
     boolean isDead;
 
     public Bullet(float x, float y, float angle, EntityManager entityManager, CollisionManager collisionManager) {
-        super(new Texture("playersprites/s_arrow.png"));
+        super(new Texture("arrow.png"));
         this.angle = angle;
         setX(x);
         this.collisionManager = collisionManager;
@@ -59,6 +56,7 @@ public class Bullet extends Sprite implements Killable, Entity {
         for (Enemy enemy : enemyEntities) {
             if (getBoundingRectangle().overlaps(enemy.getBoundingRectangle())) {
                 enemy.damage(DAMAGE);
+                entityManager.addEntity(new DamageParticle(enemy.getX(), enemy.getY(), DAMAGE));
                 Physics.knockback(this, (Knockable)enemy, 10, collisionManager);
                 isDead = true;
                 return;
