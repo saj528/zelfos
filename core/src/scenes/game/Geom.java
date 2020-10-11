@@ -32,4 +32,14 @@ public class Geom {
         Vector2 targetCenter = getCenter(target);
         return sourceCenter.dst(targetCenter);
     }
+
+    public static float angleBetween(Entity source, Entity target) {
+        Vector2 targetCenter = target.getCenter();
+        Vector2 sourceCenter = source.getCenter();
+        float dy = targetCenter.y - sourceCenter.y;
+        float dx = targetCenter.x - sourceCenter.x;
+        final float angle = (float)Math.atan2(dy, dx);
+        return angle;
+
+    }
 }

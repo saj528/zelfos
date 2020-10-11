@@ -97,6 +97,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private int lives = maxLives;
     private boolean showAttackAnimation = false;
     private boolean showDodgeAnimation = false;
+    private float facingAngle = 0;
     private int skillPoints = 0;
     private float ATTACK_ANIMATION_SPEED = 0.025f;
     private float ATTACK_COOLDOWN = ATTACK_ANIMATION_SPEED * 13;
@@ -114,6 +115,8 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private int attackOffsetY = 13;
     private boolean hasPotion = false;
     private boolean canSpecial = true;
+    private boolean isGunUnlocked = false;
+    private Musket musket;
 
     private enum DIRECTIONS {
         IDLE,
@@ -153,6 +156,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         this.entityManager = entityManager;
         this.flashRedManager = flashRedManager;
         shouldFlashRed = false;
+        this.musket = new Musket(this, entityManager, collisionManager);
     }
 
     public int getLevel() {
@@ -232,6 +236,10 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         skillPoints--;
     }
 
+    public float getFacingAngle() {
+        return facingAngle;
+    }
+
     public void special() {
         if (!isWhirlwindUnlocked) return;
         if (canSpecial) {
@@ -267,6 +275,10 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private void playerWalk() {
     }
 
+    public void fire() {
+        musket.attack();
+    }
+
     public void updatePlayerMovement(boolean left, boolean right, boolean up, boolean down, boolean strafe, float delta) {
         input_vector.x = (right ? 1 : 0) - (left ? 1 : 0);
         input_vector.y = (up ? 1 : 0) - (down ? 1 : 0);
@@ -289,6 +301,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
                 isFacingDown = false;
                 isFacingUp = false;
                 isFacingRight = false;
+                facingAngle = (float)Math.PI;
             }
         } else if (right) {
             isRunningRight = true;
@@ -298,6 +311,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
                 isFacingDown = false;
                 isFacingLeft = false;
                 isFacingUp = false;
+                facingAngle = (float)0;
             }
         } else if (down) {
             isRunningDown = true;
@@ -307,6 +321,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
                 isFacingUp = false;
                 isFacingLeft = false;
                 isFacingRight = false;
+                facingAngle = (float)-Math.PI / 2;
             }
         } else if (up) {
             isRunningUp = true;
@@ -316,6 +331,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
                 isFacingDown = false;
                 isFacingLeft = false;
                 isFacingRight = false;
+                facingAngle = (float)Math.PI / 2;
             }
         }
 

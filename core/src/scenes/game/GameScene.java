@@ -204,6 +204,7 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
         boolean down = Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S);
         boolean enter = Gdx.input.isKeyPressed(Input.Keys.ENTER);
         boolean bombInput = Gdx.input.isKeyPressed(Input.Keys.B);
+        boolean musketInput = Gdx.input.isKeyPressed(Input.Keys.F);
         boolean shift = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT);
 
         player.update(delta);
@@ -214,6 +215,10 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
 
         if (bombInput && player.hasBombs()) {
             player.dropBomb();
+        }
+
+        if (musketInput) {
+            player.fire();
         }
 
         player.updatePlayerMovement(left, right, up, down, shift, delta);
