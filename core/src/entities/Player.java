@@ -50,10 +50,12 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private Vector2 motion = Vector2.Zero;
     public final float ACCELERATION = 150.0f;
     public final float MAX_SPEED = 3;
+    private boolean canDodge = true;
     private playerState state;
     private Texture playerDown = new Texture("playersprites/RunDown/run_down_1.png");
     private boolean canAttack = true;
-    private boolean canDodge = true;
+    private boolean isDodgeUnlocked = false;
+    private boolean isWhirlwindUnlocked = false;
     private boolean isRunningLeft = false;
     private boolean isRunningRight = false;
     private boolean isRunningUp = false;
@@ -95,6 +97,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private int lives = maxLives;
     private boolean showAttackAnimation = false;
     private boolean showDodgeAnimation = false;
+    private int skillPoints = 0;
     private float ATTACK_ANIMATION_SPEED = 0.025f;
     private float ATTACK_COOLDOWN = ATTACK_ANIMATION_SPEED * 13;
     private float ATTACK_ANIMATION_DURATION = 0.2f;
@@ -161,7 +164,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     }
 
     public int getExperienceUntilNextLevel() {
-        return (int)Math.pow(5, level) + 25;
+        return (int)(Math.pow(7, level) / 10) * 10 + 150;
     }
 
     public void addExperience(int amount) {
@@ -169,8 +172,17 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         if (experience >= getExperienceUntilNextLevel()) {
             experience = 0;
             level++;
+            skillPoints++;
             entityManager.addEntity(new LevelUpParticle(getX(), getY()));
         }
+    }
+
+    public void unlockDodge() {
+        isDodgeUnlocked = true;
+    }
+
+    public void unlockWhirlwind() {
+        isWhirlwindUnlocked = true;
     }
 
     public int getLives() {
@@ -212,7 +224,16 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         return bombs;
     }
 
+    public int getSkillPoints() {
+        return skillPoints;
+    }
+
+    public void removeSkillPoint() {
+        skillPoints--;
+    }
+
     public void special() {
+        if (!isWhirlwindUnlocked) return;
         if (canSpecial) {
             canSpecial = false;
             whirlwindTime = 0f;
@@ -334,6 +355,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     }
 
     public void dodge() {
+        if (!isDodgeUnlocked) return;
         if (!canAttack || !canDodge) return;
         canAttack = false;
         canDodge = false;
@@ -724,6 +746,14 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         this.hasPotion = hasPotion;
     }
 
+
+    public boolean isDodgeUnlocked() {
+        return isDodgeUnlocked;
+    }
+
+    public boolean isWhirlwindUnlocked() {
+        return isWhirlwindUnlocked;
+    }
 
     public void usePotion() {
         lives += Cleric.POTION_HEAL;

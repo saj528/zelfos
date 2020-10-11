@@ -58,7 +58,7 @@ public class MapManager {
         Vector2 bombShopPoint = getMapObjectLocation("BombShop");
         entityManager.addEntity(new BombShop(bombShopPoint.x, bombShopPoint.y, player, coinManager, entityManager, collisionManager, waveManager));
 
-        TownHall townHall = new TownHall(getMapObjectLocation("End").x, getMapObjectLocation("End").y);
+        TownHall townHall = new TownHall(getMapObjectLocation("End").x, getMapObjectLocation("End").y, waveManager, player);
         entityManager.addEntity(townHall);
 
         collidableTiles = new HashSet<>();

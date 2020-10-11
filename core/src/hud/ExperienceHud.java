@@ -18,7 +18,7 @@ public class ExperienceHud {
     public void draw(Batch batch) {
         batch.begin();
         font.setColor(new Color(1, 0, 0, 1));
-        font.draw(batch, "Level " + player.getLevel() + " Exp: " + player.getExperience() + " / " + player.getExperienceUntilNextLevel(), 10, GameInfo.HEIGHT - 90);
+        font.draw(batch, "SP: " + player.getSkillPoints() + " Level " + player.getLevel() + " Exp: " + player.getExperience() + " / " + player.getExperienceUntilNextLevel(), 10, GameInfo.HEIGHT - 90);
         batch.end();
     }
 }
