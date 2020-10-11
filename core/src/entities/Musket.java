@@ -19,11 +19,12 @@ public class Musket {
     private float attackDelay = 3.0f;
     private float attackOffset = 0.15f;
     private Animation animation;
-    private float musketAnimationSpeed = .03f;
+    private float musketAnimationSpeed = .2f;
     private Animation<TextureRegion> upAnimation;
     private Animation<TextureRegion> downAnimation;
     private float animationTime = 0;
     private boolean isFiring = false;
+    private int ballOffset = 7;
     private Animation<TextureRegion> rightAnimation;
     private Animation<TextureRegion> leftAnimation;
 
@@ -80,8 +81,12 @@ public class Musket {
             animationTime = 0f;
             canAttack = false;
             isFiring = true;
-            entityManager.addEntity(new Bullet(player.getX(), player.getY(), player.getFacingAngle(), entityManager, collisionManager));
-
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+            entityManager.addEntity(new Bullet(player.getX() + ballOffset, player.getY()+ballOffset, player.getFacingAngle(), entityManager, collisionManager));
+                }
+            }, (musketAnimationSpeed + .05f));
             Timer.schedule(new Timer.Task() {
                 @Override
                 public void run() {

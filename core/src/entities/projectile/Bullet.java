@@ -25,7 +25,7 @@ public class Bullet extends Sprite implements Killable, Entity {
     boolean isDead;
 
     public Bullet(float x, float y, float angle, EntityManager entityManager, CollisionManager collisionManager) {
-        super(new Texture("arrow.png"));
+        super(new Texture("bullet.png"));
         this.angle = angle;
         setX(x);
         this.collisionManager = collisionManager;
