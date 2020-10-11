@@ -18,7 +18,7 @@ public class WaveManager {
     private final Player player;
     private MapManager mapManager;
     private ArrayList<Wave> waves;
-    private int currentWaveIndex;
+    private int currentWaveIndex = 0;
     private boolean isOnIntermission = false;
     private GameScene gameScene;
 
@@ -103,6 +103,16 @@ public class WaveManager {
         enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.EAST));
         enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH));
         enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 1, EnemySet.Lane.NORTH));
+        waves.add(new Wave(enemySets));
+
+        // wave 13
+        enemySets = new ArrayList<>();
+        enemySets.add(new EnemySet(EnemySet.EnemyType.BOMB_THROWER, 1, EnemySet.Lane.EAST));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.BOMB_THROWER, 1, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 2, EnemySet.Lane.EAST));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.ARCHER, 2, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.EAST));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.SOLDIER, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
     }
 

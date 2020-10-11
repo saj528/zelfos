@@ -49,7 +49,6 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
     private ExperienceHud experienceHud;
     private final Inventory inventory;
     private int totalCoins = 0;
-    private int currentWaveIndex = 0;
     private final WavesHud wavesHud;
     private MapManager mapManager;
     private BombsHud bombsHud;
@@ -142,6 +141,7 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
         for (Collidable collidable : getCollidables()) {
             if (collidable == entity) continue;
             ArrayList<Class> ignoreList = entity.getIgnoreClassList();
+            if (ignoreList == null) continue;
             boolean skip = false;
             for (Class clazz : ignoreList) {
                 if (clazz.isInstance(collidable)) {

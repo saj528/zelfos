@@ -54,8 +54,6 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private playerState state;
     private Texture playerDown = new Texture("playersprites/RunDown/run_down_1.png");
     private boolean canAttack = true;
-    private boolean isDodgeUnlocked = false;
-    private boolean isWhirlwindUnlocked = false;
     private boolean isRunningLeft = false;
     private boolean isRunningRight = false;
     private boolean isRunningUp = false;
@@ -108,15 +106,17 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private float DODGE_ANIMATION_SPEED = 0.1f;
     private float DODGE_COOLDOWN = DODGE_ANIMATION_DURATION * 2;
     private float DODGE_TO_ATTACK_COOLDOWN = DODGE_ANIMATION_DURATION;
-    private int DODGE_DISTANCE = 40;
+    private int DODGE_DISTANCE = 30;
     private int bombs = 0;
     private boolean shouldFlashRed;
-    private boolean isMusketUnlocked = false;
     private int attackOffsetX = 11;
     private int attackOffsetY = 13;
     private boolean hasPotion = false;
     private boolean canSpecial = true;
-    private boolean isGunUnlocked = false;
+    private boolean isMusketUnlocked = true;
+    private boolean isDodgeUnlocked = true;
+    private boolean isWhirlwindUnlocked = true;
+
     private Musket musket;
 
     private enum DIRECTIONS {

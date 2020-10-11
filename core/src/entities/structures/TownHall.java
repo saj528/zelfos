@@ -196,6 +196,8 @@ public class TownHall implements Entity, Damageable, Collidable, Killable {
             }
             batch.end();
         }
+
+        batch.setShader(null);
     }
 
     @Override
