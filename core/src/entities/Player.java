@@ -96,7 +96,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private boolean showAttackAnimation = false;
     private boolean showDodgeAnimation = false;
     private float facingAngle = 0;
-    private int skillPoints = 0;
+    private int skillPoints = 3;
     private float ATTACK_ANIMATION_SPEED = 0.025f;
     private float ATTACK_COOLDOWN = ATTACK_ANIMATION_SPEED * 13;
     private float ATTACK_ANIMATION_DURATION = 0.2f;
