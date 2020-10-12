@@ -51,7 +51,6 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     public final float ACCELERATION = 150.0f;
     public final float MAX_SPEED = 3;
     private boolean canDodge = true;
-    private playerState state;
     private Texture playerDown = new Texture("playersprites/RunDown/run_down_1.png");
     private boolean canAttack = true;
     private boolean isRunningLeft = false;
@@ -111,7 +110,6 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private boolean shouldFlashRed;
     private int attackOffsetX = 11;
     private int attackOffsetY = 13;
-    private boolean hasPotion = false;
     private boolean canSpecial = true;
     private boolean isMusketUnlocked = true;
     private boolean isDodgeUnlocked = true;
@@ -135,14 +133,6 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         Down
     }
 
-    private enum playerState {
-        WALKING,
-        ATTACKING,
-        DODGING,
-        BOMBING,
-        TAKINGDAMAGE,
-        DEAD
-    }
 
     private Direction strifeDirection = Direction.None;
 
@@ -763,13 +753,6 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
         dodgeRight = new Animation<TextureRegion>(DODGE_ANIMATION_SPEED, dodgeRightFrames);
     }
 
-    public boolean getHasPotion() {
-        return hasPotion;
-    }
-
-    public void setHasPotion(boolean hasPotion) {
-        this.hasPotion = hasPotion;
-    }
 
 
     public boolean isDodgeUnlocked() {
@@ -783,12 +766,6 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     public boolean isWhirlwindUnlocked() {
         return isWhirlwindUnlocked;
     }
-
-    public void usePotion() {
-        lives += Cleric.POTION_HEAL;
-        hasPotion = false;
-    }
-
 
     public boolean isDead() {
         return lives <= 0;

@@ -5,28 +5,44 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import entities.Player;
+import entities.items.Item;
 import helpers.GameInfo;
+
+import java.util.ArrayList;
 
 public class Inventory {
     private Player player;
-    private Texture inventoryBox;
-    private Texture potionFull;
-    private Texture potionEmpty;
-    private int inventorySize = 4;
+    private ArrayList<Item> itemCollection;
     private int x;
     private int y;
-    BitmapFont font = new BitmapFont();
-
     public Inventory(Player player) {
         this.player = player;
-        inventoryBox = new Texture("itemAndUiSprites/s_inventory_box.png");
-        potionFull = new Texture("healthBottleFull.png");
-        potionEmpty = new Texture("healthBottleEmpty.png");
-
         x = GameInfo.WIDTH - 220;
         y = 10;
     }
 
+    public void addToItemCollection(Item item){
+        itemCollection.add(item);
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
+
+/*
     public void draw(Batch batch) {
         batch.begin();
         for (int i = 0; i <= inventorySize; i++) {
@@ -42,4 +58,6 @@ public class Inventory {
         }
         batch.end();
     }
+
+     */
 }
