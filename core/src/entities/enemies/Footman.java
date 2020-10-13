@@ -23,7 +23,8 @@ public class Footman extends Sprite implements Enemy, Knockable, Entity, Damagea
     private static final float ATTACK_RANGE = 25f;
     private static final int DAMAGE = 1;
     private final CoinManager coinManager;
-    private int health = 5;
+    private int MAX_HEALTH = 5;
+    private int health = MAX_HEALTH;
     private boolean isDead = false;
     private boolean isRed = false;
     public final float SPEED = 1.4f;
@@ -106,6 +107,16 @@ public class Footman extends Sprite implements Enemy, Knockable, Entity, Damagea
                 isRed = false;
             }
         }, 0.2f);
+    }
+
+    @Override
+    public int getHealth() {
+        return health;
+    }
+
+    @Override
+    public int getMaxHealth() {
+        return MAX_HEALTH;
     }
 
     @Override

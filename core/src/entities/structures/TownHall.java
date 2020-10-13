@@ -16,6 +16,7 @@ import entities.Damageable;
 import entities.Entity;
 import entities.Killable;
 import entities.Player;
+import helpers.EntityHealthBar;
 import helpers.WhiteShader;
 import scenes.game.Collidable;
 import scenes.game.Geom;
@@ -27,10 +28,11 @@ public class TownHall implements Entity, Damageable, Collidable, Killable {
 
     private final Sprite townHallSprite;
     private final WaveManager waveManager;
-    private int health = 10;
-    private int maxHealth = 10;
+    private int MAX_HEALTH = 10;
+    private int health = MAX_HEALTH;
     private boolean canBuyAgain = true;
     private boolean showText = false;
+    private EntityHealthBar healthBar;
     private float x;
     private float y;
     private Player player;
@@ -43,11 +45,22 @@ public class TownHall implements Entity, Damageable, Collidable, Killable {
         setY(y - townHallSprite.getHeight() / 2f);
         this.waveManager = waveManager;
         this.player = player;
+        this.healthBar = new EntityHealthBar(this);
     }
 
     @Override
     public void damage(int amount) {
         health -= amount;
+    }
+
+    @Override
+    public int getHealth() {
+        return health;
+    }
+
+    @Override
+    public int getMaxHealth() {
+        return MAX_HEALTH;
     }
 
     @Override
@@ -157,25 +170,7 @@ public class TownHall implements Entity, Damageable, Collidable, Killable {
         batch.draw(townHallSprite, x, y);
         batch.end();
 
-        Pixmap pixmap = new Pixmap((int) getWidth(), 10, Pixmap.Format.RGBA8888);
-        pixmap.setColor(new Color(0, 0, 0, 1f));
-        pixmap.fillRectangle(0, 0, (int) getWidth(), 10);
-        Texture texture = new Texture(pixmap);
-        pixmap.dispose();
-
-        batch.begin();
-        batch.draw(texture, (float) getX(), (float) getY() + getHeight() + 10);
-        batch.end();
-
-        pixmap = new Pixmap((int) getWidth(), 10, Pixmap.Format.RGBA8888);
-        pixmap.setColor(new Color(1, 0, 0, 1f));
-        pixmap.fillRectangle(0, 0, (int) getWidth() * health / maxHealth, 10);
-        texture = new Texture(pixmap);
-        pixmap.dispose();
-
-        batch.begin();
-        batch.draw(texture, (float) getX(), (float) getY() + getHeight() + 10);
-        batch.end();
+        healthBar.draw(batch, shapeRenderer);
 
         if (showText && waveManager.isOnIntermission()) {
             batch.begin();

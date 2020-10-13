@@ -48,7 +48,7 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
     private Vector2 forceCameraTo;
     private ExperienceHud experienceHud;
     private final Inventory inventory;
-    private int totalCoins = 0;
+    private int totalCoins = 50;
     private final WavesHud wavesHud;
     private MapManager mapManager;
     private BombsHud bombsHud;

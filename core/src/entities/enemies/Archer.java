@@ -23,7 +23,8 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
     private final CoinManager coinManager;
     private final CollisionManager collisionManager;
     private final EntityManager entityManager;
-    private int health = 3;
+    private int MAX_HEALTH = 3;
+    private int health = MAX_HEALTH;
     private boolean isDead = false;
     private boolean isRed = false;
     public final int SPEED = 1;
@@ -129,6 +130,16 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
                 isRed = false;
             }
         }, 0.2f);
+    }
+
+    @Override
+    public int getHealth() {
+        return health;
+    }
+
+    @Override
+    public int getMaxHealth() {
+        return MAX_HEALTH;
     }
 
     @Override

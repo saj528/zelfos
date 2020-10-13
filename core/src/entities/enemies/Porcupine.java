@@ -20,7 +20,8 @@ import java.util.ArrayList;
 public class Porcupine implements Enemy, Knockable, Entity, Damageable, Collidable {
 
     private final CoinManager coinManager;
-    private int health = 2;
+    private int MAX_HEALTH = 2;
+    private int health = MAX_HEALTH;
     private boolean isDead = false;
     private boolean isRed = false;
     public final float SPEED = 1.5f;
@@ -102,6 +103,16 @@ public class Porcupine implements Enemy, Knockable, Entity, Damageable, Collidab
                 isRed = false;
             }
         }, 0.2f);
+    }
+
+    @Override
+    public int getHealth() {
+        return health;
+    }
+
+    @Override
+    public int getMaxHealth() {
+        return MAX_HEALTH;
     }
 
     @Override

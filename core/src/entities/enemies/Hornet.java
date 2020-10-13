@@ -23,7 +23,8 @@ public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable,
     private final CoinManager coinManager;
     private final EntityManager entityManager;
     private final CollisionManager collisionManager;
-    private int health = 1;
+    private int MAX_HEALTH = 1;
+    private int health = MAX_HEALTH;
     private boolean isDead = false;
     private boolean isRed = false;
     public final float SPEED = 1.3f;
@@ -124,6 +125,17 @@ public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable,
                 isRed = false;
             }
         }, 0.2f);
+    }
+
+
+    @Override
+    public int getHealth() {
+        return health;
+    }
+
+    @Override
+    public int getMaxHealth() {
+        return MAX_HEALTH;
     }
 
     @Override

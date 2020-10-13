@@ -61,10 +61,10 @@ public class MapManager {
         TownHall townHall = new TownHall(getMapObjectLocation("End").x, getMapObjectLocation("End").y, waveManager, player);
         entityManager.addEntity(townHall);
 
-        Tower northTower0 = new Tower(getMapObjectLocation("NorthTower0").x, getMapObjectLocation("NorthTower0").y, entityManager, collisionManager);
+        Tower northTower0 = new Tower(getMapObjectLocation("NorthTower0").x, getMapObjectLocation("NorthTower0").y, entityManager, collisionManager, coinManager, waveManager, player);
         entityManager.addEntity(northTower0);
 
-        Tower northTower1 = new Tower(getMapObjectLocation("NorthTower1").x, getMapObjectLocation("NorthTower1").y, entityManager, collisionManager);
+        Tower northTower1 = new Tower(getMapObjectLocation("NorthTower1").x, getMapObjectLocation("NorthTower1").y, entityManager, collisionManager, coinManager, waveManager, player);
         entityManager.addEntity(northTower1);
 
         collidableTiles = new HashSet<>();

@@ -225,6 +225,16 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
 
     }
 
+    @Override
+    public int getHealth() {
+        return lives;
+    }
+
+    @Override
+    public int getMaxHealth() {
+        return maxLives;
+    }
+
     public void addBomb() {
         bombs++;
     }

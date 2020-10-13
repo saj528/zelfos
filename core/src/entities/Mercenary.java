@@ -20,7 +20,8 @@ public class Mercenary implements Knockable, Entity, Damageable, Killable, Colli
     private final Vector2 guardPost;
     private final Vector2 basePost;
     private final EntityManager entityManager;
-    private int health = 5;
+    private int MAX_HEALTH = 5;
+    private int health = MAX_HEALTH;
     private boolean isDead = false;
     private boolean isRed = false;
     public final float SPEED = 1.4f;
@@ -236,6 +237,16 @@ public class Mercenary implements Knockable, Entity, Damageable, Killable, Colli
                 isRed = false;
             }
         }, 0.2f);
+    }
+
+    @Override
+    public int getHealth() {
+        return health;
+    }
+
+    @Override
+    public int getMaxHealth() {
+        return MAX_HEALTH;
     }
 
     @Override
