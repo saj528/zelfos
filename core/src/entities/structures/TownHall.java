@@ -12,10 +12,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
-import entities.Damageable;
-import entities.Entity;
-import entities.Killable;
-import entities.Player;
+import entities.*;
 import helpers.EntityHealthBar;
 import helpers.WhiteShader;
 import scenes.game.Collidable;
@@ -24,7 +21,7 @@ import scenes.game.WaveManager;
 
 import java.util.ArrayList;
 
-public class TownHall implements Entity, Damageable, Collidable, Killable {
+public class TownHall implements Entity, Damageable, Collidable, Killable, Friendly {
 
     private final Sprite townHallSprite;
     private final WaveManager waveManager;
@@ -208,5 +205,10 @@ public class TownHall implements Entity, Damageable, Collidable, Killable {
     @Override
     public boolean isDead() {
         return health <= 0;
+    }
+
+    @Override
+    public boolean isTargetable() {
+        return true;
     }
 }

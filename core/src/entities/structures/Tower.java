@@ -12,6 +12,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
 import entities.Damageable;
 import entities.Entity;
+import entities.Friendly;
 import entities.Player;
 import entities.enemies.Enemy;
 import entities.projectile.Bullet;
@@ -22,7 +23,7 @@ import scenes.game.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Tower implements Entity, Collidable, Damageable {
+public class Tower implements Entity, Collidable, Damageable, Friendly {
     private final EntityManager entityManager;
     private final CoinManager coinManager;
     private final WaveManager waveManager;
@@ -36,7 +37,7 @@ public class Tower implements Entity, Collidable, Damageable {
     private float ATTACK_COOLDOWN = 3.0f;
     private CollisionManager collisionManager;
     private float TOWER_RANGE = 200f;
-    private boolean isActive = false;
+    private boolean isActive = true;
     BitmapFont font = new BitmapFont();
     private int MAX_HEALTH = 20;
     private int health = MAX_HEALTH;
@@ -59,6 +60,11 @@ public class Tower implements Entity, Collidable, Damageable {
         isActive = true;
     }
 
+
+    @Override
+    public boolean isTargetable() {
+        return isActive;
+    }
 
     @Override
     public float getX() {
@@ -161,8 +167,8 @@ public class Tower implements Entity, Collidable, Damageable {
 
     @Override
     public void damage(int amount) {
-        this.health -= amount;
-        if (amount <= 0) {
+        health -= amount;
+        if (health <= 0) {
             isActive = false;
         }
     }

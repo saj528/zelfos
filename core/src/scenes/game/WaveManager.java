@@ -32,7 +32,7 @@ public class WaveManager {
 
         // wave 1
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 20, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 
         // wave 2
@@ -42,7 +42,7 @@ public class WaveManager {
 
         // wave 3
         enemySets = new ArrayList<>();
-        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 1, EnemySet.Lane.NORTH));
+        enemySets.add(new EnemySet(EnemySet.EnemyType.HORNET, 20, EnemySet.Lane.NORTH));
         enemySets.add(new EnemySet(EnemySet.EnemyType.PORCUPINE, 1, EnemySet.Lane.NORTH));
         waves.add(new Wave(enemySets));
 

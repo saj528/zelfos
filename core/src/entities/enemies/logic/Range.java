@@ -59,29 +59,16 @@ public class Range implements UpdateLogic {
     }
 
     private void walk() {
-        // todo: all this should come from entity as
-        ArrayList<Mercenary> mercenaries = (ArrayList<Mercenary>) (ArrayList<?>) entityManager.getEntitiesByType(Mercenary.class);
-        for (Mercenary mercenary : mercenaries) {
-            float distToMerc = Geom.distanceBetween(enemy, mercenary);
+
+        ArrayList<Entity> targets = (ArrayList<Entity>) (ArrayList<?>) entityManager.getEntitiesByType(Friendly.class);
+        for (Entity target : targets) {
+            if (!((Friendly)target).isTargetable()) continue;
+            float distToMerc = Geom.distanceBetween(enemy, target);
             if (distToMerc <= PURSUE_DISTANCE) {
                 state = State.PURSUE;
-                target = mercenary;
+                this.target = target;
                 return;
             }
-        }
-
-        if (Geom.distanceBetween(enemy, player) <= PURSUE_DISTANCE) {
-            state = State.PURSUE;
-            target = player;
-            return;
-        }
-
-        TownHall townHall = (TownHall) entityManager.getEntityByType(TownHall.class);
-        float dist = Geom.distanceBetween(enemy, townHall);
-        if (dist <= PURSUE_DISTANCE) {
-            state = State.PURSUE;
-            target = townHall;
-            return;
         }
 
         double distanceFromCurrentPathGoal = nextPointToWalkTowards.dst(new Vector2(enemy.getX(), enemy.getY()));
@@ -124,8 +111,7 @@ public class Range implements UpdateLogic {
         }
 
         float distance = Geom.distanceBetween(enemy, target);
-        float range = ((Enemy) enemy).getAttackRange() - 10 + target.getBoundingRectangle().getWidth() / 2f + enemy.getBoundingRectangle().getWidth() / 2f;
-        if (distance <= range) {
+        if (distance <= ((Enemy) enemy).getAttackRange()) {
             state = State.ATTACK;
             ((Enemy) enemy).onAttackStart();
             return;
@@ -147,8 +133,7 @@ public class Range implements UpdateLogic {
                     if (((Killable) entity).isDead()) return;
                     if (target == null) return;
                     float distance = Geom.distanceBetween(entity, target);
-                    float range = ((Enemy) enemy).getAttackRange() + target.getBoundingRectangle().getWidth() / 2f + entity.getBoundingRectangle().getWidth() / 2f;
-                    if (distance <= range) {
+                    if (distance <= ((Enemy) enemy).getAttackRange()) {
                         ((Ranged)enemy).fireProjectile(target);
                     }
                 }

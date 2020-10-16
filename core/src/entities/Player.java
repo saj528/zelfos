@@ -41,7 +41,7 @@ class AttackHitbox {
 
 }
 
-public class Player extends Sprite implements Knockable, Damageable, Collidable, Entity {
+public class Player extends Sprite implements Knockable, Damageable, Collidable, Entity, Friendly {
 
     private final FlashRedManager flashRedManager;
     private final CollisionManager collisionManager;
@@ -96,7 +96,7 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private boolean showAttackAnimation = false;
     private boolean showDodgeAnimation = false;
     private float facingAngle = 0;
-    private int skillPoints = 3;
+    private int skillPoints = 0;
     private float ATTACK_ANIMATION_SPEED = 0.025f;
     private float ATTACK_COOLDOWN = ATTACK_ANIMATION_SPEED * 13;
     private float ATTACK_ANIMATION_DURATION = 0.2f;
@@ -118,6 +118,11 @@ public class Player extends Sprite implements Knockable, Damageable, Collidable,
     private boolean isWhirlwindUnlocked = true;
 
     private Musket musket;
+
+    @Override
+    public boolean isTargetable() {
+        return true;
+    }
 
     private enum DIRECTIONS {
         IDLE,

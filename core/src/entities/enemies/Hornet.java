@@ -45,10 +45,10 @@ public class Hornet implements Enemy, Knockable, Entity, Damageable, Collidable,
 
     @Override
     public void fireProjectile(Entity target) {
-        float dy = target.getY() - getY();
-        float dx = target.getX() - getX();
+        float dy = target.getCenter().y - getCenter().y;
+        float dx = target.getCenter().x - getCenter().x;
         float angle = (float) Math.atan2(dy, dx);
-        entityManager.addEntity(new Stinger(getX(), getY(), angle, player, collisionManager));
+        entityManager.addEntity(new Stinger(getCenter().x, getCenter().y, angle, player, collisionManager, entityManager));
     }
 
     public Hornet(float x, float y, ArrayList<Vector2> pathwayCoordinates, Player player, CoinManager coinManager, EntityManager entityManager, CollisionManager collisionManager) {

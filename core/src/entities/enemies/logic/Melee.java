@@ -61,28 +61,15 @@ public class Melee implements UpdateLogic {
     }
 
     private void walk() {
-        ArrayList<Mercenary> mercenaries = (ArrayList<Mercenary>) (ArrayList<?>) entityManager.getEntitiesByType(Mercenary.class);
-        for (Mercenary mercenary : mercenaries) {
-            float distToMerc = Geom.distanceBetween(enemy, mercenary);
+        ArrayList<Entity> targets = (ArrayList<Entity>) (ArrayList<?>) entityManager.getEntitiesByType(Friendly.class);
+        for (Entity target : targets) {
+            if (!((Friendly)target).isTargetable()) continue;
+            float distToMerc = Geom.distanceBetween(enemy, target);
             if (distToMerc <= PURSUE_DISTANCE) {
                 state = State.PURSUE;
-                target = mercenary;
+                this.target = target;
                 return;
             }
-        }
-
-        if (Geom.distanceBetween(enemy, player) <= PURSUE_DISTANCE) {
-            state = State.PURSUE;
-            target = player;
-            return;
-        }
-
-        TownHall townHall = (TownHall) entityManager.getEntityByType(TownHall.class);
-        float dist = Geom.distanceBetween(enemy, townHall);
-        if (dist <= PURSUE_DISTANCE) {
-            state = State.PURSUE;
-            target = townHall;
-            return;
         }
 
         double distanceFromCurrentPathGoal = nextPointToWalkTowards.dst(new Vector2(enemy.getX(), enemy.getY()));

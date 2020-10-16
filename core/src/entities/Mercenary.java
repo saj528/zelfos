@@ -14,7 +14,7 @@ import scenes.game.*;
 
 import java.util.ArrayList;
 
-public class Mercenary implements Knockable, Entity, Damageable, Killable, Collidable {
+public class Mercenary implements Knockable, Entity, Damageable, Killable, Collidable, Friendly {
 
     private final CollisionManager collisionManager;
     private final Vector2 guardPost;
@@ -84,6 +84,11 @@ public class Mercenary implements Knockable, Entity, Damageable, Killable, Colli
     @Override
     public ArrayList<Class> getIgnoreClassList() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public boolean isTargetable() {
+        return true;
     }
 
     private enum State {

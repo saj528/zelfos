@@ -20,6 +20,7 @@ import com.badlogic.gdx.utils.Timer;
 import com.zelfos.game.GameMain;
 import entities.*;
 import entities.enemies.*;
+import entities.projectile.Stinger;
 import entities.structures.*;
 import helpers.AmbientShader;
 import hud.*;
@@ -48,7 +49,7 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
     private Vector2 forceCameraTo;
     private ExperienceHud experienceHud;
     private final Inventory inventory;
-    private int totalCoins = 50;
+    private int totalCoins = 0;
     private final WavesHud wavesHud;
     private MapManager mapManager;
     private BombsHud bombsHud;
@@ -100,6 +101,7 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
         compassHud = new CompassHud(this, player);
 
         waveManager.startIntermission();
+        addEntity(player);
     }
 
     @Override
@@ -173,20 +175,6 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
                 }
             }
         }
-
-//        Iterator iterator = killables.iterator();
-//        while (iterator.hasNext()) {
-//            Object next = iterator.next();
-//            if (next instanceof Killable) {
-//                if (((Killable) next).isDead()) {
-//                    iterator.remove();
-//                    if (next instanceof Enemy) {
-//                        player.addExperience(10);
-//                        addEntity(new ExperienceParticle(player.getX(), player.getY(), 10));
-//                    }
-//                }
-//            }
-//        }
     }
 
     public void setForceCameraTo(Vector2 forceCameraTo) {
@@ -206,8 +194,6 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
         boolean bombInput = Gdx.input.isKeyPressed(Input.Keys.B);
         boolean musketInput = Gdx.input.isKeyPressed(Input.Keys.F);
         boolean shift = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT);
-
-        player.update(delta);
 
         if (enter && waveManager.isOnIntermission()) {
             waveManager.spawnNextWave();
@@ -269,9 +255,9 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
             game.showMainMenuScene();
         }
 
-        if (((TownHall) getEntityByType(TownHall.class)).isDead()) {
-            game.showMainMenuScene();
-        }
+//        if (((TownHall) getEntityByType(TownHall.class)).isDead()) {
+//            game.showMainMenuScene();
+//        }
 
         if (!waveManager.isOnIntermission() && getEntitiesByType(Enemy.class).size() <= 0) {
             if (waveManager.isOnFinalWave()) {
@@ -303,8 +289,6 @@ public class GameScene implements Screen, ContactListener, FlashRedManager, Coin
 
         ShapeRenderer shapeRenderer = new ShapeRenderer();
         shapeRenderer.setProjectionMatrix(camera.combined);
-
-        player.draw(batch, shapeRenderer);
 
         for (Entity entity : entities) {
             entity.draw(batch, shapeRenderer);

@@ -46,7 +46,7 @@ public class Archer extends Sprite implements Enemy, Knockable, Entity, Damageab
         float dy = targetCenter.y - getCenter().y;
         float dx = targetCenter.x - getCenter().x;
         final float angle = (float)Math.atan2(dy, dx);
-        entityManager.addEntity(new Arrow(getX(), getY(), angle, player, collisionManager));
+        entityManager.addEntity(new Arrow(getCenter().x, getCenter().y, angle, player, collisionManager));
     }
 
     public Archer(float x, float y,ArrayList<Vector2> pathwayCoordinates, Player player, CoinManager coinManager, CollisionManager collisionManager, EntityManager entityManager) {
