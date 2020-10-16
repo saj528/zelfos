@@ -11,6 +11,8 @@ import helpers.GameInfo;
 import java.util.ArrayList;
 
 public class Inventory {
+
+
     private Player player;
     private ArrayList<Item> itemCollection;
     private int x;
