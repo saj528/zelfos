@@ -37,7 +37,7 @@ public class Tower implements Entity, Collidable, Damageable, Friendly {
     private float ATTACK_COOLDOWN = 3.0f;
     private CollisionManager collisionManager;
     private float TOWER_RANGE = 200f;
-    private boolean isActive = true;
+    private boolean isActive = false;
     BitmapFont font = new BitmapFont();
     private int MAX_HEALTH = 20;
     private int health = MAX_HEALTH;

@@ -54,6 +54,10 @@ public class Stinger extends Sprite implements Killable, Entity {
 
         ArrayList<Entity> targets = (ArrayList<Entity>) (ArrayList<?>) entityManager.getEntitiesByType(Friendly.class);
         for (Entity target : targets) {
+            if (target instanceof Player) {
+                System.out.println("player");
+            }
+
             if (!((Friendly)target).isTargetable()) continue;
 
             if (getBoundingRectangle().overlaps(target.getBoundingRectangle())) {
@@ -62,9 +66,8 @@ public class Stinger extends Sprite implements Killable, Entity {
                     Physics.knockback(this, (Knockable)target, 10, collisionManager);
                 }
                 isDead = true;
+                break;
             }
-
-            break;
         }
     }
 
